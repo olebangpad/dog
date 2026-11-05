@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { inflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE } from '../src/index.js'
+import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from '../src/index.js'
 
 const hex = (img, x, y) => toHex(img.get(x, y))
 
@@ -231,4 +231,45 @@ test('no gear is clipped on any body', () => {
 test('there are lots of combinations', () => {
   assert.ok(dog.char.count() > 100000)
   assert.ok(dog.char.parts.body.includes('hero') && dog.char.parts.head.includes('hat-crown'))
+})
+
+// --------------------------------------------------------------- actions
+test('every action gives 8 same-size frames with an fps', () => {
+  for (const name of dog.action.list) {
+    for (const spec of ['hero', { body: 'dog', hat: 'crown' }, { body: 'slime-blue', hat: 'wizard' }]) {
+      const frames = dog.action(spec, name)
+      assert.equal(frames.length, ACTION_FRAMES, name)
+      assert.ok(frames.every((f) => f.w === ACTION_SIZE && f.h === ACTION_SIZE), name)
+      assert.ok(frames.fps > 0, name)
+      assert.ok(frames.some((f) => f.colors().length), `${name} is empty`)
+    }
+  }
+})
+
+test('elements recolor the effect', () => {
+  const plain = dog.action('hero', 'attack')
+  const fire = dog.action('hero', 'attack', 'fire')
+  assert.notDeepEqual(plain[2].data, fire[2].data)
+  const fireColors = new Set(fire.flatMap((f) => f.colors()))
+  assert.ok(MATERIALS.orange.some((c) => fireColors.has(c)))
+  // any material or hex works as a custom element
+  assert.ok(new Set(dog.action('hero', 'cast', { element: '#00ffcc' }).flatMap((f) => f.colors())).has('#00ffcc'))
+  assert.deepEqual(dog.action.elements, Object.keys(ELEMENTS))
+})
+
+test('hit flashes white and can hide its number', () => {
+  const [first] = dog.action('hero', 'hit')
+  assert.ok(first.colors().includes('#ffffff'))
+  const withNum = dog.action('hero', 'hit', { amount: '-99' })
+  const noNum = dog.action('hero', 'hit', { label: false })
+  assert.notDeepEqual(withNum[3].data, noNum[3].data)
+})
+
+test('death ends without the character', () => {
+  // with a pure-green smoke, the last frame must contain only smoke colors
+  const smoke = rampFrom('#00ff00')
+  const last = dog.action('ghost', 'death', '#00ff00').at(-1)
+  assert.ok(last.colors().length > 0)
+  assert.ok(last.colors().every((c) => smoke.includes(c)), last.colors().join(' '))
+  assert.throws(() => dog.action('hero', 'dance'), /unknown action/)
 })

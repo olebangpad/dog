@@ -224,6 +224,34 @@ function characters() {
   })
 }
 
+// Every action in every element, played by a character that fits it.
+function actions() {
+  const cast = {
+    attack: { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' },
+    hit: { body: 'skeleton', hat: 'viking', hand: 'axe' },
+    heal: { body: 'hero-elf', hat: 'band', hand: 'flower' },
+    levelup: { body: 'hero', hat: 'crown', hand: 'sword-gold' },
+    cast: { body: 'hero-mage', hat: 'wizard', hand: 'staff' },
+    death: { body: 'slime-purple', hat: 'party' },
+  }
+  const elements = [null, ...dog.action.elements]
+  const grid = dog.action.list.map((name) => elements.map((el) => dog.action(cast[name], name, el ?? undefined)))
+  const cellW = 32, labelW = 34, gap = 4
+  return Array.from({ length: 8 }, (_, t) => {
+    let img = new Pixmap(labelW + elements.length * (cellW + gap), 10 + grid.length * (cellW + gap))
+    elements.forEach((el, c) => {
+      const l = text((el ?? 'default').toUpperCase(), { color: DIM })
+      img = img.draw(l, labelW + c * (cellW + gap) + ((cellW - l.w) >> 1), 0)
+    })
+    grid.forEach((cells, r) => {
+      const y = 10 + r * (cellW + gap)
+      img = img.draw(text(dog.action.list[r].toUpperCase(), { color: ACCENT }), 0, y + 14)
+      cells.forEach((frames, c) => { img = img.draw(frames[t], labelW + c * (cellW + gap), y) })
+    })
+    return framed(img, 8).scale(3)
+  })
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   await write(join(dir, 'gallery.png'), png(gallery()))
@@ -233,6 +261,7 @@ async function buildShowcase() {
   await write(join(dir, 'scene.png'), apng(scene(), 8))
   await write(join(dir, 'banner.png'), apng(banner(), 8))
   await write(join(dir, 'characters.png'), apng(characters(), 6))
+  await write(join(dir, 'actions.png'), apng(actions(), 10))
 }
 
 const t0 = Date.now()

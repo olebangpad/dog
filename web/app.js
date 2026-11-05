@@ -504,7 +504,7 @@ const animatedTiles = () => [...tiles.values()].filter(({ look, tile }) => look.
 let lastTileFrame = -1
 let prev = performance.now()
 function loop(now) {
-  const dt = (now - prev) / 1000
+  const dt = Math.max(0, (now - prev) / 1000)
   prev = now
   if (ui.playing) ui.t += dt
   drawStage()

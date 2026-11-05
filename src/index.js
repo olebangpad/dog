@@ -12,6 +12,7 @@ import { parseColor, toHex, rampFrom } from './color.js'
 import { encodePNG, encodeAPNG } from './png.js'
 import { text, FONT_CHARS } from './font.js'
 import { createCharacters, CHAR_SIZE } from './character.js'
+import { createActions, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from './action.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -73,9 +74,16 @@ dog.info = (id) => lookup(id)
  */
 dog.char = createCharacters(looks)
 
+/**
+ * Situation effects - a character doing something, effects attached to hands / head / body.
+ *   dog.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')   -> 8 frames, 32x32, .fps
+ *   actions: attack hit heal levelup cast death   elements: fire ice poison holy dark
+ */
+dog.action = createActions(dog, looks)
+
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,
-  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE,
+  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS,
 }
 export default dog

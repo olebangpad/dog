@@ -9,6 +9,7 @@
 
 [**▶ 플레이그라운드 열기**](https://olebangpad.github.io/dog/) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
+[상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
 [PNG 바로 받기](#-png만-필요하다면) ·
 [코드에서 쓰기](#-코드에서-쓰기) ·
 [스프라이트 추가하기](CONTRIBUTING.md) ·
@@ -45,6 +46,25 @@ dog.char(dog.char.random(42))                     // 같은 시드 → 같은 �
 색 변형까지 합치면 옷 색을 바꾸기 전에도 **228,384가지** 조합이 나옵니다.
 
 <img src="docs/img/characters.png" alt="dog.char.random()으로 만든 랜덤 캐릭터 24명" width="654">
+
+### ⚔️ 상황 이펙트
+
+캐릭터에게 **행동**을 시킬 수 있습니다. 이펙트는 알아서 제자리에 붙습니다. 베기는 무기 든 손에,
+데미지 숫자와 "LV UP"은 모자 위에, 연기는 몸 위에 나옵니다. 속성을 고르면 이펙트 색이 바뀌고,
+맞을 때는 캐릭터도 불타거나 얼거나 중독된 색으로 변합니다.
+
+```js
+const frames = dog.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')
+// 항상 32×32 이미지 8프레임, frames.fps 속도로 재생 → 스프라이트 시트에 바로 사용
+
+dog.action('slime', 'hit', { element: 'ice', amount: '-12' })
+dog.action('hero-mage', 'cast', '#00ffcc')      // 재질 이름이나 hex 색도 속성으로 쓸 수 있어요
+```
+
+**행동 6종**(`attack` 공격, `hit` 피격, `heal` 회복, `levelup` 레벨업, `cast` 시전, `death` 사망) ×
+**속성 5종**(`fire` 불, `ice` 얼음, `poison` 독, `holy` 빛, `dark` 어둠)을 228,384가지 캐릭터 누구에게나 쓸 수 있습니다.
+
+<img src="docs/img/actions.png" alt="모든 행동과 속성 조합 애니메이션" width="672">
 
 ### 🎨 그림 하나로 모든 색을
 
@@ -121,6 +141,7 @@ node scripts/dog.js render explosion --anim --scale 4 -o boom.png      # 애니�
 node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
 node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --scale 6 -o mage.png
 node scripts/dog.js char --random 42 --scale 6 -o npc.png
+node scripts/dog.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
 ```
 
 ## ✏️ 스프라이트는 그냥 텍스트
@@ -146,6 +167,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `dog.list({ category, tag, variants })` | 전체 id 목록 |
 | `dog.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
 | `dog.char.frames(spec)` · `dog.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
+| `dog.action(spec, name, element)` | 행동 애니메이션 8프레임 (32×32, `.fps`) |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |
 | `sheet(images, { columns, gap })` | 스프라이트 시트로 묶기 |
 | `text('SCORE 9', { color })` | 내장 3×5 도트 폰트 |

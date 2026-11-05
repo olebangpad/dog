@@ -9,6 +9,7 @@ plus a character maker with **228,384 gear combinations**. Every sprite is plain
 
 [**▶ Open the playground**](https://olebangpad.github.io/dog/) ·
 [Character maker](#-character-maker) ·
+[Actions](#%EF%B8%8F-actions--effects) ·
 [Download sprites](#-just-want-the-pngs) ·
 [Use in code](#-use-it-in-code) ·
 [Add a sprite](CONTRIBUTING.md) ·
@@ -51,6 +52,24 @@ dog.char(dog.char.random(42))                     // same seed → same characte
 with color variants: **228,384 combinations** before you even change the outfit color.
 
 <img src="docs/img/characters.png" alt="24 random characters made with dog.char.random()" width="654">
+
+### ⚔️ Actions & effects
+
+Make any character **do something**. Effects attach to the right spot by themselves: the slash at the weapon hand,
+damage numbers and "LV UP" above the hat, smoke over the body. Pick an element and the effect follows it;
+on a hit the target burns, freezes or turns sick too.
+
+```js
+const frames = dog.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')
+// always 8 frames of 32×32, play them at frames.fps: drop straight into a sprite sheet
+
+dog.action('slime', 'hit', { element: 'ice', amount: '-12' })
+dog.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as an element
+```
+
+**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 228,384 characters.
+
+<img src="docs/img/actions.png" alt="Every action in every element, animated" width="672">
 
 ### 🎨 One drawing, any color
 
@@ -127,6 +146,7 @@ node scripts/dog.js render explosion --anim --scale 4 -o boom.png      # animate
 node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
 node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --scale 6 -o mage.png
 node scripts/dog.js char --random 42 --scale 6 -o npc.png
+node scripts/dog.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
 ```
 
 ## ✏️ Sprites are just text
@@ -177,6 +197,7 @@ import { dog, compose, sheet, text, Pixmap } from './src/index.js'
 | `dog.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `dog.char.frames(spec)` · `dog.char.random(seed)` | animation frames · a reproducible random character |
 | `dog.char.parts` · `dog.char.count()` | every body / hat / hand / off-hand id · number of combinations |
+| `dog.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |
 | `sheet(images, { columns, gap })` | pack into a sprite sheet → `{ image, frames }` |
 | `text('SCORE 9', { color })` | built-in 3×5 pixel font |
@@ -206,7 +227,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 ### Ideas on the roadmap
 
 - [x] Character maker with automatic gear placement
-- [ ] Character actions: attack / hit / heal / level-up effects that attach to hands and heads
+- [x] Character actions: attack / hit / heal / level-up / cast / death, in 5 elements
+- [ ] Walk cycles and directional (left / right / up / down) characters
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)
 - [ ] 32×32 characters with walk cycles

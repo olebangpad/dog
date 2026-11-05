@@ -9,7 +9,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { deflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, encodeAPNG, MATERIAL_NAMES } from '../src/index.js'
+import { dog, looks, sprites, compose, sheet, encodeAPNG, MATERIAL_NAMES } from '../src/index.js'
 
 const HELP = `dog - pixel art as code
 
@@ -20,6 +20,8 @@ usage:
   dog combine <id>[@x,y] <id>[@x,y] ...    stack sprites into one image
   dog char <body> [--hat x] [--hand x] [--offhand x] [-A color] -o out.png
   dog char --random [seed] -o out.png      a random character (same seed, same character)
+  dog char <body> ... --action attack [--element fire] --anim -o hit.png
+                                           actions: attack hit heal levelup cast death
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
@@ -33,6 +35,7 @@ options:
   --flip-x --flip-y --rotate <90|180|270>
   --frame <n>                  animation frame
   --anim                       write every frame as an animated PNG
+  --strip                      write every frame side by side (sprite strip)
   -o <file>                    output path (default: <id>.png)
 `
 
@@ -58,6 +61,9 @@ function parse(argv) {
     else if (a === '--anim') opts.anim = true
     else if (a === '--hat' || a === '--hand' || a === '--offhand') opts[a.slice(2)] = next()
     else if (a === '--random') opts.random = optional() ?? true
+    else if (a === '--action') opts.action = next()
+    else if (a === '--element') opts.element = next()
+    else if (a === '--strip') opts.strip = true
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -127,8 +133,11 @@ if (!cmd || o.help) {
   const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
   console.log(spec)
-  const name = o.out ?? `${spec.body}.png`
-  if (o.anim) save(name, encodeAPNG(dog.char.frames(spec).map((f) => finish(f, o)), { fps: looks[spec.body].def.fps, deflate }))
+  const name = o.out ?? `${spec.body}${o.action ? '-' + o.action : ''}.png`
+  const frames = o.action ? dog.action(spec, o.action, o.element) : dog.char.frames(spec)
+  const fps = frames.fps ?? looks[spec.body].def.fps
+  if (o.anim) save(name, encodeAPNG(frames.map((f) => finish(f, o)), { fps, deflate }))
+  else if (o.strip || o.action) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
   else save(name, finish(dog.char(spec), o).toPNG({ deflate }))
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))

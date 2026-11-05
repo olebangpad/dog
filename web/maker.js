@@ -1,5 +1,5 @@
 // Character maker: body + hat + held item + off-hand, snapped together by dog.char().
-import { dog, looks, sheet, encodeAPNG, MATERIALS, MATERIAL_NAMES } from '../src/index.js'
+import { dog, looks, sheet, encodeAPNG, Pixmap, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE } from '../src/index.js'
 import { $, h, paint, thumb, download, copy, toast, encode, decode, readHash, writeHash } from './ui.js'
 
 const REPO = 'olebangpad/dog'
@@ -10,6 +10,8 @@ const KINDS = [
   { key: 'offhand', label: 'Off-hand', kind: 'offhand' },
 ]
 const SCALES = [1, 4, 8]
+const ACTION_LABELS = { attack: 'Attack', hit: 'Hit', heal: 'Heal', levelup: 'Level up', cast: 'Cast', death: 'Death' }
+const ELEMENT_ICONS = { fire: '🔥', ice: '❄', poison: '☠', holy: '✦', dark: '☾' }
 
 let spec = { body: 'hero', hat: 'hat-crown', hand: 'held-sword', offhand: 'held-shield' }
 let frames = []
@@ -17,6 +19,9 @@ let fps = 6
 let scale = 4
 let history = []
 let seed = null
+let action = null // null = idle
+let element = null
+let preview = [] // what the stage plays: always 32x32 so the character never jumps in size
 
 const short = (id, kind) => id && id.replace(kind === 'head' ? /^hat-/ : /^held-/, '')
 const anchorsOf = (body) => looks[body].def.anchors
@@ -34,23 +39,36 @@ function codeFor(s) {
   if (s.hand && anchorsOf(s.body).hand) opts.push(`hand: '${short(s.hand, 'hand')}'`)
   if (s.offhand && anchorsOf(s.body).offhand) opts.push(`offhand: '${short(s.offhand, 'offhand')}'`)
   if (s.A) opts.push(`A: '${s.A}'`)
+  const imp = `import { dog } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\n`
+  if (action) {
+    const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
+    return `${imp}const frames = dog.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${ACTION_SIZE}x${ACTION_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
+  }
   const call = `dog.char('${s.body}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`
-  return `import { dog } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\nconst character = ${call}\ndocument.body.append(character.scale(8).toCanvas())`
+  return `${imp}const character = ${call}\ndocument.body.append(character.scale(8).toCanvas())`
 }
 
 // ---------------------------------------------------------------- render
 function refresh({ pickers = true } = {}) {
   spec = cleanSpec(spec)
-  frames = dog.char.frames(spec)
+  if (action) {
+    frames = dog.action(spec, action, element ?? undefined)
+    fps = frames.fps
+    preview = [...frames, ...Array(5).fill(frames[frames.length - 1])] // short pause between loops
+  } else {
+    frames = dog.char.frames(spec)
+    const animated = [spec.body, spec.hat, spec.hand, spec.offhand].filter((id) => id && looks[id] && looks[id].def.frames.length > 1)
+    fps = animated.length ? looks[animated[0]].def.fps : 6
+    preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE).draw(f, 4, 8))
+  }
   $('#maker-view').dataset.f = '0'
-  const animated = [spec.body, spec.hat, spec.hand, spec.offhand].filter((id) => id && looks[id] && looks[id].def.frames.length > 1)
-  fps = animated.length ? looks[animated[0]].def.fps : 6
-  paint($('#maker-view'), frames[0])
+  paint($('#maker-view'), preview[0])
   $('#mk-code').textContent = codeFor(spec)
   $('#mk-anim').disabled = frames.length < 2
+  $('#mk-strip').disabled = frames.length < 2
   $('#maker-seed').textContent = seed == null ? '' : `seed ${seed}`
   if (pickers) renderPickers()
-  writeHash('c', encode(spec))
+  writeHash('c', encode({ ...spec, action, element }))
 }
 
 function tile(img, label, selected, onclick, disabled = false) {
@@ -75,7 +93,7 @@ function renderPickers() {
       h('span', { class: 'muted' }, ok ? (current ? (kind === 'body' ? current : short(current, kind)) : 'none') : `${spec.body} can't hold items`),
     )
     return h('div', { class: `picker${ok ? '' : ' off'}` }, head, strip)
-  }), outfitPicker())
+  }), outfitPicker(), actionPicker())
   // keep the selected thumbnail in view by scrolling its strip sideways only (never the page)
   requestAnimationFrame(() => box.querySelectorAll('.strip').forEach((strip) => {
     const sel = strip.querySelector('.pick[aria-pressed="true"]')
@@ -98,6 +116,19 @@ function outfitPicker() {
     h('div', { class: 'swatches' },
       h('button', { class: 'pick none small', 'aria-pressed': String(!spec.A), title: 'Original colors', onclick: () => { delete spec.A; seed = null; refresh() } }, '↺'),
       MATERIAL_NAMES.map(swatch), custom),
+  )
+}
+
+function actionPicker() {
+  const btn = (label, pressed, onclick, title) => h('button', { 'aria-pressed': String(pressed), title: title ?? label, onclick }, label)
+  return h('div', { class: 'picker' },
+    h('div', { class: 'picker-head' }, h('b', {}, 'Action'), h('span', { class: 'muted' }, action ? `${action}${element ? ' · ' + element : ''}` : 'idle')),
+    h('div', { class: 'seg wrap actions' },
+      btn('Idle', !action, () => { action = null; refresh() }),
+      dog.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() }))),
+    h('div', { class: 'seg wrap elements' + (action ? '' : ' muted-seg') },
+      btn('Default', !element, () => { element = null; if (!action) action = 'attack'; refresh() }, 'Default effect colors'),
+      dog.action.elements.map((e) => btn(`${ELEMENT_ICONS[e] ?? ''} ${e}`, element === e, () => { element = e; if (!action) action = 'attack'; refresh() }))),
   )
 }
 
@@ -127,7 +158,11 @@ export function initMaker({ openInStudio }) {
   const fromLink = readHash('c')
   if (fromLink) try {
     const s = decode(fromLink)
-    if (looks[s.body]) spec = s
+    if (looks[s.body]) {
+      action = dog.action.list.includes(s.action) ? s.action : null
+      element = ELEMENTS[s.element] ? s.element : null
+      spec = s
+    }
   } catch { /* ignore broken links */ }
 
   $('#roll').addEventListener('click', () => roll(1))
@@ -139,12 +174,13 @@ export function initMaker({ openInStudio }) {
       for (const b of $('#maker-scale').children) b.setAttribute('aria-pressed', String(Number(b.dataset.s) === s))
     },
   }, `${s}x`)))
-  const name = () => dogLabel(spec).replace(/ \+ /g, '_')
-  $('#mk-png').addEventListener('click', () => download(`${name()}.png`, frames[0].scale(scale).toPNG()))
+  const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element ? '-' + element : ''}` : '')
+  $('#mk-png').addEventListener('click', () => download(`${name()}.png`, frames[action ? 2 : 0].scale(scale).toPNG()))
   $('#mk-anim').addEventListener('click', () => download(`${name()}-anim.png`, encodeAPNG(frames.map((f) => f.scale(scale)), { fps })))
+  $('#mk-strip').addEventListener('click', () => download(`${name()}-strip.png`, sheet(frames).image.scale(scale).toPNG()))
   $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}.png`, sheet(history.map((s) => dog.char(s)), { columns: 8 }).image.scale(scale).toPNG()))
   $('#mk-code-copy').addEventListener('click', () => copy(codeFor(spec), 'Code copied'))
-  $('#mk-link').addEventListener('click', () => { writeHash('c', encode(spec)); copy(location.href, 'Link copied') })
+  $('#mk-link').addEventListener('click', () => { writeHash('c', encode({ ...spec, action, element })); copy(location.href, 'Link copied') })
   $('#mk-studio').addEventListener('click', () => {
     const body = looks[spec.body].def
     const layers = [{ id: spec.body, x: 0, y: 0, ramps: spec.A ? { A: spec.A } : {} }]
@@ -163,10 +199,11 @@ export function initMaker({ openInStudio }) {
   renderHistory()
   let start = performance.now()
   const loop = (now) => {
-    if (frames.length > 1) {
-      const i = Math.floor(((now - start) / 1000) * fps) % frames.length
+    if (preview.length > 1) {
+      // rAF timestamps can be a little earlier than `start`, so never let the index go negative
+      const i = Math.floor((Math.max(0, now - start) / 1000) * fps) % preview.length
       const view = $('#maker-view')
-      if (view.dataset.f !== String(i)) { view.dataset.f = i; paint(view, frames[i]) }
+      if (view.dataset.f !== String(i)) { view.dataset.f = i; paint(view, preview[i]) }
     }
     requestAnimationFrame(loop)
   }
