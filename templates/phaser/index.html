@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOG + Phaser starter</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #101712; display: grid; place-items: center; }
+    canvas { image-rendering: pixelated; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
+</head>
+<body>
+<script>
+// DOG + Phaser 3 starter: a hero who walks in 4 directions and fights slimes.
+//
+// hero.png/json and slime.png/json are DOG "game packs": make your own in the
+// character maker (📦 Game pack) or with `node scripts/dog.js pack hero --hat crown`,
+// then drop the files in here with the same names.
+//
+// Run: serve this folder (python3 -m http.server) and open it. Arrows move, space attacks.
+
+const W = 320, H = 240
+
+class Play extends Phaser.Scene {
+  preload() {
+    this.load.aseprite('hero', 'hero.png', 'hero.json')
+    this.load.aseprite('slime', 'slime.png', 'slime.json')
+    this.load.image('grass', 'grass.png')
+  }
+
+  create() {
+    this.add.tileSprite(0, 0, W, H, 'grass').setOrigin(0)
+
+    // Every cell in a DOG pack has the feet at (16, 31): use that as the origin.
+    this.hero = this.physics.add.sprite(W / 2, H / 2, 'hero').setOrigin(0.5, 31 / 32)
+    this.hero.anims.createFromAseprite('hero') // idle, walk-down/up/left/right, attack, hit, heal, levelup, cast, death
+    this.hero.body.setSize(10, 6).setOffset(11, 25)
+    this.hero.setCollideWorldBounds(true)
+    this.hero.play({ key: 'idle', repeat: -1 })
+    this.facing = 'down'
+
+    this.slimes = this.physics.add.group()
+    for (let i = 0; i < 5; i++) this.spawnSlime()
+
+    this.keys = this.input.keyboard.createCursorKeys()
+    this.input.keyboard.on('keydown-SPACE', () => this.attack()) // an event never misses a quick tap
+    this.score = this.add.text(6, 4, 'slimes: 0', { fontFamily: 'monospace', fontSize: 10, color: '#ffffff' })
+    this.kills = 0
+  }
+
+  spawnSlime() {
+    const s = this.slimes.create(Phaser.Math.Between(20, W - 20), Phaser.Math.Between(30, H - 10), 'slime')
+    s.setOrigin(0.5, 31 / 32)
+    s.anims.createFromAseprite('slime') // each sprite gets its own copy of the pack's animations
+    s.body.setSize(12, 8).setOffset(10, 23)
+    s.setCollideWorldBounds(true).setBounce(1)
+    s.hp = 2
+    this.wander(s)
+  }
+
+  wander(s) {
+    s.setVelocity(Phaser.Math.Between(-25, 25), Phaser.Math.Between(-25, 25))
+    s.play({ key: 'walk-down', repeat: -1 })
+  }
+
+  update() {
+    const { left, right, up, down } = this.keys
+    const h = this.hero
+    if (h.busy) return
+    const vx = (right.isDown - left.isDown) * 70
+    const vy = (down.isDown - up.isDown) * 70
+    h.setVelocity(vx, vy)
+    if (vx || vy) this.facing = Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 'right' : 'left') : (vy > 0 ? 'down' : 'up')
+    const anim = vx || vy ? `walk-${this.facing}` : 'idle'
+    if (h.anims.currentAnim?.key !== anim) h.play({ key: anim, repeat: -1 })
+  }
+
+  attack() {
+    const h = this.hero
+    if (h.busy) return
+    h.busy = true
+    h.setVelocity(0, 0)
+    h.setFlipX(this.facing === 'left') // action frames face right; mirror them for left
+    h.play('attack')
+    h.once('animationcomplete', () => { h.busy = false; h.setFlipX(false) })
+    // a box in front of the hero
+    const dx = { left: -1, right: 1, up: 0, down: 0 }[this.facing]
+    const dy = { left: 0, right: 0, up: -1, down: 1 }[this.facing]
+    const reach = new Phaser.Geom.Rectangle(h.x - 12 + dx * 14, h.y - 18 + dy * 14, 24, 22)
+    for (const s of this.slimes.getChildren()) {
+      if (!s.dead && reach.contains(s.x, s.y - 6)) this.hurt(s)
+    }
+  }
+
+  hurt(s) {
+    s.hp--
+    s.dead = s.hp <= 0
+    s.setVelocity(0, 0)
+    s.play(s.dead ? 'death' : 'hit')
+    s.once('animationcomplete', () => {
+      if (!s.dead) return this.wander(s)
+      s.destroy()
+      this.score.setText(`slimes: ${++this.kills}`)
+      this.time.delayedCall(800, () => this.spawnSlime())
+    })
+  }
+}
+
+window.game = new Phaser.Game({
+  type: Phaser.AUTO, width: W, height: H, zoom: 3, pixelArt: true,
+  physics: { default: 'arcade' },
+  scene: Play,
+})
+</script>
+</body>
+</html>

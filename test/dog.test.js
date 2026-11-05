@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { inflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from '../src/index.js'
+import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL } from '../src/index.js'
 
 const hex = (img, x, y) => toHex(img.get(x, y))
 
@@ -303,4 +303,56 @@ test('walk keeps gear on, and walk poses are not offered as bodies', () => {
   assert.notDeepEqual(dog.walk({ body: 'hero', hat: 'crown' }, 'right')[0].data, dog.walk('hero', 'right')[0].data)
   assert.ok(!dog.char.parts.body.some((b) => b.includes('-walk-')))
   assert.throws(() => dog.walk('hero', 'diagonal'), /walk direction/)
+})
+
+// ------------------------------------------------------------------ packs
+function readZip(bytes) {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  const files = {}
+  let o = 0
+  while (dv.getUint32(o, true) === 0x04034b50) {
+    const size = dv.getUint32(o + 18, true), nameLen = dv.getUint16(o + 26, true)
+    const name = new TextDecoder().decode(bytes.subarray(o + 30, o + 30 + nameLen))
+    files[name] = bytes.subarray(o + 30 + nameLen, o + 30 + nameLen + size)
+    o += 30 + nameLen + size
+  }
+  assert.equal(dv.getUint32(o, true), 0x02014b50, 'central directory follows the files')
+  return files
+}
+
+test('dog.pack builds a sheet with every animation tagged', () => {
+  const pack = dog.pack({ body: 'goblin', hat: 'pirate', hand: 'dagger' })
+  const tags = pack.json.meta.frameTags
+  assert.deepEqual(tags.map((t) => t.name), ['idle', 'walk-down', 'walk-up', 'walk-left', 'walk-right', ...dog.action.list])
+  // tags are contiguous and cover every frame
+  tags.forEach((t, i) => { if (i) assert.equal(t.from, tags[i - 1].to + 1) })
+  assert.equal(tags.at(-1).to, pack.json.frames.length - 1)
+  // Phaser's createFromAseprite looks frames up by index
+  pack.json.frames.forEach((f, i) => assert.equal(f.filename, String(i)))
+  assert.equal(pack.image.w % PACK_CELL, 0)
+  assert.equal(pack.image.h, tags.length * PACK_CELL)
+  // every frame rect is inside the sheet and has a duration
+  for (const f of pack.json.frames) {
+    assert.ok(f.frame.x + f.frame.w <= pack.image.w && f.frame.y + f.frame.h <= pack.image.h)
+    assert.ok(f.duration > 0)
+  }
+})
+
+test('dog.pack writes a valid zip with png, json, Godot tres and readme', () => {
+  const pack = dog.pack('robot', { name: 'bot' })
+  const files = readZip(pack.zip())
+  assert.deepEqual(Object.keys(files).sort(), ['README.txt', 'bot.json', 'bot.png', 'bot.tres'])
+  assert.deepEqual([...files['bot.png'].subarray(0, 4)], [137, 80, 78, 71])
+  assert.equal(JSON.parse(new TextDecoder().decode(files['bot.json'])).meta.image, 'bot.png')
+  const tres = new TextDecoder().decode(files['bot.tres'])
+  assert.match(tres, new RegExp(`load_steps=${pack.json.frames.length + 2} format=3`))
+  assert.match(tres, /&"walk_down"/)
+  assert.match(tres, /path="res:\/\/bot.png"/)
+  assert.equal((tres.match(/\[sub_resource/g) || []).length, pack.json.frames.length)
+})
+
+test('dog.pack works for animals and custom elements', () => {
+  const pack = dog.pack({ body: 'slime-pink', hat: 'crown' }, { element: 'ice', actions: ['attack', 'hit'] })
+  assert.deepEqual(pack.animations, ['idle', 'walk-down', 'walk-up', 'walk-left', 'walk-right', 'attack', 'hit'])
+  assert.ok(pack.json.meta.dog.loops['walk-left'] && !pack.json.meta.dog.loops.attack)
 })

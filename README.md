@@ -9,6 +9,7 @@ plus a character maker with **2.7 million combinations** that walk in 4 directio
 
 [**▶ Play the demo**](https://olebangpad.github.io/dog/game.html) ·
 [Open the playground](https://olebangpad.github.io/dog/) ·
+[Make a game](#-make-a-game-with-dog) ·
 [Character maker](#-character-maker) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
@@ -49,6 +50,38 @@ It plays itself until you press a key, and the character maker has a **▶ Play 
 <a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
 
 Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4)
+
+### 🛠 Make a game with DOG
+
+Three ways in, from zero setup to a full engine:
+
+**1. Copy a starter.** [`templates/canvas/index.html`](templates/canvas/index.html) is a complete little game in one file, with no install
+and no build step. [`templates/phaser/`](templates/phaser) is the same idea with Phaser 3 and DOG game packs.
+
+**2. Download a game pack.** In the [character maker](https://olebangpad.github.io/dog/#maker) press **📦 Game pack**: one zip with a sprite sheet
+(`idle`, 4-way `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser JSON and a Godot 4 SpriteFrames file.
+In code it's `dog.pack(spec)`; on the command line it's `node scripts/dog.js pack hero --hat crown --hand sword`.
+
+```js
+// Phaser 3
+this.load.aseprite('hero', 'hero.png', 'hero.json')
+const hero = this.add.sprite(160, 120, 'hero').setOrigin(0.5, 31 / 32)
+hero.anims.createFromAseprite('hero')
+hero.play({ key: 'walk-left', repeat: -1 })
+```
+
+**3. Let your AI assistant build it.** DOG ships a skill for AI coding assistants: [`skills/dog/SKILL.md`](skills/dog/SKILL.md)
+(API, pixel-art rules, a full game recipe, engine exports) and [`catalog.md`](skills/dog/catalog.md) (every sprite id). Its code samples run in CI.
+For Claude Code, inside your game project:
+
+```bash
+mkdir -p .claude/skills/dog && cd .claude/skills/dog
+curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/SKILL.md
+curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/catalog.md
+```
+
+Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, using DOG"*.
+Other assistants can start from [`llms.txt`](llms.txt).
 
 ### 🧙 Character maker
 
@@ -134,7 +167,7 @@ Everything is pre-exported in [`assets/`](assets). No build step needed.
 | `assets/anim/` | animated PNGs (4x) of every animated look |
 | `assets/strips/` | horizontal frame strips (1x) for game engines |
 | `assets/walk/` | walk-cycle strips for every body in every direction |
-| `assets/atlas.png` + `atlas.json` | one texture atlas with every frame, plus animation lists |
+| `assets/atlas.png` + `atlas.json` | one texture atlas with every frame (TexturePacker JSON hash: `this.load.atlas('dog', 'atlas.png', 'atlas.json')`) |
 
 All art is **CC0**: use it in commercial games, remix it, no credit required (credit is appreciated ❤).
 
@@ -257,11 +290,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [x] Character actions: attack / hit / heal / level-up / cast / death, in 5 elements
 - [x] Walk cycles in 4 directions
 - [x] Playable demo game screen
+- [x] Game packs for Phaser / Godot, starter templates, AI skill
 - [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)
 - [ ] 32×32 characters with walk cycles
-- [ ] Exporters for Godot / Unity / Phaser
 - [ ] npm package
 
 ## 📄 License

@@ -1,5 +1,5 @@
 // Character maker: body + hat + held item + off-hand, snapped together by dog.char().
-import { dog, looks, sheet, encodeAPNG, Pixmap, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
+import { dog, looks, sheet, encodeAPNG, Pixmap, zip, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
 import { $, h, paint, thumb, download, copy, toast, encode, decode, readHash, writeHash } from './ui.js'
 
 const REPO = 'olebangpad/dog'
@@ -190,6 +190,17 @@ export function initMaker({ openInStudio }) {
   const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element && !walkDir() ? '-' + element : ''}` : '')
   $('#mk-png').addEventListener('click', () => download(`${name()}.png`, frames[action && !walkDir() ? 2 : 0].scale(scale).toPNG()))
   $('#mk-anim').addEventListener('click', () => download(`${name()}-anim.png`, encodeAPNG(frames.map((f) => f.scale(scale)), { fps })))
+  $('#mk-pack').addEventListener('click', async () => {
+    const pack = dog.pack(spec, { element: element ?? undefined })
+    // let the browser's PNG encoder compress the sheet (the built-in encoder writes uncompressed PNGs)
+    const blob = await new Promise((resolve) => pack.image.toCanvas().toBlob(resolve, 'image/png'))
+    const bytes = zip({ ...pack.files, [`${pack.id}.png`]: new Uint8Array(await blob.arrayBuffer()) })
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }))
+    const link = h('a', { href: url, download: `${pack.id}.zip` })
+    document.body.append(link); link.click(); link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    toast(`${pack.id}.zip: ${pack.animations.length} animations for Phaser, Godot or any engine`)
+  })
   $('#mk-strip').addEventListener('click', () => download(`${name()}-strip.png`, sheet(frames).image.scale(scale).toPNG()))
   $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}.png`, sheet(history.map((s) => dog.char(s)), { columns: 8 }).image.scale(scale).toPNG()))
   $('#mk-code-copy').addEventListener('click', () => copy(codeFor(spec), 'Code copied'))

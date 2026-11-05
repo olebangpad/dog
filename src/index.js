@@ -13,6 +13,8 @@ import { encodePNG, encodeAPNG } from './png.js'
 import { text, FONT_CHARS } from './font.js'
 import { createCharacters, CHAR_SIZE } from './character.js'
 import { createActions, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from './action.js'
+import { createPack, PACK_CELL } from './pack.js'
+import { zip } from './zip.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -87,9 +89,16 @@ dog.action = createActions(dog, looks)
  */
 dog.walk = dog.char.walk
 
+/**
+ * Game pack: sprite sheet + Aseprite/Phaser JSON + Godot SpriteFrames for one character.
+ *   const pack = dog.pack({ body: 'hero', hat: 'crown', hand: 'sword' })
+ *   pack.files  -> { 'hero-crown-sword.png': bytes, '.json', '.tres', 'README.txt' }   pack.zip() -> .zip bytes
+ */
+dog.pack = createPack(dog, looks)
+
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,
-  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS,
+  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip,
 }
 export default dog

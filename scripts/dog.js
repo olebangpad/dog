@@ -7,7 +7,8 @@
 //   node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
 //   node scripts/dog.js outline < my-art.txt                              (auto-outline helper)
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { deflateSync } from 'node:zlib'
 import { dog, looks, sprites, compose, sheet, encodeAPNG, MATERIAL_NAMES } from '../src/index.js'
 
@@ -23,6 +24,8 @@ usage:
   dog char <body> ... --action attack [--element fire] --anim -o hit.png
                                            actions: attack hit heal levelup cast death
   dog char <body> ... --walk left --anim -o walk.png   directions: down up left right
+  dog pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
+                                           game pack: sprite sheet + Phaser/Aseprite JSON + Godot .tres
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
@@ -66,6 +69,7 @@ function parse(argv) {
     else if (a === '--walk') opts.walk = optional() ?? 'down'
     else if (a === '--element') opts.element = next()
     else if (a === '--strip') opts.strip = true
+    else if (a === '--dir') opts.dir = next()
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -141,6 +145,18 @@ if (!cmd || o.help) {
   if (o.anim) save(name, encodeAPNG(frames.map((f) => finish(f, o)), { fps, deflate }))
   else if (o.strip || o.action || o.walk) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
   else save(name, finish(dog.char(spec), o).toPNG({ deflate }))
+} else if (cmd === 'pack') {
+  const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
+    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
+  for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
+  const pack = dog.pack(spec, { element: o.element, deflate })
+  if (o.dir) {
+    mkdirSync(o.dir, { recursive: true })
+    for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
+  } else {
+    save(o.out ?? `${pack.id}.zip`, pack.zip())
+  }
+  console.log(`${pack.animations.length} animations: ${pack.animations.join(', ')}`)
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {

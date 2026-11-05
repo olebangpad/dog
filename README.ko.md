@@ -9,6 +9,7 @@
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/dog/game.html) ·
 [플레이그라운드](https://olebangpad.github.io/dog/) ·
+[게임 만들기](#-dog로-게임-만들기) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
 [상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
 [걷기](#-4방향-걷기) ·
@@ -43,6 +44,38 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 <a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest 플레이 화면" width="512"></a>
 
 세로형 홍보 영상 (`scripts/record-promo.cjs`로 생성): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4)
+
+### 🛠 DOG로 게임 만들기
+
+설치 없이 바로 시작하는 것부터 게임 엔진까지, 세 가지 방법이 있습니다.
+
+**1. 템플릿 복사하기.** [`templates/canvas/index.html`](templates/canvas/index.html)은 파일 하나짜리 완성된 작은 게임입니다.
+설치도 빌드도 필요 없습니다. [`templates/phaser/`](templates/phaser)는 같은 게임을 Phaser 3와 DOG 게임 팩으로 만든 버전입니다.
+
+**2. 게임 팩 다운로드.** [캐릭터 메이커](https://olebangpad.github.io/dog/#maker)에서 **📦 Game pack**을 누르면 zip 하나에
+스프라이트 시트(`idle`, 4방향 `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser용 JSON, Godot 4용 SpriteFrames 파일이 들어 있습니다.
+코드로는 `dog.pack(spec)`, 명령어로는 `node scripts/dog.js pack hero --hat crown --hand sword`입니다.
+
+```js
+// Phaser 3
+this.load.aseprite('hero', 'hero.png', 'hero.json')
+const hero = this.add.sprite(160, 120, 'hero').setOrigin(0.5, 31 / 32)
+hero.anims.createFromAseprite('hero')
+hero.play({ key: 'walk-left', repeat: -1 })
+```
+
+**3. AI에게 만들어 달라고 하기.** DOG에는 AI 코딩 도우미용 스킬이 들어 있습니다: [`skills/dog/SKILL.md`](skills/dog/SKILL.md)
+(API, 도트 그래픽 규칙, 게임 레시피, 엔진 내보내기)와 [`catalog.md`](skills/dog/catalog.md)(모든 스프라이트 이름). 예제 코드는 CI에서 실제로 실행해 검증합니다.
+Claude Code라면 게임 프로젝트 폴더에서:
+
+```bash
+mkdir -p .claude/skills/dog && cd .claude/skills/dog
+curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/SKILL.md
+curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/catalog.md
+```
+
+그리고 *"DOG로 단검 든 고블린이 슬라임이랑 싸우는 탑다운 게임 만들어줘"*처럼 요청하면 됩니다.
+다른 AI 도구는 [`llms.txt`](llms.txt)부터 읽게 하면 됩니다.
 
 ### 🧙 캐릭터 메이커
 
@@ -129,7 +162,7 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 | `assets/anim/` | 애니메이션 PNG (4배) |
 | `assets/strips/` | 게임 엔진용 가로 프레임 스트립 (1배) |
 | `assets/walk/` | 모든 몸의 4방향 걷기 스트립 |
-| `assets/atlas.png` + `atlas.json` | 모든 프레임이 들어간 텍스처 아틀라스와 애니메이션 목록 |
+| `assets/atlas.png` + `atlas.json` | 모든 프레임이 들어간 텍스처 아틀라스 (TexturePacker JSON 형식: `this.load.atlas('dog', 'atlas.png', 'atlas.json')`) |
 
 모든 그림은 **CC0**입니다. 상업용 게임에도 출처 표기 없이 쓸 수 있습니다 (표기해 주시면 감사합니다 ❤).
 
