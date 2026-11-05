@@ -85,6 +85,7 @@ export function defineSprite(def) {
     frames,
     // play order for animations, e.g. [0, 0, 0, 1] holds frame 0 longer
     sequence: def.sequence ?? frames.map((_, i) => i),
+    animated: frames.length > 1,
     // frame used for thumbnails and still exports
     cover: def.cover ?? 0,
     // bodies: where gear attaches, one [x, y] per frame
@@ -96,6 +97,31 @@ export function defineSprite(def) {
   }
   out.slots = usedSlots(out)
   return out
+}
+
+/**
+ * A sprite whose frames are produced on first use (procedural effects). Size and color slots
+ * are known up front, so the registry, gallery and validator can work without generating it.
+ *   lazySprite({ id, w, h, slots, ramps, ... }, () => ({ frames, cover }))
+ */
+export function lazySprite(meta, generate) {
+  const def = {
+    name: meta.name ?? meta.id.replace(/-/g, ' '), category: meta.category ?? 'misc', tags: meta.tags ?? [],
+    fps: meta.fps ?? 6, ramps: { A: 'iron', B: 'wood', C: 'gold', ...meta.ramps }, variants: meta.variants ?? {},
+    anchors: {}, equip: null, pivot: null, layer: 'front', animated: true,
+    ...meta,
+  }
+  let data = null
+  const load = () => {
+    if (!data) {
+      const { frames, cover } = generate()
+      const checked = defineSprite({ id: meta.id, frames, cover, ramps: def.ramps })
+      data = { frames: checked.frames, sequence: checked.sequence, cover: checked.cover, animated: checked.animated }
+    }
+    return data
+  }
+  for (const key of ['frames', 'sequence', 'cover']) Object.defineProperty(def, key, { get: () => load()[key], enumerable: true })
+  return def
 }
 
 /**

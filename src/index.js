@@ -25,7 +25,8 @@ export const looks = {}
 
 for (const group of groups) {
   for (const raw of group.default) {
-    const def = defineSprite({ ...raw, category: raw.category ?? group.category })
+    // lazy sprites (procedural effects) are already normalized and must not be spread (that would generate them)
+    const def = raw.animated === true && Object.getOwnPropertyDescriptor(raw, 'frames')?.get ? raw : defineSprite({ ...raw, category: raw.category ?? group.category })
     if (sprites[def.id]) throw new Error(`dog: duplicate sprite id "${def.id}"`)
     sprites[def.id] = def
     looks[def.id] = { id: def.id, def, variant: null, ramps: { ...def.ramps } }

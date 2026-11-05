@@ -5,7 +5,10 @@
   "type": "module",
   "main": "src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
   },
   "bin": {
     "dog": "scripts/dog.js"
@@ -24,7 +27,10 @@
     "validate": "node scripts/validate.js",
     "check": "node scripts/validate.js && node --test test/*.test.js",
     "dev": "python3 -m http.server 8080",
-    "promo": "node scripts/record-promo.cjs"
+    "promo": "node scripts/record-promo.cjs",
+    "types": "npx -y -p typescript@5.6.3 tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --lib es2022,dom test/types/usage.ts",
+    "bench": "node scripts/bench.js",
+    "snapshots": "node scripts/snapshots.js"
   },
   "keywords": [
     "pixel-art",
@@ -41,5 +47,6 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
-  }
+  },
+  "types": "src/index.d.ts"
 }

@@ -16,5 +16,7 @@ jobs:
         run: node scripts/validate.js
       - name: Tests
         run: node --test test/*.test.js
+      - name: Type definitions
+        run: npx -y -p typescript@5.6.3 tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --lib es2022,dom test/types/usage.ts
       - name: Build assets
         run: node scripts/build.js

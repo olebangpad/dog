@@ -1,0 +1,33 @@
+// Compiled with tsc (noEmit, strict) to check src/index.d.ts against real usage.
+import { dog, compose, sheet, text, Pixmap, MATERIALS, type CharacterSpec, type Frames } from '../../src/index.js'
+
+const knight: CharacterSpec = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', A: 'red' }
+const img: Pixmap = dog('potion', { A: '#ff4fd8' }).scale(8).outline('#fff').hue(30)
+const char: Pixmap = dog.char(knight)
+const short: Pixmap = dog.char('slime-pink', { hat: 'crown' })
+const walk: Frames = dog.walk(knight, 'left')
+const fps: number = walk.fps
+const attack = dog.action(knight, 'attack', 'fire')
+const hit = dog.action('goblin', 'hit', { element: 'ice', amount: '-12' })
+const style = dog.action.styleOf({ body: 'hero', hand: 'bow' })
+const burning: Frames = dog.status(knight, 'burning', { walk: 'right' })
+const pack = dog.pack(knight, { name: 'hero' })
+const zipped: Uint8Array = pack.zip()
+const fx = dog.fx('comet', { element: 'ice', size: 64 })
+const seq = dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: 3 }])
+const fxp = dog.fxPack(['boom', 'fx-rain'])
+const random: CharacterSpec = dog.char.random(42)
+const combined: Pixmap = compose(dog('hero'), dog('crown').at(0, -7))
+const { image, frames } = sheet(dog.frames('coin'), { columns: 4 })
+const label: Pixmap = text('SCORE 9', { color: '#ffd06a' })
+const ramp: string = MATERIALS.gold[2]
+const n: number = dog.char.count() + dog.list({ category: 'effects' }).length + frames.length + image.w
+console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)
+
+// @ts-expect-error: walk direction must be one of the four
+dog.walk(knight, 'diagonal')
+// @ts-expect-error: unknown action
+dog.action(knight, 'dance')
+// @ts-expect-error: a character needs a body
+const bad: CharacterSpec = { hat: 'crown' }
+console.log(bad)

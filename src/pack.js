@@ -51,13 +51,13 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
   const cellW = Math.max(...rows.flatMap((r) => r.frames.map((f) => f.w)))
   const cellH = Math.max(...rows.flatMap((r) => r.frames.map((f) => f.h)))
   const cols = Math.max(...rows.map((r) => r.frames.length))
-  let image = new Pixmap(cols * cellW, rows.length * cellH)
+  const image = new Pixmap(cols * cellW, rows.length * cellH)
   const frames = [], frameTags = []
   rows.forEach((r, ri) => {
     const from = frames.length
     r.frames.forEach((f, fi) => {
       const x = fi * cellW, y = ri * cellH
-      image = image.draw(f, x + ((cellW - f.w) >> 1), y + ((cellH - f.h) >> 1))
+      image._blit(f, x + ((cellW - f.w) >> 1), y + ((cellH - f.h) >> 1)) // in place, not a copy per frame
       frames.push({
         filename: String(frames.length), // Phaser's createFromAseprite looks frames up by index
         frame: { x, y, w: cellW, h: cellH },

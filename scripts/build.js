@@ -18,8 +18,10 @@ import { dog, looks, sprites, compose, sheet, Pixmap, text, encodeAPNG, MATERIAL
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const deflate = (b) => deflateSync(b, { level: 9 })
+const madeDirs = new Set()
 const write = async (path, bytes) => {
-  await mkdir(dirname(path), { recursive: true })
+  const dir = dirname(path)
+  if (!madeDirs.has(dir)) { await mkdir(dir, { recursive: true }); madeDirs.add(dir) }
   await writeFile(path, bytes)
 }
 const png = (img) => img.toPNG({ deflate })
@@ -29,6 +31,7 @@ const apng = (frames, fps) => encodeAPNG(frames, { fps, deflate })
 async function buildAssets() {
   const out = join(root, 'assets')
   await rm(out, { recursive: true, force: true })
+  madeDirs.clear()
   const atlasFrames = []
   let files = 0
   for (const look of Object.values(looks)) {
@@ -330,6 +333,13 @@ function social() {
 
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
+  if (process.env.DOG_PROFILE) {
+    for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase })) {
+      const s = Date.now(); const r = fn(); const m = Date.now() - s
+      const e = Date.now(); Array.isArray(r) ? apng(r, 8) : png(r)
+      console.log(`  ${name}: render ${m}ms, encode ${Date.now() - e}ms`)
+    }
+  }
   await write(join(dir, 'gallery.png'), png(gallery()))
   await write(join(dir, 'recolor.png'), png(recolor()))
   await write(join(dir, 'combine.png'), png(combine()))
@@ -407,9 +417,17 @@ ${Object.entries(MATERIALS_FOR_DOCS).map(([name, ramp]) => `\`${name}\` ${ramp.j
   await write(join(root, 'skills', 'dog', 'catalog.md'), md)
 }
 
+// time every stage, so slow builds point at their cause
 const t0 = Date.now()
-const files = await buildAssets()
-await buildTemplates()
-await buildCatalog()
-await buildShowcase()
-console.log(`dog: ${Object.keys(sprites).length} sprites, ${Object.keys(looks).length} looks -> ${files} asset files + showcase in ${Date.now() - t0}ms`)
+const timings = []
+async function stage(name, fn) {
+  const s = Date.now()
+  const r = await fn()
+  timings.push(`${name} ${((Date.now() - s) / 1000).toFixed(1)}s`)
+  return r
+}
+const files = await stage('assets', buildAssets)
+await stage('templates', buildTemplates)
+await stage('catalog', buildCatalog)
+await stage('showcase', buildShowcase)
+console.log(`dog: ${Object.keys(sprites).length} sprites, ${Object.keys(looks).length} looks -> ${files} asset files + showcase in ${Date.now() - t0}ms (${timings.join(', ')})`)

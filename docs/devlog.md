@@ -196,3 +196,71 @@ zip structure and tags; memo returns identical frames; the new page in desktop a
 46 tests (4 new: weapon → style for every weapon, every style renders 8 frames, status overlay incl. "behind",
 FX pack structure, memo isolation), `fx.html` in desktop + mobile browsers (filter, recolor, pack download, detail
 sizes, APNG download), and the full browser suite.
+
+---
+
+## Round 4 · Engineering: load time, types, visual regression, build speed
+
+### Plan
+
+**Problem.** Three numbers got worse as content grew, and one safety net is missing:
+
+- **Import time** grows with every effect: all recipes run when DOG loads (~240 ms at 46 recipes, more now).
+- **Build time**: a full asset build takes 33 s.
+- **No TypeScript types**: editors can't autocomplete `dog.char({ hat: ... })`, and AI tools guess.
+- **No visual regression net.** Round 2 rewrote the pixel hot paths. A reference test covered them, but nothing
+  catches an *unintended* change to what any sprite, character, action or effect looks like.
+
+**Tech.**
+
+- **Lazy effects.** Effect sprites are registered with their size and color slots up front, and their frames are
+  generated the first time something reads them. The gallery only touches what's on screen. Measure import before/after.
+- **`src/index.d.ts`**: types for the whole public API, checked by compiling a usage sample with `tsc` (dev-only).
+- **Snapshot hashes**: `test/snapshots.json` holds a hash of every look plus characters, walks, actions, statuses
+  and effects at other sizes. A changed hash fails the test; `npm run snapshots` updates it on purpose.
+- **Faster build**: profile it first, then fix the biggest cost.
+
+**Effects (target ~10): environment.** Light glow, smoke column, lava bubbles, water glints, fog, sun rays, wind,
+dust motes, geyser, ripple.
+
+### Shipped
+
+| measure | before | after | how |
+| --- | ---: | ---: | --- |
+| `import` DOG | 290–363 ms | **41–56 ms** | effect sprites are lazy: registered with size + color slots, frames generated on first read |
+| main page ready | 1213 ms | **797 ms** | same (and only visible gallery tiles generate their effect) |
+| fx page ready | 1425 ms | **1043 ms** | same |
+| full build | 30.1 s | **12.9 s** (14.7 s with this round's 10 new effects) | `sheet()` / `compose()` / packs drew by copying the whole canvas per frame |
+| `dog.fxPack()` (all) | 427 ms | **102 ms** | same fix in the pack writer |
+
+- **Types**: `src/index.d.ts` for the whole API (`package.json` `types` + `exports`). `test/types/usage.ts` is
+  compiled with `tsc --strict` in CI. It includes three `@ts-expect-error` misuses (bad walk direction, unknown
+  action, missing body) that must stay errors. The same file runs under Node with types stripped, and the only
+  runtime error is the deliberate bad direction.
+- **Visual regression**: `test/snapshots.json` has 1,116 hashes (every look, characters, all walk directions,
+  actions, attack styles, statuses, every effect at 48 px with another seed, a sequence, an image-op pipeline,
+  a pack). `npm run snapshots` updates it on purpose.
+- **10 environment effects (68 total, 900 looks)**: glow, smoke column, lava, glints, fog, sun rays, wind,
+  motes, geyser, ripple.
+- `scripts/build.js` prints per-stage timings; `DOG_PROFILE=1` breaks down the showcase images.
+
+### How the build fix was found
+
+The plan said "profile first". The guess was compression (deflate level 9 on ~2,700 files). The profile said
+rendering + compression together were ~5.5 s of a 23 s stage. The rest was `sheet()`: it built the 1,300-frame
+texture atlas by calling `draw()`, which returns a *copy*, once per frame, copying a ~5 MB image 1,300 times.
+`sheet`, `compose` and the pack writer now blit in place into the canvas they created. The snapshot test passing
+unchanged proves the output is pixel-identical.
+
+### Proving the safety nets work
+
+- Changing one shade of the `red` material by a single unit made the snapshot test fail with 193 changed renders,
+  listed by name. Reverting made it pass.
+- The benchmark for effects started reporting 0.0 ms once Round 3's memo existed: it was timing cache hits. It now
+  uses a fresh seed per run (uncached) and reports the cached number separately.
+- The first lava was striped bars: a sine pattern quantized into bands. It's now molten orange with dark crust plates
+  drifting on top (using Round 3's `top` layer priority) and popping bubbles.
+
+### Checks
+
+48 tests (snapshots: 1,116 hashes), `tsc --strict` on the usage sample, benchmarks, load times, full browser suite.

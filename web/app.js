@@ -437,7 +437,7 @@ function buildGallery() {
     const tile = h('button', {
       class: 'tile', title: `${id}${def.tags.length ? ' · ' + def.tags.join(', ') : ''}`, 'aria-label': id,
       onclick: (e) => pick(id, e.shiftKey),
-    }, c, h('span', {}, id), def.frames.length > 1 ? h('i', { class: 'anim' }, '▶') : null)
+    }, c, h('span', {}, id), def.animated ? h('i', { class: 'anim' }, '▶') : null)
     const entry = { tile, canvas: c, look, visible: false, painted: false }
     tiles.set(id, entry)
     tileByEl.set(tile, entry)
@@ -515,7 +515,7 @@ function decorate() {
 }
 
 // animation loop: stage + animated gallery tiles
-const animatedTiles = () => [...tiles.values()].filter(({ look, tile, visible }) => visible && look.def.frames.length > 1 && !tile.hidden)
+const animatedTiles = () => [...tiles.values()].filter(({ look, tile, visible }) => visible && look.def.animated && !tile.hidden)
 let lastTileFrame = -1
 let prev = performance.now()
 function loop(now) {

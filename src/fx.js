@@ -29,6 +29,7 @@
 //   p.c, p.size, p.s                  center, size, scale (size / 32)
 
 import { glyphBits } from './font.js'
+import { lazySprite } from './sprite.js'
 
 const SHADES = { A: ['1', '2', '3', '4'], B: ['5', '6', '7', '8'], C: ['a', 'b', 'c', 'd'] }
 const DARKEST = { A: '1', B: '5', C: 'a' }
@@ -298,23 +299,26 @@ export function runRecipe(recipe, opts = {}) {
   return { frames, cover }
 }
 
-/** Recipe -> raw sprite definition for the registry (default color + element variants). */
+/**
+ * Recipe -> lazy sprite definition for the registry (default color + element variants).
+ * Frames are generated the first time something reads them, so importing DOG stays fast.
+ */
 export function effectSprite(recipe) {
-  const { frames, cover } = runRecipe(recipe)
   const variants = {}
   for (const [name, material] of Object.entries(FX_COLORS)) {
     if (material === recipe.color || (recipe.variants && !recipe.variants.includes(name))) continue
     variants[name] = { A: material }
   }
-  return {
+  const size = recipe.size ?? 32
+  return lazySprite({
     id: recipe.id,
     name: recipe.name ?? recipe.id.replace(/^fx-/, '').replace(/-/g, ' '),
     category: 'effects',
     tags: ['effect', 'fx', 'animated', ...(recipe.wrap ? ['seamless'] : []), ...(recipe.tags ?? [])],
     ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' },
+    slots: ['A', ...(recipe.B ? ['B'] : []), ...(recipe.C ? ['C'] : [])],
     variants,
     fps: recipe.fps ?? 12,
-    frames,
-    cover,
-  }
+    w: size, h: size,
+  }, () => runRecipe(recipe))
 }

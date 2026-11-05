@@ -319,7 +319,12 @@ export class Pixmap {
 
   /** Alpha-blend another Pixmap on top at (x, y). Returns a new Pixmap. */
   draw(img, x = img.x, y = img.y) {
-    const p = this.clone()
+    return this.clone()._blit(img, x, y)
+  }
+
+  /** In-place alpha blend. Internal: only for images a function just created itself (sheet, compose). */
+  _blit(img, x = img.x, y = img.y) {
+    const p = this
     const d = p.data, s = img.data
     for (let sy = 0; sy < img.h; sy++) {
       const ty = sy + y
@@ -370,8 +375,8 @@ export function compose(...layers) {
   if (!layers.length) return new Pixmap(1, 1)
   const x0 = Math.min(...layers.map((l) => l.x)), y0 = Math.min(...layers.map((l) => l.y))
   const x1 = Math.max(...layers.map((l) => l.x + l.w)), y1 = Math.max(...layers.map((l) => l.y + l.h))
-  let out = new Pixmap(x1 - x0, y1 - y0)
-  for (const l of layers) out = out.draw(l, l.x - x0, l.y - y0)
+  const out = new Pixmap(x1 - x0, y1 - y0)
+  for (const l of layers) out._blit(l, l.x - x0, l.y - y0) // the canvas is ours: draw in place, no copy per layer
   return out
 }
 
@@ -379,11 +384,11 @@ export function compose(...layers) {
 export function sheet(images, { columns = images.length, gap = 0, padding = 0, background } = {}) {
   const cw = Math.max(...images.map((i) => i.w)), ch = Math.max(...images.map((i) => i.h))
   const cols = Math.max(1, Math.min(columns, images.length)), rows = Math.ceil(images.length / cols)
-  let image = Pixmap.create(padding * 2 + cols * cw + (cols - 1) * gap, padding * 2 + rows * ch + (rows - 1) * gap, background)
+  const image = Pixmap.create(padding * 2 + cols * cw + (cols - 1) * gap, padding * 2 + rows * ch + (rows - 1) * gap, background)
   const frames = images.map((img, i) => {
     const x = padding + (i % cols) * (cw + gap) + ((cw - img.w) >> 1)
     const y = padding + ((i / cols) | 0) * (ch + gap) + (ch - img.h)
-    image = image.draw(img, x, y)
+    image._blit(img, x, y) // in place: copying the whole sheet per frame made big atlases quadratic
     return { x, y, w: img.w, h: img.h }
   })
   return { image, frames }
