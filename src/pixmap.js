@@ -70,6 +70,18 @@ export class Pixmap {
     return this.data[(y * this.w + x) * 4 + 3]
   }
 
+  /** 32-bit view of the pixels: one element per pixel, for fast copies. */
+  _u32() {
+    const d = this.data
+    return d.byteOffset % 4 === 0 ? new Uint32Array(d.buffer, d.byteOffset, this.w * this.h) : new Uint32Array(new Uint8ClampedArray(d).buffer)
+  }
+
+  _blank(w, h) {
+    const p = new Pixmap(w, h)
+    p.x = this.x; p.y = this.y
+    return p
+  }
+
   _new(w, h, fn) {
     const p = new Pixmap(w, h)
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
@@ -90,12 +102,27 @@ export class Pixmap {
     if (n === 1) return this.clone()
     if (n < 1) return this.downscale(Math.round(1 / n))
     if (!Number.isInteger(n)) return this.resize(Math.round(this.w * n), Math.round(this.h * n))
-    return this._new(this.w * n, this.h * n, (x, y) => this.get((x / n) | 0, (y / n) | 0))
+    const { w, h } = this, W = w * n
+    const out = this._blank(W, h * n), src = this._u32(), dst = out._u32()
+    for (let y = 0; y < h; y++) {
+      const row = y * n * W
+      for (let x = 0; x < w; x++) {
+        const v = src[y * w + x]
+        if (v) dst.fill(v, row + x * n, row + x * n + n)
+      }
+      for (let k = 1; k < n; k++) dst.copyWithin(row + k * W, row, row + W)
+    }
+    return out
   }
 
   /** Nearest-neighbour resize to any size. */
   resize(w, h = Math.round(this.h * (w / this.w))) {
-    return this._new(w, h, (x, y) => this.get(((x * this.w) / w) | 0, ((y * this.h) / h) | 0))
+    const out = this._blank(w, h), src = this._u32(), dst = out._u32()
+    for (let y = 0; y < h; y++) {
+      const sy = ((y * this.h) / h) | 0
+      for (let x = 0; x < w; x++) dst[y * w + x] = src[sy * this.w + (((x * this.w) / w) | 0)]
+    }
+    return out
   }
 
   /** Shrink by an integer factor using majority vote, so outlines survive. */
@@ -142,11 +169,20 @@ export class Pixmap {
   }
 
   pad(t = 1, r = t, b = t, l = r) {
-    return this._new(this.w + l + r, this.h + t + b, (x, y) => this.get(x - l, y - t))
+    return this.crop(-l, -t, this.w + l + r, this.h + t + b)
   }
 
   crop(x0, y0, w, h) {
-    return this._new(w, h, (x, y) => this.get(x + x0, y + y0))
+    const out = this._blank(w, h), src = this._u32(), dst = out._u32()
+    const sx0 = Math.max(0, x0), sx1 = Math.min(this.w, x0 + w)
+    if (sx1 > sx0) {
+      for (let y = Math.max(0, -y0); y < h; y++) {
+        const sy = y + y0
+        if (sy >= this.h) break
+        dst.set(src.subarray(sy * this.w + sx0, sy * this.w + sx1), y * w + (sx0 - x0))
+      }
+    }
+    return out
   }
 
   /** Remove transparent borders. */
@@ -160,30 +196,47 @@ export class Pixmap {
 
   // ------------------------------------------------------------ transform
 
-  flipX() { return this._new(this.w, this.h, (x, y) => this.get(this.w - 1 - x, y)) }
-  flipY() { return this._new(this.w, this.h, (x, y) => this.get(x, this.h - 1 - y)) }
+  flipX() {
+    const { w, h } = this, out = this._blank(w, h), src = this._u32(), dst = out._u32()
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) dst[y * w + x] = src[y * w + w - 1 - x]
+    return out
+  }
+
+  flipY() {
+    const { w, h } = this, out = this._blank(w, h), src = this._u32(), dst = out._u32()
+    for (let y = 0; y < h; y++) dst.set(src.subarray((h - 1 - y) * w, (h - y) * w), y * w)
+    return out
+  }
 
   /** Rotate clockwise by 90, 180 or 270 degrees. */
   rotate(deg = 90) {
     const d = ((Math.round(deg / 90) % 4) + 4) % 4
     if (d === 0) return this.clone()
-    if (d === 2) return this._new(this.w, this.h, (x, y) => this.get(this.w - 1 - x, this.h - 1 - y))
-    if (d === 1) return this._new(this.h, this.w, (x, y) => this.get(y, this.h - 1 - x))
-    return this._new(this.h, this.w, (x, y) => this.get(this.w - 1 - y, x))
+    const { w, h } = this, src = this._u32()
+    const out = d === 2 ? this._blank(w, h) : this._blank(h, w), dst = out._u32()
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = src[y * w + x]
+      if (d === 2) dst[(h - 1 - y) * w + (w - 1 - x)] = v
+      else if (d === 1) dst[x * h + (h - 1 - y)] = v // clockwise: (x, y) -> (h-1-y, x)
+      else dst[(w - 1 - x) * h + y] = v
+    }
+    return out
   }
 
   // -------------------------------------------------------------- effects
 
   /** 1px outline around the shape. Grows the image by 1px on each side. */
   outline(color = '#000', { corners = false } = {}) {
-    const c = parseColor(color)
-    const src = this.pad(1)
-    return src._new(src.w, src.h, (x, y) => {
-      if (src.alpha(x, y)) return src.get(x, y)
-      const near = src.alpha(x - 1, y) || src.alpha(x + 1, y) || src.alpha(x, y - 1) || src.alpha(x, y + 1) ||
-        (corners && (src.alpha(x - 1, y - 1) || src.alpha(x + 1, y - 1) || src.alpha(x - 1, y + 1) || src.alpha(x + 1, y + 1)))
-      return near ? c : null
-    })
+    const src = this.pad(1), { w, h, data } = src
+    const out = src.clone(), dst = out._u32()
+    const cv = new Uint32Array(new Uint8ClampedArray(parseColor(color)).buffer)[0]
+    const solid = (x, y) => x >= 0 && y >= 0 && x < w && y < h && data[(y * w + x) * 4 + 3] !== 0
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (data[(y * w + x) * 4 + 3]) continue
+      if (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1) ||
+        (corners && (solid(x - 1, y - 1) || solid(x + 1, y - 1) || solid(x - 1, y + 1) || solid(x + 1, y + 1)))) dst[y * w + x] = cv
+    }
+    return out
   }
 
   /** Drop shadow. Grows the image so the shadow is not clipped. */

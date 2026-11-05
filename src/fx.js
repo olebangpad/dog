@@ -21,7 +21,9 @@
 //   p.spark(x, y, angle, length, v)   thin streak fading toward its tail
 //   p.dot(x, y, v)                    one pixel
 //   p.glyph(char, x, y, v, scale)     3x5 font character, scaled by whole pixels
+//   p.emit({...}) / p.particles(list, t, { shape })   seeded particles with gravity and drag
 //   p.rng()                           seeded random number for this effect (same every frame)
+// Recipe flags: loop, wrap (seamless tile: shapes continue across edges), dither, outline, core, clean
 //   p.c, p.size, p.s                  center, size, scale (size / 32)
 
 import { glyphBits } from './font.js'
@@ -59,7 +61,8 @@ export function mulberry(a) {
 }
 
 class Painter {
-  constructor(size, seed) {
+  constructor(size, seed, wrap = false) {
+    this.wrap = wrap
     this.size = size
     this.c = size / 2
     this.s = size / 32
@@ -71,14 +74,18 @@ class Painter {
   use(layer) { this.cur = this.fields[layer]; return this }
 
   _put(x, y, v) {
-    if (v <= 0 || x < 0 || y < 0 || x >= this.size || y >= this.size) return
+    if (v <= 0) return
+    if (this.wrap) { x = ((x % this.size) + this.size) % this.size; y = ((y % this.size) + this.size) % this.size }
+    else if (x < 0 || y < 0 || x >= this.size || y >= this.size) return
     const i = y * this.size + x
     if (v > this.cur[i]) this.cur[i] = v
   }
 
   _box(x, y, r, fn) {
-    const x0 = Math.max(0, Math.floor(x - r - 1)), x1 = Math.min(this.size - 1, Math.ceil(x + r + 1))
-    const y0 = Math.max(0, Math.floor(y - r - 1)), y1 = Math.min(this.size - 1, Math.ceil(y + r + 1))
+    // with wrap on, shapes may cross an edge and continue on the other side
+    const lo = this.wrap ? -Infinity : 0, hi = this.wrap ? Infinity : this.size - 1
+    const x0 = Math.max(lo, Math.floor(x - r - 1)), x1 = Math.min(hi, Math.ceil(x + r + 1))
+    const y0 = Math.max(lo, Math.floor(y - r - 1)), y1 = Math.min(hi, Math.ceil(y + r + 1))
     for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) fn(px, py, px + 0.5 - x, py + 0.5 - y)
   }
 
@@ -163,6 +170,40 @@ class Painter {
     return this
   }
 
+  /**
+   * Seeded particles for setup(). Ranges are [min, max]; speeds are pixels per whole effect (t: 0 -> 1).
+   *   p.emit({ count: 20, x: p.c, y: p.c, speed: [8, 16], angle: [0, TAU], gravity: 20, drag: 1.5 })
+   */
+  emit({ count = 12, x = this.c, y = this.c, speed = [6, 12], angle = [0, Math.PI * 2], gravity = 0, drag = 0, life = [0.6, 1], size = [1, 2], delay = [0, 0] } = {}) {
+    const pick = ([a, b]) => a + (b - a) * this.rng()
+    return Array.from({ length: count }, () => {
+      const a = pick(angle), sp = pick(speed) * this.s
+      return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: gravity * this.s, k: drag, life: pick(life), size: pick(size) * this.s, delay: pick(delay) }
+    })
+  }
+
+  /** Where a particle is at effect time t (closed form, so any frame can be drawn on its own). */
+  static where(q, t) {
+    const tt = t - q.delay
+    if (tt < 0 || tt > q.life) return null
+    const f = q.k ? (1 - Math.exp(-q.k * tt)) / q.k : tt
+    return { x: q.x + q.vx * f, y: q.y + q.vy * f + 0.5 * q.g * tt * tt, age: tt / q.life, dx: q.vx, dy: q.vy + q.g * tt }
+  }
+
+  /** Draw particles at time t. shape: 'dot' | 'disc' | 'spark' | 'star'. */
+  particles(list, t, { v = 1, shape = 'disc', fade = 0.7, shrink = 0.6 } = {}) {
+    for (const q of list) {
+      const at = Painter.where(q, t)
+      if (!at) continue
+      const val = v * (1 - fade * at.age), r = q.size * (1 - shrink * at.age)
+      if (shape === 'dot') this.dot(at.x, at.y, val)
+      else if (shape === 'spark') this.spark(at.x, at.y, Math.atan2(at.dy, at.dx), Math.max(1, r * 2.5), val)
+      else if (shape === 'star') this.star(at.x, at.y, Math.max(1, r * 1.5), 4, val, 0.2)
+      else this.disc(at.x, at.y, Math.max(0.6, r), val, 0.25)
+    }
+    return this
+  }
+
   glyph(ch, x, y, v = 1, scale = 1) {
     const bits = glyphBits(ch)
     if (!bits) return this
@@ -198,19 +239,22 @@ function quantize(p, { dither, core }) {
 }
 
 /** Remove pixels that have no filled 4-neighbour (single-pixel noise). */
-function clean(rows) {
+function clean(rows, wrap) {
   const h = rows.length, w = rows[0].length
-  const filled = (x, y) => x >= 0 && y >= 0 && x < w && y < h && rows[y][x] !== '.'
+  const filled = (x, y) => {
+    if (wrap) { x = (x + w) % w; y = (y + h) % h }
+    return x >= 0 && y >= 0 && x < w && y < h && rows[y][x] !== '.'
+  }
   return rows.map((r, y) => [...r].map((ch, x) => (ch !== '.' && !filled(x - 1, y) && !filled(x + 1, y) && !filled(x, y - 1) && !filled(x, y + 1) ? '.' : ch)).join(''))
 }
 
 /** Selective outline: empty pixels next to a shape take that ramp's darkest shade. */
-function glowOutline(rows) {
+function glowOutline(rows, wrap) {
   const h = rows.length, w = rows[0].length
   return rows.map((r, y) => [...r].map((ch, x) => {
     if (ch !== '.') return ch
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const n = rows[y + dy]?.[x + dx]
+      const n = wrap ? rows[(y + dy + h) % h][(x + dx + w) % w] : rows[y + dy]?.[x + dx]
       if (n && n !== '.' && n !== '#') return DARKEST[LAYER_OF[n]]
     }
     return '.'
@@ -229,17 +273,17 @@ export function runRecipe(recipe, opts = {}) {
   const n = opts.frames ?? recipe.frames ?? 8
   const seed = opts.seed ?? hashSeed(recipe.id)
   // setup() runs once so particles keep their identity across frames
-  const setupPainter = new Painter(size, seed)
+  const setupPainter = new Painter(size, seed, !!recipe.wrap)
   const state = recipe.setup ? recipe.setup(setupPainter) : null
   let frames = []
   for (let i = 0; i < n; i++) {
-    const p = new Painter(size, seed)
+    const p = new Painter(size, seed, !!recipe.wrap)
     p.state = state
     const t = recipe.loop ? i / n : n === 1 ? 0 : i / (n - 1)
     recipe.draw(p, t, i)
     let rows = quantize(p, { dither: recipe.dither ?? false, core: recipe.core ?? true })
-    if (recipe.clean ?? true) rows = clean(rows)
-    if ((recipe.outline ?? 'glow') === 'glow') rows = glowOutline(rows)
+    if (recipe.clean ?? true) rows = clean(rows, recipe.wrap)
+    if ((recipe.outline ?? 'glow') === 'glow') rows = glowOutline(rows, recipe.wrap)
     frames.push(rows)
   }
   // trim empty frames at both ends; keep at least one
@@ -263,7 +307,7 @@ export function effectSprite(recipe) {
     id: recipe.id,
     name: recipe.name ?? recipe.id.replace(/^fx-/, '').replace(/-/g, ' '),
     category: 'effects',
-    tags: ['effect', 'fx', 'animated', ...(recipe.tags ?? [])],
+    tags: ['effect', 'fx', 'animated', ...(recipe.wrap ? ['seamless'] : []), ...(recipe.tags ?? [])],
     ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' },
     variants,
     fps: recipe.fps ?? 12,

@@ -7,7 +7,7 @@ const inn = (t) => t * t                           // ease in
 const bell = (t) => Math.sin(Math.PI * Math.min(1, Math.max(0, t))) // 0 -> 1 -> 0
 const clamp = (t) => Math.min(1, Math.max(0, t))
 
-export const RECIPES = [
+export const CORE = [
   // ------------------------------------------------------------------ bursts
   {
     id: 'fx-burst', color: 'orange', frames: 8, fps: 16, tags: ['burst'],
@@ -338,7 +338,8 @@ export const RECIPES = [
       for (let k = 0; k < 3; k++) {
         const u = (t + k / 3) % 1
         const scale = u < 0.4 ? 1 : 2 // letters grow as they float away
-        p.glyph('Z', c - 8 * s + u * 14 * s, c + 7 * s - u * 18 * s, 1.15 * bell(u * 0.95 + 0.05), scale * s)
+        // starts just above-right of a character's head (32x32 character frame) and drifts up and away
+        p.glyph('Z', (19 + u * 8) * s, (12 - u * 12) * s, 1.15 * bell(u * 0.95 + 0.05), scale * s)
       }
     },
   },

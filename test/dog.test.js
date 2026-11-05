@@ -391,3 +391,66 @@ test('fx colors stay inside their ramps (plus white cores)', () => {
     }
   }
 })
+
+// ------------------------------------------------- fast paths vs reference
+// The optimized Pixmap ops must give exactly what a naive per-pixel version gives.
+function randomPixmap(w, h, seed) {
+  let a = seed
+  const rnd = () => ((a = (a * 1103515245 + 12345) >>> 0) / 4294967296)
+  const p = new Pixmap(w, h)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (rnd() > 0.45) p.set(x, y, [rnd() * 255 | 0, rnd() * 255 | 0, rnd() * 255 | 0, 255])
+  return p
+}
+function naive(w, h, fn) {
+  const p = new Pixmap(w, h)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) p.set(x, y, fn(x, y))
+  return p
+}
+test('optimized scale / resize / crop / pad / flips / rotate / outline match a reference', () => {
+  for (const [w, h, seed] of [[1, 1, 1], [5, 3, 2], [16, 16, 3], [7, 12, 4]]) {
+    const img = randomPixmap(w, h, seed)
+    const same = (a, b, what) => { assert.equal(a.w, b.w, what); assert.equal(a.h, b.h, what); assert.deepEqual([...a.data], [...b.data], what) }
+    same(img.scale(3), naive(w * 3, h * 3, (x, y) => img.get((x / 3) | 0, (y / 3) | 0)), 'scale')
+    same(img.resize(11, 5), naive(11, 5, (x, y) => img.get(((x * w) / 11) | 0, ((y * h) / 5) | 0)), 'resize')
+    same(img.crop(-2, 1, 6, 9), naive(6, 9, (x, y) => img.get(x - 2, y + 1)), 'crop')
+    same(img.pad(1, 2, 3, 4), naive(w + 6, h + 4, (x, y) => img.get(x - 4, y - 1)), 'pad')
+    same(img.flipX(), naive(w, h, (x, y) => img.get(w - 1 - x, y)), 'flipX')
+    same(img.flipY(), naive(w, h, (x, y) => img.get(x, h - 1 - y)), 'flipY')
+    same(img.rotate(90), naive(h, w, (x, y) => img.get(y, h - 1 - x)), 'rotate 90')
+    same(img.rotate(180), naive(w, h, (x, y) => img.get(w - 1 - x, h - 1 - y)), 'rotate 180')
+    same(img.rotate(270), naive(h, w, (x, y) => img.get(w - 1 - y, x)), 'rotate 270')
+    const padded = img.pad(1)
+    same(img.outline('#ff00ff'), naive(w + 2, h + 2, (x, y) => {
+      if (padded.alpha(x, y)) return padded.get(x, y)
+      return padded.alpha(x - 1, y) || padded.alpha(x + 1, y) || padded.alpha(x, y - 1) || padded.alpha(x, y + 1) ? [255, 0, 255, 255] : [0, 0, 0, 0]
+    }), 'outline')
+  }
+})
+
+test('wrap makes shapes continue across the edge (seamless tiles)', async () => {
+  const { runRecipe } = await import('../src/fx.js')
+  const edgeDisc = (wrap) => runRecipe({ id: 'edge', wrap, frames: 2, outline: 'none', draw(p) { p.disc(p.size - 1, 16, 3, 1) } }).frames[0]
+  const wrapped = edgeDisc(true), plain = edgeDisc(false)
+  assert.notEqual(wrapped[16][0], '.', 'wrapped disc reaches the left edge')
+  assert.equal(plain[16][0], '.', 'unwrapped disc does not')
+  assert.notEqual(plain[16][31], '.')
+  // every registered seamless effect really is drawn with wrap on, and loops
+  for (const id of dog.fx.list.filter((id) => looks[id].def.tags.includes('seamless'))) {
+    assert.ok(looks[id].def.frames.length >= 4, id)
+  }
+  const a = dog.fx('firework', { seed: 1 }), b = dog.fx('firework', { seed: 1 })
+  assert.deepEqual(a.map((f) => [...f.data]), b.map((f) => [...f.data]))
+})
+
+test('dog.fx.sequence chains and overlaps effects', () => {
+  const charge = dog.fx('charge'), boom = dog.fx('boom')
+  const seq = dog.fx.sequence([{ fx: 'charge' }, { fx: 'boom' }])
+  assert.equal(seq.length, charge.length + boom.length)
+  assert.deepEqual([...seq[0].data], [...charge[0].data])
+  assert.deepEqual([...seq[charge.length].data], [...boom[0].data])
+  const both = dog.fx.sequence([{ fx: 'charge' }, { fx: 'boom', with: true, at: 2 }])
+  assert.equal(both.length, Math.max(charge.length, 2 + boom.length))
+  const looped = dog.fx.sequence([{ fx: 'orb', repeat: 3 }])
+  assert.equal(looped.length, dog.fx('orb').length * 3)
+  assert.ok(seq.fps > 0)
+})

@@ -15,7 +15,7 @@ import { createCharacters, CHAR_SIZE } from './character.js'
 import { createActions, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from './action.js'
 import { createPack, PACK_CELL } from './pack.js'
 import { runRecipe, FX_COLORS } from './fx.js'
-import { RECIPES } from './fx/recipes.js'
+import { RECIPES } from './fx/index.js'
 import { zip } from './zip.js'
 
 /** Every sprite definition, keyed by id. */
@@ -116,6 +116,41 @@ dog.fx = (name, { size, seed, frames: count, element, A, B, C } = {}) => {
   return out
 }
 dog.fx.list = RECIPES.map((r) => r.id)
+
+/**
+ * Play effects one after another or overlapping, as one frame list.
+ *   dog.fx.sequence([
+ *     { fx: 'charge' },                         // starts at frame 0
+ *     { fx: 'comet', repeat: 2, x: 6 },         // starts when the previous step ends
+ *     { fx: 'boom', with: true, at: -2 },       // 'with': same start as the previous step, shifted by 'at'
+ *   ], { size: 32, fps: 12 })
+ * Each step: fx, element, seed, x/y offset, repeat (for loops), at (frame offset), with.
+ */
+dog.fx.sequence = (steps, { size = 32, fps } = {}) => {
+  let prevStart = 0, prevEnd = 0
+  const placed = steps.map((st) => {
+    const one = dog.fx(st.fx, { size: st.size ?? size, element: st.element, seed: st.seed })
+    const frames = Array.from({ length: one.length * (st.repeat ?? 1) }, (_, i) => one[i % one.length])
+    const start = Math.max(0, (st.with ? prevStart : prevEnd) + (st.at ?? 0))
+    prevStart = start
+    prevEnd = start + frames.length
+    return { frames, start, x: st.x ?? 0, y: st.y ?? 0, fps: one.fps }
+  })
+  const total = Math.max(...placed.map((p) => p.start + p.frames.length))
+  const out = Array.from({ length: total }, (_, f) => {
+    let img = new Pixmap(size, size)
+    for (const p of placed) {
+      const k = f - p.start
+      if (k >= 0 && k < p.frames.length) {
+        const fr = p.frames[k]
+        img = img.draw(fr, ((size - fr.w) >> 1) + p.x, ((size - fr.h) >> 1) + p.y)
+      }
+    }
+    return img
+  })
+  out.fps = fps ?? placed[0]?.fps ?? 12
+  return out
+}
 dog.fx.colors = FX_COLORS
 
 export {
