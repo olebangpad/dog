@@ -11,6 +11,7 @@ Thanks for helping grow the collection! New sprites are the most welcome contrib
    | File | For |
    | --- | --- |
    | `characters.js` | people, animals |
+   | `gear.js` | hats and held items for `dog.char()` (see below) |
    | `items.js` | weapons, armor, treasure, food |
    | `monsters.js` | enemies |
    | `tiles.js` | seamless ground tiles and world props |
@@ -32,6 +33,25 @@ Tip: draw only the fill, then let the CLI add outlines for you:
 ```bash
 node scripts/dog.js outline < my-sprite.txt
 ```
+
+## Add gear for the character maker
+
+Hats and held items live in `src/sprites/gear.js`. On top of a normal sprite they need two fields:
+
+```js
+{
+  id: 'hat-pirate',
+  equip: 'head',      // 'head', 'hand' or 'offhand'
+  pivot: [8, 9],      // the pixel of this sprite that lands on the body's anchor
+  // ...ramps, variants, art as usual
+}
+```
+
+- **Hats**: the pivot is the bottom row of the brim, horizontally centred. It lands on the top of the head.
+- **Held items**: the pivot is the top pixel of the grip. It lands just outside the fist.
+- **New bodies** declare `anchors: { head: [x, y], hand: [x, y], offhand: [x, y] }`, optionally one point per animation frame.
+
+`npm test` renders every piece of gear on every body and fails if anything would be clipped, so you'll know right away.
 
 ## Text art legend
 

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { inflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS } from '../src/index.js'
+import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE } from '../src/index.js'
 
 const hex = (img, x, y) => toHex(img.get(x, y))
 
@@ -166,4 +166,69 @@ test('bad art is rejected with a helpful message', () => {
   assert.throws(() => defineSprite({ id: 'x', art: '..\n...' }), /row 1 is 3 wide/)
   assert.throws(() => defineSprite({ id: 'x', art: '.z' }), /unknown pixel "z"/)
   assert.throws(() => dog('potion', { A: 'not-a-material' }), /unknown material/)
+})
+
+// ------------------------------------------------------------ characters
+import { BODY_AT } from '../src/character.js'
+
+test('dog.char builds a fixed-size character from names', () => {
+  const plain = dog.char('hero')
+  const king = dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
+  assert.equal(king.w, CHAR_SIZE)
+  assert.equal(king.h, CHAR_SIZE)
+  assert.notDeepEqual(king.data, plain.data)
+  // short names and full ids mean the same thing
+  assert.deepEqual(dog.char('hero', { hat: 'crown' }).data, dog.char({ body: 'hero', hat: 'hat-crown' }).data)
+  // outfit color only touches the body
+  assert.ok(dog.char('hero', { A: '#ff00aa' }).colors().includes('#ff00aa'))
+})
+
+test('dog.char rejects things that cannot be worn', () => {
+  assert.throws(() => dog.char('potion'), /no anchors/)
+  assert.throws(() => dog.char('nobody'), /no body called/)
+  assert.throws(() => dog.char('hero', { hat: 'sword' }), /can't be worn on head/)
+})
+
+test('animals ignore hand items instead of floating them', () => {
+  assert.deepEqual(dog.char('dog', { hand: 'sword' }).data, dog.char('dog').data)
+})
+
+test('random characters are reproducible from a seed', () => {
+  assert.deepEqual(dog.char.random(7), dog.char.random(7))
+  assert.deepEqual(dog.char.random('npc-3'), dog.char.random('npc-3'))
+  const specs = new Set(Array.from({ length: 50 }, (_, i) => JSON.stringify(dog.char.random(i))))
+  assert.ok(specs.size > 40)
+  for (let i = 0; i < 200; i++) dog.char(dog.char.random(i))
+})
+
+test('character animation covers body and gear frames', () => {
+  assert.equal(dog.char.frames('slime').length, 2)
+  assert.equal(dog.char.frames('hero', { hand: 'torch' }).length, looks['held-torch'].def.sequence.length)
+  const [a, b] = dog.char.frames('slime', { hat: 'crown' })
+  assert.notDeepEqual(a.data, b.data) // the hat rides the bounce
+})
+
+test('no gear is clipped on any body', () => {
+  const { parts } = dog.char
+  for (const bodyId of parts.body) {
+    const body = looks[bodyId].def
+    for (const kind of ['head', 'hand', 'offhand']) {
+      if (!body.anchors[kind]) continue
+      for (const partId of parts[kind]) {
+        const part = looks[partId].def
+        body.anchors[kind].forEach(([ax, ay]) => {
+          part.frames.forEach((rows) => rows.forEach((row, y) => [...row].forEach((ch, x) => {
+            if (ch === '.') return
+            const cx = BODY_AT[0] + ax - part.pivot[0] + x, cy = BODY_AT[1] + ay - part.pivot[1] + y
+            assert.ok(cx >= 0 && cy >= 0 && cx < CHAR_SIZE && cy < CHAR_SIZE, `${partId} on ${bodyId} is clipped`)
+          })))
+        })
+      }
+    }
+  }
+})
+
+test('there are lots of combinations', () => {
+  assert.ok(dog.char.count() > 100000)
+  assert.ok(dog.char.parts.body.includes('hero') && dog.char.parts.head.includes('hat-crown'))
 })

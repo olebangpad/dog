@@ -18,6 +18,8 @@ usage:
   dog info <id>                            size, slots, variants, frames
   dog render <id> [options] -o out.png     export one sprite
   dog combine <id>[@x,y] <id>[@x,y] ...    stack sprites into one image
+  dog char <body> [--hat x] [--hand x] [--offhand x] [-A color] -o out.png
+  dog char --random [seed] -o out.png      a random character (same seed, same character)
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
@@ -54,6 +56,8 @@ function parse(argv) {
     else if (a === '--rotate') opts.rotate = Number(next())
     else if (a === '--frame') opts.frame = Number(next())
     else if (a === '--anim') opts.anim = true
+    else if (a === '--hat' || a === '--hand' || a === '--offhand') opts[a.slice(2)] = next()
+    else if (a === '--random') opts.random = optional() ?? true
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -119,6 +123,13 @@ if (!cmd || o.help) {
     return dog(id).at(x, y)
   })
   save(o.out ?? 'combined.png', finish(compose(layers), o).toPNG({ deflate }))
+} else if (cmd === 'char') {
+  const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
+    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
+  console.log(spec)
+  const name = o.out ?? `${spec.body}.png`
+  if (o.anim) save(name, encodeAPNG(dog.char.frames(spec).map((f) => finish(f, o)), { fps: looks[spec.body].def.fps, deflate }))
+  else save(name, finish(dog.char(spec), o).toPNG({ deflate }))
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {

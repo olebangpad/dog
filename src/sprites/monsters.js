@@ -6,7 +6,7 @@ export const category = "monsters"
 export default [
   {
     id: "slime",
-    tags: ["enemy", "animated"],
+    tags: ["enemy", "animated", "body"],
     ramps: { A: "lime" },
     variants: {
       blue: { A: "ice" },
@@ -17,6 +17,7 @@ export default [
       shadow: { A: "shadow" },
     },
     fps: 3,
+    anchors: { head: [[8, 7], [8, 9]] },
     frames: [
       `
         ................
@@ -107,7 +108,7 @@ export default [
   },
   {
     id: "ghost",
-    tags: ["enemy", "animated"],
+    tags: ["enemy", "animated", "body"],
     ramps: { A: "bone" },
     variants: {
       ice: { A: "ice" },
@@ -115,6 +116,7 @@ export default [
       pink: { A: "pink" },
     },
     fps: 2,
+    anchors: { head: [[8, 3], [8, 4]] },
     frames: [
       `
         ................
@@ -156,13 +158,14 @@ export default [
   },
   {
     id: "skull",
-    tags: ["enemy", "undead"],
+    tags: ["enemy", "undead", "body"],
     ramps: { A: "bone" },
     variants: {
       gold: { A: "gold" },
       cursed: { A: "lime" },
       crystal: { A: "ice" },
     },
+    anchors: { head: [8, 3] },
     art: `
       ................
       .....######.....
@@ -235,13 +238,14 @@ export default [
   },
   {
     id: "frog",
-    tags: ["enemy", "nature"],
+    tags: ["enemy", "nature", "body"],
     ramps: { A: "green", C: "sand" },
     variants: {
       poison: { A: "blue", C: "gold" },
       fire: { A: "red", C: "gold" },
       toad: { A: "wood", C: "sand" },
     },
+    anchors: { head: [8, 5] },
     art: `
       ................
       ................

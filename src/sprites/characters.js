@@ -6,7 +6,7 @@ export const category = "characters"
 export default [
   {
     id: "dog",
-    tags: ["animal", "mascot", "animated"],
+    tags: ["animal", "mascot", "animated", "body"],
     ramps: { A: "sand", B: "wood", C: "red" },
     variants: {
       shiba: { A: "orange", B: "leather", C: "blue" },
@@ -15,6 +15,7 @@ export default [
       choco: { A: "wood", B: "leather", C: "green" },
     },
     fps: 6,
+    anchors: { head: [11, 3] },
     frames: [
       `
         ................
@@ -56,7 +57,7 @@ export default [
   },
   {
     id: "cat",
-    tags: ["animal", "animated"],
+    tags: ["animal", "animated", "body"],
     ramps: { A: "iron", C: "pink" },
     variants: {
       orange: { A: "orange" },
@@ -65,6 +66,7 @@ export default [
     },
     fps: 4,
     sequence: [0, 0, 0, 0, 0, 1],
+    anchors: { head: [8, 3] },
     frames: [
       `
         ....#......#....
@@ -106,7 +108,7 @@ export default [
   },
   {
     id: "hero",
-    tags: ["character", "wearable-base"],
+    tags: ["character", "body"],
     ramps: { A: "blue", B: "wood", C: "skin" },
     variants: {
       red: { A: "red", B: "shadow" },
@@ -114,7 +116,10 @@ export default [
       mage: { A: "purple", B: "bone" },
       rogue: { A: "shadow", B: "red", C: "sand" },
       royal: { A: "gold", B: "orange", C: "leather" },
+      orc: { A: "leather", B: "shadow", C: "lime" },
+      elf: { A: "mint", B: "gold", C: "sand" },
     },
+    anchors: { head: [8, 2], hand: [14, 9], offhand: [3, 10] },
     art: `
       ................
       .....######.....
@@ -135,8 +140,38 @@ export default [
     `,
   },
   {
+    id: "skeleton",
+    tags: ["character", "undead", "body"],
+    ramps: { A: "bone" },
+    variants: {
+      gold: { A: "gold" },
+      cursed: { A: "lime" },
+      shadow: { A: "shadow" },
+      crystal: { A: "ice" },
+    },
+    anchors: { head: [8, 2], hand: [14, 9], offhand: [3, 10] },
+    art: `
+      ................
+      .....######.....
+      ....#444433#....
+      ...#4w444433#...
+      ...#44444433#...
+      ...#4##44##3#...
+      ...#4##33##3#...
+      ....#4#4#43#....
+      ...#.#3333#.#...
+      ..#4#444433#3#..
+      ..#4#4#44#3#3#..
+      ...##443333##...
+      .....#4##3#.....
+      .....#4##3#.....
+      ....#44##33#....
+      .....##..##.....
+    `,
+  },
+  {
     id: "chick",
-    tags: ["animal", "animated"],
+    tags: ["animal", "animated", "body"],
     ramps: { A: "gold", C: "orange" },
     variants: {
       blue: { A: "ice" },
@@ -144,6 +179,7 @@ export default [
       white: { A: "bone" },
     },
     fps: 4,
+    anchors: { head: [[8, 4], [8, 3]] },
     frames: [
       `
         ................

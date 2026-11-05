@@ -212,6 +212,18 @@ function banner() {
   return frames
 }
 
+// Random characters from dog.char.random(seed) - deterministic, so the image is stable.
+function characters() {
+  const specs = Array.from({ length: 24 }, (_, i) => dog.char.random(i + 1))
+  const all = specs.map((s) => dog.char.frames(s))
+  const n = 12
+  const title = text(`DOG.CHAR.RANDOM()  ${dog.char.count().toLocaleString('en-US')} COMBINATIONS`, { color: DIM })
+  return Array.from({ length: n }, (_, t) => {
+    const { image } = sheet(all.map((f) => f[t % f.length]), { columns: 8, gap: 2 })
+    return framed(column([title, image], 6), 6).scale(3)
+  })
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   await write(join(dir, 'gallery.png'), png(gallery()))
@@ -220,6 +232,7 @@ async function buildShowcase() {
   await write(join(dir, 'size.png'), png(sizes()))
   await write(join(dir, 'scene.png'), apng(scene(), 8))
   await write(join(dir, 'banner.png'), apng(banner(), 8))
+  await write(join(dir, 'characters.png'), apng(characters(), 6))
 }
 
 const t0 = Date.now()

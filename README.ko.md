@@ -4,10 +4,11 @@
 
 # DOG · Dots Of Games
 
-**코드로 만드는 도트 그래픽.** 250개가 넘는 무료 2D 게임 도트 이미지를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
-모든 스프라이트는 텍스트 파일입니다. 의존성 0개, 브라우저와 Node 양쪽에서 동작합니다.
+**코드로 만드는 도트 그래픽.** 340개가 넘는 무료 2D 게임 도트 이미지를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
+**228,384가지** 조합의 캐릭터 메이커도 들어 있습니다. 모든 스프라이트는 텍스트 파일이고, 의존성은 0개입니다.
 
 [**▶ 플레이그라운드 열기**](https://olebangpad.github.io/dog/) ·
+[캐릭터 메이커](#-캐릭터-메이커) ·
 [PNG 바로 받기](#-png만-필요하다면) ·
 [코드에서 쓰기](#-코드에서-쓰기) ·
 [스프라이트 추가하기](CONTRIBUTING.md) ·
@@ -28,6 +29,22 @@ DOG는 모든 스프라이트를 **텍스트**로 저장하고, 고정된 색 �
 ```js
 dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
+
+### 🧙 캐릭터 메이커
+
+몸에 장비를 **이름만으로** 입힙니다. 몸은 머리와 손 위치를, 장비는 잡히는 지점을 알고 있어서
+좌표 없이 알아서 제자리에 붙습니다. 애니메이션도 따라갑니다 (슬라임이 튀면 왕관도 같이 튑니다).
+
+```js
+dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })   // 24×24 이미지
+dog.char('slime-pink', { hat: 'wizard' })
+dog.char(dog.char.random(42))                     // 같은 시드 → 같은 캐릭터 (NPC 만들 때 좋아요)
+```
+
+몸 9종(영웅, 해골, 강아지, 고양이, 병아리, 슬라임, 유령, 해골 머리, 개구리) × 모자 10종 × 무기 9종 × 보조 장비 3종,
+색 변형까지 합치면 옷 색을 바꾸기 전에도 **228,384가지** 조합이 나옵니다.
+
+<img src="docs/img/characters.png" alt="dog.char.random()으로 만든 랜덤 캐릭터 24명" width="654">
 
 ### 🎨 그림 하나로 모든 색을
 
@@ -51,8 +68,8 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 ## 🖼 수록 스프라이트
 
-6개 카테고리, 기본 67종, 변형 포함 **257가지**, 이 중 16종은 애니메이션입니다.
-캐릭터, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
+7개 카테고리, 기본 90종, 변형 포함 **346가지**, 이 중 17종은 애니메이션입니다.
+캐릭터, 착용 장비, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
 이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다.
 
 <img src="docs/img/gallery.png" alt="DOG의 모든 기본 스프라이트" width="100%">
@@ -102,6 +119,8 @@ node scripts/dog.js list monsters
 node scripts/dog.js render potion -A '#ff4fd8' --scale 8 --outline '#fff' -o potion.png
 node scripts/dog.js render explosion --anim --scale 4 -o boom.png      # 애니메이션 PNG
 node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
+node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --scale 6 -o mage.png
+node scripts/dog.js char --random 42 --scale 6 -o npc.png
 ```
 
 ## ✏️ 스프라이트는 그냥 텍스트
@@ -125,6 +144,8 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `dog(id, { A, B, C, frame })` | 스프라이트 렌더링. `A/B/C`에는 재질 이름, hex 색, 4색 배열 |
 | `dog.frames(id, opts)` | 애니메이션 전체 프레임 |
 | `dog.list({ category, tag, variants })` | 전체 id 목록 |
+| `dog.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
+| `dog.char.frames(spec)` · `dog.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |
 | `sheet(images, { columns, gap })` | 스프라이트 시트로 묶기 |
 | `text('SCORE 9', { color })` | 내장 3×5 도트 폰트 |

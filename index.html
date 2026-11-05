@@ -23,13 +23,49 @@
     </a>
     <p class="stats" id="stats"></p>
     <nav class="top-nav">
+      <a href="#maker">Characters</a>
+      <a href="#studio">Studio</a>
       <a href="#gallery">Gallery</a>
       <a href="https://github.com/olebangpad/dog#readme">Docs</a>
       <a class="star" href="https://github.com/olebangpad/dog">★ Star on GitHub</a>
     </nav>
   </header>
 
-  <main class="layout">
+  <section class="maker" id="maker" aria-labelledby="maker-title">
+    <div class="maker-card">
+      <div class="maker-left">
+        <div class="maker-stage"><canvas id="maker-view" width="24" height="24" aria-label="Your character"></canvas></div>
+        <div class="maker-roll">
+          <button class="btn primary roll" id="roll">🎲 Random character</button>
+          <button class="btn" id="roll-16">Roll 16</button>
+        </div>
+        <p class="muted maker-count"><span id="maker-count"></span> <span id="maker-seed"></span></p>
+      </div>
+      <div class="maker-right">
+        <h2 id="maker-title" class="maker-title">Character maker</h2>
+        <p class="hint">Pick a body and gear. Everything snaps into place by name, no coordinates.</p>
+        <div id="pickers" class="pickers"></div>
+        <div class="row wrap maker-out">
+          <div class="seg" id="maker-scale" role="group" aria-label="Download size"></div>
+          <button class="btn primary" id="mk-png">Download PNG</button>
+          <button class="btn" id="mk-anim">Animated PNG</button>
+          <button class="btn" id="mk-studio">Open in studio →</button>
+          <button class="btn" id="mk-link">Copy link</button>
+        </div>
+        <div class="code-head"><span>Same character in code</span><button class="btn small" id="mk-code-copy">Copy</button></div>
+        <pre class="code" id="mk-code"></pre>
+      </div>
+    </div>
+    <div class="history" id="history" hidden>
+      <div class="history-head">
+        <b>Your rolls</b>
+        <button class="btn small" id="mk-sheet">Download all as a sheet</button>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </section>
+
+  <main class="layout" id="studio">
     <section class="studio" aria-label="Studio">
       <div class="stage-wrap">
         <div class="stage" id="stage" data-bg="checker">

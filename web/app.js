@@ -3,23 +3,11 @@ import {
   dog, looks, sprites, compose, sheet, defineSprite, render, resolveRamp, rampFrom,
   MATERIALS, MATERIAL_NAMES, LEGEND, OUTLINE, encodeAPNG,
 } from '../src/index.js'
+import { $, $$, h, paint, thumb, download, toast, copy, encode, decode, readHash, writeHash } from './ui.js'
+import { initMaker } from './maker.js'
 
 const REPO = 'olebangpad/dog'
-const $ = (sel, el = document) => el.querySelector(sel)
-const $$ = (sel, el = document) => [...el.querySelectorAll(sel)]
-function h(tag, attrs = {}, ...kids) {
-  const el = document.createElement(tag)
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k.startsWith('on')) el.addEventListener(k.slice(2), v)
-    else if (k === 'style' && typeof v === 'object') for (const [p, val] of Object.entries(v)) el.style.setProperty(p.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()), val)
-    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v)
-  }
-  el.append(...kids.flat().filter((k) => k != null))
-  return el
-}
-const paint = (canvas, img) => img.toCanvas(canvas)
-
-const CATEGORIES = ['all', 'characters', 'items', 'monsters', 'tiles', 'icons', 'effects']
+const CATEGORIES = ['all', 'characters', 'gear', 'items', 'monsters', 'tiles', 'icons', 'effects']
 const SCALES = [0.5, 1, 2, 3, 4, 6, 8, 12, 16]
 const PRESETS = [
   { name: 'King', layers: [['hero'], ['crown', 0, -7]] },
@@ -37,21 +25,20 @@ let state = { layers: [mkLayer('dog')], active: 0, fx: blankFx(), bg: 'checker' 
 const ui = { category: 'all', query: '', variants: true, playing: true, editFrame: 0, t: 0 }
 
 function encodeState() {
-  const s = {
+  return encode({
     l: state.layers.map((L) => [L.id, L.x, L.y, L.ramps, L.flip ? 1 : 0, L.custom]),
     a: state.active, f: state.fx, b: state.bg,
-  }
-  return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  })
 }
 function decodeState(str) {
-  const s = JSON.parse(decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/')))))
+  const s = decode(str)
   const layers = s.l.filter(([id]) => looks[id]).map(([id, x, y, ramps, flip, custom]) => ({ ...mkLayer(id, x, y, ramps), flip: !!flip, custom: custom ?? null }))
   if (!layers.length) throw new Error('empty')
   return { layers, active: Math.min(s.a ?? 0, layers.length - 1), fx: { ...blankFx(), ...s.f }, bg: s.b ?? 'checker' }
 }
 function loadFromHash() {
-  const m = location.hash.match(/s=([\w-]+)/)
-  if (m) try { state = decodeState(m[1]) } catch { /* ignore broken links */ }
+  const s = readHash('s')
+  if (s) try { state = decodeState(s) } catch { /* ignore broken links */ }
 }
 
 const active = () => state.layers[state.active]
@@ -167,17 +154,6 @@ $('#play').addEventListener('click', () => {
 })
 
 // --------------------------------------------------------------- layers
-function thumb(img, size = 32) {
-  const c = h('canvas', { width: img.w, height: img.h, 'aria-hidden': 'true' })
-  paint(c, img)
-  c.style.width = c.style.height = `${size}px`
-  if (img.w !== img.h) {
-    const r = img.w / img.h
-    if (r > 1) c.style.height = `${size / r}px`; else c.style.width = `${size * r}px`
-  }
-  return c
-}
-
 function renderLayers() {
   const list = $('#layers')
   list.replaceChildren(...state.layers.map((L, i) => {
@@ -312,12 +288,6 @@ $('#outline-color').addEventListener('input', (e) => {
 })
 
 // --------------------------------------------------------------- export
-function download(name, bytes) {
-  const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
-  const a = h('a', { href: url, download: name })
-  document.body.append(a); a.click(); a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
 const baseName = () => state.layers.map((L) => L.id).join('+').slice(0, 60)
 function animFrames() {
   const visible = state.layers.filter((L) => !L.hidden)
@@ -497,18 +467,10 @@ function pick(id, asNewLayer) {
 }
 
 // ----------------------------------------------------------------- misc
-function toast(msg) {
-  const t = h('div', { class: 'toast', role: 'status' }, msg)
-  document.body.append(t)
-  setTimeout(() => t.remove(), 1800)
-}
-async function copy(text, msg) {
-  try { await navigator.clipboard.writeText(text); toast(msg) } catch { prompt('Copy:', text) }
-}
 let hashTimer
 function saveHash() {
   clearTimeout(hashTimer)
-  hashTimer = setTimeout(() => history.replaceState(null, '', '#s=' + encodeState()), 250)
+  hashTimer = setTimeout(() => writeHash('s', encodeState()), 250)
 }
 
 function update({ gallery = true, colors = true, layers = true, editor = true } = {}) {
@@ -534,7 +496,7 @@ function decorate() {
   style.textContent = `.stage[data-bg='grass'] { background-image: url(${dog('grass').scale(4).toDataURL()}); }`
   document.head.append(style)
   const base = Object.keys(sprites).length, all = Object.keys(looks).length
-  $('#stats').textContent = `${base} sprites · ${all} looks · ${MATERIAL_NAMES.length} materials · CC0`
+  $('#stats').textContent = `${base} sprites · ${all} looks · ${dog.char.count().toLocaleString('en-US')} characters · CC0`
 }
 
 // animation loop: stage + animated gallery tiles
@@ -567,6 +529,14 @@ decorate()
 buildGallery()
 renderPresets()
 update()
+initMaker({
+  openInStudio(layers) {
+    state.layers = layers.map((L) => mkLayer(L.id, L.x, L.y, L.ramps))
+    state.active = 0
+    update()
+    $('.layout').scrollIntoView({ behavior: 'smooth' })
+  },
+})
 addEventListener('resize', () => drawStage(true))
 requestAnimationFrame(loop)
 

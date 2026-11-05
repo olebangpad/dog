@@ -11,6 +11,7 @@ import { MATERIALS, MATERIAL_NAMES, OUTLINE } from './materials.js'
 import { parseColor, toHex, rampFrom } from './color.js'
 import { encodePNG, encodeAPNG } from './png.js'
 import { text, FONT_CHARS } from './font.js'
+import { createCharacters, CHAR_SIZE } from './character.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -65,9 +66,16 @@ dog.list = ({ category, tag, variants = true } = {}) =>
 
 dog.info = (id) => lookup(id)
 
+/**
+ * Character maker - gear snaps onto bodies by name.
+ *   dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
+ *   dog.char.frames(spec)   dog.char.random(seed)   dog.char.parts   dog.char.count()
+ */
+dog.char = createCharacters(looks)
+
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,
-  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS,
+  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE,
 }
 export default dog

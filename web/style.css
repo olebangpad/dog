@@ -42,9 +42,49 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .top-nav a { text-decoration: none; color: var(--muted); }
 .top-nav a:hover { color: var(--ink); }
 .top-nav .star {
-  color: var(--accent-ink); background: var(--accent); padding: 6px 12px; border-radius: 8px; font-weight: 600;
+  color: var(--accent-ink); background: var(--accent); padding: 6px 12px; border-radius: 8px; font-weight: 600; white-space: nowrap;
 }
 .top-nav .star:hover { color: var(--accent-ink); filter: brightness(1.08); }
+
+/* ------------------------------------------------------------------ maker */
+.maker { max-width: 1500px; margin: 0 auto; padding: 20px 20px 0; }
+.maker-card {
+  display: grid; grid-template-columns: 300px 1fr; gap: 24px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px;
+}
+.maker-left { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+.maker-stage {
+  aspect-ratio: 1; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line);
+  --check-a: #222e26; --check-b: #1a241e;
+  background: repeating-conic-gradient(var(--check-a) 0 25%, var(--check-b) 0 50%) 0 0 / 20px 20px;
+}
+.maker-stage canvas { width: 88%; height: 88%; }
+.maker-roll { display: flex; gap: 8px; }
+.maker-roll .roll { flex: 1; font-size: 16px; padding: 12px; }
+.maker-count { margin: 0; font-size: 12px; text-align: center; }
+#maker-seed { display: block; font-family: var(--mono); }
+.maker-right { min-width: 0; }
+.maker-title { font: 18px/1 var(--pixel); color: var(--accent); margin: 0 0 6px; letter-spacing: .5px; }
+.pickers { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.picker-head { display: flex; gap: 10px; align-items: baseline; font-size: 13px; margin-bottom: 4px; }
+.picker-head b { font-family: var(--pixel); font-size: 12px; font-weight: normal; min-width: 70px; }
+.picker-head span { font-size: 12px; font-family: var(--mono); }
+.picker.off .strip { opacity: .35; }
+.strip { display: flex; gap: 4px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.pick {
+  flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center; padding: 0;
+  background: var(--panel-2); border: 2px solid transparent; border-radius: 8px; cursor: pointer; color: var(--muted);
+}
+.pick:hover:not(:disabled) { border-color: var(--muted); }
+.pick[aria-pressed='true'] { border-color: var(--accent); background: #273a2c; }
+.pick:disabled { cursor: default; }
+.pick.small { width: 28px; height: 24px; border-radius: 5px; border-width: 1px; }
+.maker-out { margin-top: 14px; }
+.history { margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; }
+.history[hidden] { display: none; }
+.history-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.history-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.history-list .pick { width: 52px; height: 52px; }
 
 /* ------------------------------------------------------------------ layout */
 .layout {
@@ -194,6 +234,9 @@ input[type='checkbox'] { accent-color: var(--accent); }
 
 /* ------------------------------------------------------------------ mobile */
 @media (max-width: 860px) {
+  .maker { padding: 12px 16px 0; }
+  .maker-card { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
+  .maker-left { max-width: 320px; width: 100%; margin: 0 auto; }
   .layout { grid-template-columns: 1fr; padding: 12px 16px; gap: 16px; }
   .studio { position: static; max-height: none; }
   .stage-wrap { position: sticky; top: 0; z-index: 3; }
@@ -201,7 +244,7 @@ input[type='checkbox'] { accent-color: var(--accent); }
   .panels { overflow: visible; padding: 0; }
   .filters { top: 0; }
   .top { padding: 10px 16px; }
-  .top-nav { margin-left: 0; width: 100%; }
+  .top-nav { margin-left: 0; width: 100%; flex-wrap: wrap; gap: 8px 14px; }
   .top-nav .star { margin-left: auto; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
   .tile canvas { width: 40px; height: 40px; }
