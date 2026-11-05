@@ -8,5 +8,6 @@ import * as tiles from './tiles.js'
 import * as icons from './icons.js'
 import * as effects from './effects.js'
 import * as gear from './gear.js'
+import * as fx from './fx.js'
 
-export const groups = [characters, gear, items, monsters, tiles, icons, effects]
+export const groups = [characters, gear, items, monsters, tiles, icons, effects, fx]

@@ -14,6 +14,8 @@ import { text, FONT_CHARS } from './font.js'
 import { createCharacters, CHAR_SIZE } from './character.js'
 import { createActions, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from './action.js'
 import { createPack, PACK_CELL } from './pack.js'
+import { runRecipe, FX_COLORS } from './fx.js'
+import { RECIPES } from './fx/recipes.js'
 import { zip } from './zip.js'
 
 /** Every sprite definition, keyed by id. */
@@ -96,9 +98,29 @@ dog.walk = dog.char.walk
  */
 dog.pack = createPack(dog, looks)
 
+/**
+ * Procedural effects at any size / seed / color (the registered fx-* sprites are the 32px defaults).
+ *   dog.fx('firework')                         -> frames (.fps, .loop)
+ *   dog.fx('boom', { size: 64, seed: 3, element: 'ice' })
+ */
+const recipeById = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
+dog.fx = (name, { size, seed, frames: count, element, A, B, C } = {}) => {
+  const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
+  if (!recipe) throw new Error(`dog: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
+  const { frames } = runRecipe(recipe, { size, seed, frames: count })
+  const def = defineSprite({ id: recipe.id, frames, ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' } })
+  const ramps = { A: A ?? (element ? FX_COLORS[element] ?? element : undefined), B, C }
+  const out = renderFrames(def, Object.fromEntries(Object.entries(ramps).filter(([, v]) => v != null)))
+  out.fps = recipe.fps ?? 12
+  out.loop = !!recipe.loop
+  return out
+}
+dog.fx.list = RECIPES.map((r) => r.id)
+dog.fx.colors = FX_COLORS
+
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,
-  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip,
+  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip, FX_COLORS, RECIPES,
 }
 export default dog

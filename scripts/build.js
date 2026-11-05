@@ -288,6 +288,27 @@ function walks() {
   })
 }
 
+// Every procedural effect, animated, labeled.
+function fxShowcase() {
+  const ids = dog.fx.list
+  const all = ids.map((id) => dog.frames(id))
+  const cols = 7, cell = 32, gap = 10, labelH = 8
+  const rows = Math.ceil(ids.length / cols)
+  const steps = 16
+  return Array.from({ length: steps }, (_, t) => {
+    let img = new Pixmap(cols * (cell + gap) - gap, rows * (cell + labelH + gap) - gap)
+    ids.forEach((id, i) => {
+      const x = (i % cols) * (cell + gap), y = Math.floor(i / cols) * (cell + labelH + gap)
+      const frames = all[i]
+      img = img.draw(frames[t % frames.length], x, y)
+      const name = id.replace(/^fx-/, '').toUpperCase().slice(0, 9)
+      const l = text(name, { color: DIM })
+      img = img.draw(l, x + ((cell - l.w) >> 1), y + cell + 2)
+    })
+    return framed(img, 8).scale(3)
+  })
+}
+
 // 1280x640 image for GitHub's social preview (Settings -> General -> Social preview).
 function social() {
   let img = Pixmap.create(320, 160, BG)
@@ -319,6 +340,7 @@ async function buildShowcase() {
   await write(join(dir, 'actions.png'), apng(actions(), 10))
   await write(join(dir, 'walk.png'), apng(walks(), 6))
   await write(join(dir, 'social.png'), png(social()))
+  await write(join(dir, 'fx.png'), apng(fxShowcase(), 12))
 }
 
 // Packs used by templates/phaser, regenerated so they always match the library.

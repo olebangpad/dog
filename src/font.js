@@ -26,6 +26,9 @@ const G = {
 
 export const FONT_CHARS = Object.keys(G).join('')
 
+/** 15-character bit string (3x5, row by row) for a character, or null. */
+export const glyphBits = (ch) => G[String(ch).toUpperCase()] ?? null
+
 /** Render a line of text with the built-in 3x5 font. Unknown characters render as '?'. */
 export function text(str, { color = '#ffffff', spacing = 1, lineHeight = 7 } = {}) {
   const c = parseColor(color)

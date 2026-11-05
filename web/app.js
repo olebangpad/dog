@@ -416,17 +416,32 @@ $('#copy-def').addEventListener('click', () => {
 
 // --------------------------------------------------------------- gallery
 const tiles = new Map()
+// Thumbnails are painted only when they scroll into view (hundreds of them otherwise delay the page).
+const tileByEl = new WeakMap()
+const seen = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    const t = tileByEl.get(e.target)
+    if (!t) continue
+    t.visible = e.isIntersecting
+    if (t.visible && !t.painted) {
+      t.painted = true
+      paint(t.canvas, dog(t.look.id, { frame: t.look.def.cover }))
+    }
+  }
+}, { rootMargin: '200px' })
 function buildGallery() {
   const grid = $('#grid')
   for (const look of Object.values(looks)) {
     const { def, id } = look
     const c = h('canvas', { width: def.w, height: def.h, 'aria-hidden': 'true' })
-    paint(c, dog(id, { frame: def.cover }))
     const tile = h('button', {
       class: 'tile', title: `${id}${def.tags.length ? ' · ' + def.tags.join(', ') : ''}`, 'aria-label': id,
       onclick: (e) => pick(id, e.shiftKey),
     }, c, h('span', {}, id), def.frames.length > 1 ? h('i', { class: 'anim' }, '▶') : null)
-    tiles.set(id, { tile, canvas: c, look })
+    const entry = { tile, canvas: c, look, visible: false, painted: false }
+    tiles.set(id, entry)
+    tileByEl.set(tile, entry)
+    seen.observe(tile)
     grid.append(tile)
   }
   $('#chips').append(...CATEGORIES.map((cat) => h('button', {
@@ -500,7 +515,7 @@ function decorate() {
 }
 
 // animation loop: stage + animated gallery tiles
-const animatedTiles = () => [...tiles.values()].filter(({ look, tile }) => look.def.frames.length > 1 && !tile.hidden)
+const animatedTiles = () => [...tiles.values()].filter(({ look, tile, visible }) => visible && look.def.frames.length > 1 && !tile.hidden)
 let lastTileFrame = -1
 let prev = performance.now()
 function loop(now) {

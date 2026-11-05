@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { inflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL } from '../src/index.js'
+import { dog, looks, sprites, compose, sheet, Pixmap, defineSprite, render, rampFrom, parseColor, toHex, text, encodeAPNG, MATERIALS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, resolveRamp } from '../src/index.js'
 
 const hex = (img, x, y) => toHex(img.get(x, y))
 
@@ -355,4 +355,39 @@ test('dog.pack works for animals and custom elements', () => {
   const pack = dog.pack({ body: 'slime-pink', hat: 'crown' }, { element: 'ice', actions: ['attack', 'hit'] })
   assert.deepEqual(pack.animations, ['idle', 'walk-down', 'walk-up', 'walk-left', 'walk-right', 'attack', 'hit'])
   assert.ok(pack.json.meta.dog.loops['walk-left'] && !pack.json.meta.dog.loops.attack)
+})
+
+// -------------------------------------------------------------------- fx
+test('every fx recipe is a registered, animated, recolorable sprite', () => {
+  assert.ok(dog.fx.list.length >= 26)
+  for (const id of dog.fx.list) {
+    const def = looks[id].def
+    assert.equal(def.category, 'effects')
+    assert.ok(def.frames.length >= 2, `${id} is not animated`)
+    assert.ok(def.frames.every((f) => f.some((r) => /[^.]/.test(r))), `${id} has an empty frame`)
+    assert.ok(Object.keys(def.variants).length >= 3, `${id} needs color variants`)
+  }
+})
+
+test('dog.fx is deterministic per seed and works at other sizes and colors', () => {
+  const a = dog.fx('firework', { seed: 5 }), b = dog.fx('firework', { seed: 5 }), c = dog.fx('firework', { seed: 6 })
+  assert.deepEqual(a.map((f) => [...f.data]), b.map((f) => [...f.data]))
+  assert.notDeepEqual(a.map((f) => [...f.data]), c.map((f) => [...f.data]))
+  const big = dog.fx('boom', { size: 64 })
+  assert.equal(big[0].w, 64)
+  assert.ok(big.fps > 0)
+  const ice = new Set(dog.fx('burst', { element: 'ice' }).flatMap((f) => f.colors()))
+  assert.ok([...ice].every((col) => [...MATERIALS.ice, '#ffffff'].includes(col)), [...ice].join(' '))
+  assert.equal(dog.fx('magic-circle').loop, true)
+  assert.throws(() => dog.fx('nope'), /no effect called/)
+})
+
+test('fx colors stay inside their ramps (plus white cores)', () => {
+  for (const id of dog.fx.list) {
+    const def = looks[id].def
+    const allowed = new Set(['#ffffff', ...['A', 'B', 'C'].flatMap((k) => resolveRamp(looks[id].ramps[k]))])
+    for (let f = 0; f < def.frames.length; f++) {
+      for (const col of dog(id, { frame: f }).colors()) assert.ok(allowed.has(col), `${id} frame ${f}: ${col}`)
+    }
+  }
 })
