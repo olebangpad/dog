@@ -14,7 +14,7 @@ export const AMBIENT = [
       const { s, size } = p
       for (const d of p.state) {
         const y = d.y + t * size * 2, x = d.x - t * size // two tiles down, one left per loop
-        p.line(x, y, x - 2 * s, y + 5 * s, 1, 0.65, 1.05)
+        p.line(x, y, x - 2 * s, y + 5 * s, p.px, 0.65, 1.05)
       }
     },
   },
@@ -66,8 +66,8 @@ export const AMBIENT = [
       for (const b of p.state) {
         const y = b.y - t * size, x = b.x + Math.sin((t * 2 + b.k) * TAU) * 1.5 * s
         const r = (1 + b.k * 1.5) * s
-        p.ring(x, y, r, 1, 1)
-        p.dot(x - r * 0.4, y - r * 0.4, 1.15)
+        p.ring(x, y, r, p.px, 1)
+        p.pt(x - r * 0.4, y - r * 0.4, 1.15)
       }
     },
   },

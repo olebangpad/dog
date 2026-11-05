@@ -6,5 +6,6 @@ import { AMBIENT } from './ambient.js'
 import { STATUS } from './status.js'
 import { COMBAT } from './combat.js'
 import { ENVIRONMENT } from './environment.js'
+import { SPECTACLE } from './spectacle.js'
 
-export const RECIPES = [...CORE, ...MOTION, ...AMBIENT, ...STATUS, ...COMBAT, ...ENVIRONMENT]
+export const RECIPES = [...CORE, ...MOTION, ...AMBIENT, ...STATUS, ...COMBAT, ...ENVIRONMENT, ...SPECTACLE]

@@ -53,7 +53,7 @@ export const CORE = [
       const top = c - 5 * s
       if (t < 0.3) {
         const y = size - 2 - (size - 2 - top) * out(t / 0.3)
-        p.line(c, y, c, y + 6 * s, 1, 1.15, 0.2)
+        p.line(c, y, c, y + 6 * s, p.px, 1.15, 0.2)
         return
       }
       const k = (t - 0.3) / 0.7
@@ -158,7 +158,7 @@ export const CORE = [
       }
       for (let k = 0; k < 5; k++) {
         const u = (t * 1.6 + k * 0.21) % 1
-        p.dot(c + (k - 2) * 4 * s, size - 4 * s - u * 24 * s, 1.1 * (1 - u) * bell(t * 1.2))
+        p.pt(c + (k - 2) * 4 * s, size - 4 * s - u * 24 * s, 1.1 * (1 - u) * bell(t * 1.2))
       }
     },
   },

@@ -263,4 +263,99 @@ unchanged proves the output is pixel-identical.
 
 ### Checks
 
-48 tests (snapshots: 1,116 hashes), `tsc --strict` on the usage sample, benchmarks, load times, full browser suite.
+47 tests (snapshots: 1,116 hashes), `tsc --strict` on the usage sample, benchmarks, load times, full browser suite.
+
+---
+
+## Round 5 · Show it: final effects batch, a demo that uses them, an effects reel, docs
+
+### Plan
+
+**Problem.** 68 effect designs exist, but the demo game, the README, the AI skill and the promo video don't show any
+of them. Nobody can find them yet.
+
+- **Effects (target ~12, "big moments").** Meteor, tornado, quake, black hole, summon, revive, thorns, electric
+  field, confetti, poof, drip, music notes.
+- **Demo game uses them.** Weapon attacks already come from `dog.action`. Add crits ("CRIT!" + double damage), a
+  coin-pop on pickup, a "poof" when enemies vanish, a level-up burst, a glow behind the campfire, and drifting
+  ambient effects (leaves / fireflies) tiled over the map.
+- **Effects reel.** A vertical 1080×1920 video in the spirit of the "244 effects" reel that started all this:
+  the effect count, a grid of effects cycling page by page, captions. English and Korean, same frame-stepped
+  recorder. Re-record the gameplay GIF with the new effects.
+- **Docs.** README (EN/KO) effects section and counts; SKILL.md: `dog.fx`, sequences, `dog.status`, `dog.fxPack`,
+  attack styles; CONTRIBUTING: how to add an effect recipe; this devlog closes with a summary of all five rounds.
+
+**Checks.** Contact-sheet review of the new batch, the demo in a browser (crits and new effects actually fire),
+watch frames from the new reel, snapshots updated on purpose, the full browser suite.
+
+### Shipped
+
+- **12 "big moment" effects (80 designs, 966 looks; 545 of them are effects).** Meteor, tornado, quake, black hole,
+  summon, revive, thorns, electric field, confetti, poof, drip, music notes, in `src/fx/spectacle.js`.
+- **The demo game uses effects.** 1 hit in 5 is a crit: double damage, "CRIT!" over the enemy and a "-2" hit.
+  The killing blow lands an impact, enemies vanish in a poof, coins pop, a level-up throws confetti, the campfire
+  casts a soft glow, and firefly swarms drift around the map. All of it is `dog.fx()`, built once into canvases.
+- **Effects reel** (`fxreel.html`, `docs/promo/fx-reel-en.mp4` / `-ko.mp4`): 1080×1920, 17 s. The count runs up to
+  545, then 7 themed pages of 25 live effects each: highlights, combat, magic, big moments, weather on grass and
+  water, statuses on characters, one effect in five colors. Captions in English and Korean, recorded frame by frame.
+  The gameplay GIF and both promo reels were re-recorded with the new effects.
+- **Engine: effects keep their look at any size.** New brushes `p.pt()` (one art pixel) and `p.px` (a 1px line
+  width that scales). Text in effects grows and centers itself. Sparks and dot particles scale too. A new test
+  draws all 80 recipes at 32 and 64 px.
+- **CLI**: `dog fx meteor --element ice --size 64`, `--on slime` for a status on a character, `--strip` / `--frame`,
+  and `dog fxpack [names] -o effects.zip`.
+- `fx.html` gained the *environment* and *spectacle* filters. `dog.status()` frames now carry `.loop`.
+- **Docs.** The README (EN/KO) finally has an effects section: showcase, API, CLI, weapon styles, counts and badge.
+  SKILL.md has an Effects section with usage rules; every code block in it still runs in the test.
+  CONTRIBUTING has "Adding an effect", and llms.txt links the gallery.
+
+### What the review caught
+
+- **Drip only worked at 32 px.** The falling drop's height divided by the scale a second time, so at 64 px it
+  stopped halfway down. That raised a broader question: which other recipes break at other sizes?
+  A measurement (where the ink sits and how much of it there is, at 32 vs 64 px) answered it:
+  - the tornado had *less* ink at double size (0.83×)
+  - the summoning circle vanished
+  - MISS / CRIT! / POW stayed 32-px small
+  - ripples and bubbles turned into dotted lines
+
+  All of these drew single pixels or 1px lines. The fix went into the engine (`pt`, `px`, scaling text) and the
+  recipes moved onto it. At 32 px the output is unchanged, except MISS and POW now sit on their true center
+  (1 px). The test now fails if any recipe drifts or stops growing.
+- **Confetti was faint.** There were too few, too thin pieces. Now there are 24 flakes that tumble (wide face-on,
+  thin edge-on).
+- **The demo's first ambient pass looked like wallpaper.** A 64 px firefly tile repeated over the whole map, with
+  an obvious pattern. It's now four small swarms with different seeds. The campfire glow was a solid orange "rug";
+  it's now drawn at 55% opacity, so it reads as light.
+- **Reel layout.** "FREE GAME" touched the right edge, because the count reserved room for 4 digits. And one-shot
+  tiles sat empty too long between replays; the gap went from 0.3 s to 0.12 s.
+- `dog fx burning --on slime` printed "plays once" because status frames didn't say they loop. Fixed in
+  `dog.status()`.
+
+### Checks
+
+- 50 tests: scaling for all 80 recipes, status loops, and the CLI writing an APNG at the requested size plus an
+  effect pack.
+- Snapshots (1,194 hashes) were updated on purpose. The only changes were the 12 new effects, MISS/POW at 32 px,
+  and 48 px renders that gained scaled lines.
+- `tsc --strict` on the usage sample, and a 15.4 s full build.
+- The demo game in a browser, screenshotted when crits, poofs, coins and level-ups fire.
+- Reel frames checked at 8 points in each language, plus frames pulled from the final videos.
+- The full browser suite: studio, maker, actions, walking, demo, packs, templates, recipe, lazy gallery, load
+  times, effects page.
+
+---
+
+## Five rounds, in numbers
+
+| round | focus | effect designs | looks | tech that shipped with it |
+| --- | --- | ---: | ---: | --- |
+| start | | 5 hand-drawn | 441 | |
+| 1 | FX engine | 31 | 674 | recipes paint light, the engine shades and outlines it; fade-by-shrinking; lazy gallery painting |
+| 2 | projectiles, beams, weather, status | 51 | 790 | particles, seamless wrap, effect timelines, Pixmap hot paths up to 18× faster |
+| 3 | effects in gameplay | 63 | 851 | weapon-aware attacks, `dog.status`, `dog.fxPack`, render memo, layer priority, effects page |
+| 4 | engineering | 73 | 900 | lazy effects (import 6× faster), 2× faster build, TypeScript types, 1,116-hash visual regression |
+| 5 | show it | 85 | 966 | size-proof brushes + test, `dog fx` CLI, effects reel, demo integration, docs |
+
+From 20 effect looks to **545**, with every one recolorable, resizable and exportable to Phaser/Godot. Tests went
+from 36 to 50, and every round's plan is above, next to what actually happened.

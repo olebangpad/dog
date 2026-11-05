@@ -26,6 +26,10 @@ usage:
   dog char <body> ... --walk left --anim -o walk.png   directions: down up left right
   dog pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
                                            game pack: sprite sheet + Phaser/Aseprite JSON + Godot .tres
+  dog fx <name> [--element ice] [--size 64] [--seed n] [--on <body>] -o out.png
+                                           procedural effect as an animated PNG (--strip: frame strip,
+                                           --frame n: one frame, --on slime: on a character as a status)
+  dog fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
@@ -70,6 +74,9 @@ function parse(argv) {
     else if (a === '--element') opts.element = next()
     else if (a === '--strip') opts.strip = true
     else if (a === '--dir') opts.dir = next()
+    else if (a === '--size') opts.size = Number(next())
+    else if (a === '--seed') opts.seed = Number(next())
+    else if (a === '--on') opts.on = next()
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -157,6 +164,25 @@ if (!cmd || o.help) {
     save(o.out ?? `${pack.id}.zip`, pack.zip())
   }
   console.log(`${pack.animations.length} animations: ${pack.animations.join(', ')}`)
+} else if (cmd === 'fx') {
+  const name = args[0]
+  if (!name) throw new Error(`which effect? one of:\n${dog.fx.list.map((id) => id.replace(/^fx-/, '')).join(' ')}`)
+  const fxOpts = { element: o.element, size: o.size, seed: o.seed, ...ramps(o) }
+  const frames = o.on ? dog.status(o.on, name, { element: o.element, size: o.size }) : dog.fx(name, fxOpts)
+  const out = o.out ?? `${name.replace(/^fx-/, '')}${o.element ? '-' + o.element : ''}.png`
+  if (o.frame != null) save(out, finish(frames[o.frame % frames.length], o).toPNG({ deflate }))
+  else if (o.strip) save(out, finish(sheet(frames).image, o).toPNG({ deflate }))
+  else save(out, encodeAPNG(frames.map((f) => finish(f, o)), { fps: frames.fps, deflate }))
+  console.log(`${frames.length} frames @ ${frames.fps}fps, ${frames.loop ? 'loops' : 'plays once'}`)
+} else if (cmd === 'fxpack') {
+  const pack = dog.fxPack(args.length ? args : undefined, { deflate })
+  if (o.dir) {
+    mkdirSync(o.dir, { recursive: true })
+    for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
+  } else {
+    save(o.out ?? `${pack.id}.zip`, pack.zip())
+  }
+  console.log(`${pack.animations.length} effects`)
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {

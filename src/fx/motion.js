@@ -14,7 +14,7 @@ export const MOTION = [
         const wob = Math.sin((i + k * 1.7) * 2.1) * k * 0.35 * s
         p.blob(hx - k * 3.2 * s, c + wob, (4.2 - k * 0.55) * s, 1.05 - k * 0.11, 0.3, i + k)
       }
-      for (let k = 0; k < 3; k++) p.dot(hx - (10 + ((i * 3 + k * 7) % 12)) * s, c + ((k * 5 + i * 3) % 7 - 3) * s, 0.9)
+      for (let k = 0; k < 3; k++) p.pt(hx - (10 + ((i * 3 + k * 7) % 12)) * s, c + ((k * 5 + i * 3) % 7 - 3) * s, 0.9)
     },
   },
   {
@@ -72,7 +72,7 @@ export const MOTION = [
       const w = (3.2 + (i % 2) * 0.8) * s
       p.line(-2, c, size + 2, c, w * 2.2, 0.62)
       p.line(-2, c, size + 2, c, w, 1.2)
-      for (let k = 0; k < 4; k++) p.dot(((i * 9 + k * 8) % size), c + ((k % 2 ? 1 : -1) * (w + 1.5 * s)), 0.9)
+      for (let k = 0; k < 4; k++) p.pt(((i * 9 + k * 8) % size), c + ((k % 2 ? 1 : -1) * (w + 1.5 * s)), 0.9)
     },
   },
   {

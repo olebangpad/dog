@@ -53,8 +53,8 @@ export const ENVIRONMENT = [
         const u = (t * 2 + g.k) % 1
         if (u < 0.35) {
           const k = bell(u / 0.35)
-          p.line(g.x - 2 * k * s, g.y, g.x + 2 * k * s, g.y, 1, 1.15 * k)
-          if (k > 0.7) p.dot(g.x, g.y - 1, 1.2).dot(g.x, g.y + 1, 1.2)
+          p.line(g.x - 2 * k * s, g.y, g.x + 2 * k * s, g.y, p.px, 1.15 * k)
+          if (k > 0.7) p.pt(g.x, g.y - p.px, 1.2).pt(g.x, g.y + p.px, 1.2)
         }
       }
     },
@@ -92,8 +92,8 @@ export const ENVIRONMENT = [
       for (const w of p.state) {
         const x = w.x + t * size * 2
         const len = (6 + w.k * 6) * s
-        p.line(x - len, w.y, x, w.y, 1, 0.45, 0.95)
-        if (w.k > 0.6) p.arc(x + 1.5 * s, w.y - 1.5 * s, 1.5 * s, 1, -Math.PI / 2, Math.PI / 2, 0.9)
+        p.line(x - len, w.y, x, w.y, p.px, 0.45, 0.95)
+        if (w.k > 0.6) p.arc(x + 1.5 * s, w.y - 1.5 * s, 1.5 * s, p.px, -Math.PI / 2, Math.PI / 2, 0.9)
       }
     },
   },
@@ -129,7 +129,7 @@ export const ENVIRONMENT = [
         const u = (t + k / 3) % 1
         const r = (2 + 12 * u) * s
         // squashed ellipse: water seen from the top-down camera
-        for (let a = 0; a < TAU; a += 0.08) p.dot(c + Math.cos(a) * r, c + Math.sin(a) * r * 0.5, 1.05 * (1 - u) + 0.25)
+        for (let a = 0; a < TAU; a += 0.08) p.pt(c + Math.cos(a) * r, c + Math.sin(a) * r * 0.5, 1.05 * (1 - u) + 0.25)
       }
     },
   },

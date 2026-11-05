@@ -4,13 +4,14 @@
 
 # DOG · Dots Of Games
 
-**Pixel art as code.** 440+ free game sprites you can **combine, resize and recolor in one line**,<br>
+**Pixel art as code.** 440+ free game sprites and **540+ game effects** you can **combine, resize and recolor in one line**,<br>
 plus a character maker with **2.7 million combinations** that walk in 4 directions and act. Every sprite is plain text. Zero dependencies.
 
 [**▶ Play the demo**](https://olebangpad.github.io/dog/game.html) ·
 [Open the playground](https://olebangpad.github.io/dog/) ·
 [Make a game](#-make-a-game-with-dog) ·
 [Character maker](#-character-maker) ·
+[Effects](#-545-game-effects) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
 [Download sprites](#-just-want-the-pngs) ·
@@ -19,6 +20,7 @@ plus a character maker with **2.7 million combinations** that walk in 4 directio
 [한국어](README.ko.md)
 
 ![sprites](https://img.shields.io/badge/sprites-126_base_·_441_looks-a8e05a?style=flat-square)
+![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C756%2C176-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
@@ -44,12 +46,14 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 [**DOG Quest**](https://olebangpad.github.io/dog/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
 The hero is a `dog.char()`, it moves with `dog.walk()`, swings with `dog.action('attack')`, enemies flash with
-`dog.action('hit')` and puff away with `dog.action('death')`; tiles, coins, hearts and the HUD text are sprites and the pixel font.
+`dog.action('hit')` and puff away with `dog.action('death')`; crits, coin pops, poofs, level-up confetti, the campfire's glow and the
+fireflies are `dog.fx()`; tiles, coins, hearts and the HUD text are sprites and the pixel font.
 It plays itself until you press a key, and the character maker has a **▶ Play as this character** button.
 
 <a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
 
-Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4)
+Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4) ·
+effects reel [English](docs/promo/fx-reel-en.mp4) · [한국어](docs/promo/fx-reel-ko.mp4)
 
 ### 🛠 Make a game with DOG
 
@@ -117,6 +121,30 @@ dog.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as 
 
 <img src="docs/img/actions.png" alt="Every action in every element, animated" width="672">
 
+Attacks follow the weapon: swords slash, daggers stab, spears thrust, hammers and axes smash, bows shoot, staffs cast,
+whips crack, torches burn, flowers bonk, empty hands punch. `dog.action.styleOf(spec)` tells you which; `{ style: 'whip' }` overrides it.
+
+### ✨ 545 game effects
+
+**80 effect designs drawn entirely by code**, each in up to 11 colors and at any size, plus the hand-drawn explosions, sparkles and slashes.
+Bursts, magic, elements, projectiles and beams, seamless weather, environment (lava, fog, sunrays, ripples), status overlays,
+weapon slashes and hit feedback (POW, CRIT!, MISS, block, parry), rewards, and big moments (meteor, tornado, black hole, summon, revive, confetti).
+Browse, recolor and download them on the [**effects page**](https://olebangpad.github.io/dog/fx.html).
+
+<a href="https://olebangpad.github.io/dog/fx.html"><img src="docs/img/fx.png" alt="Every procedural effect, animated" width="100%"></a>
+
+```js
+dog.fx('meteor')                                   // frames (32×32) with .fps and .loop
+dog.fx('tornado', { element: 'fire', size: 64 })   // 11 colors or any hex, any size, still crisp
+dog.fx('rain', { size: 64 })                       // seamless: repeat the tile over a whole map
+dog.status('slime', 'frozen')                      // a character with a status effect on (32×32)
+dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }])
+dog.fxPack(['meteor', 'poof', 'crit'])             // one sheet + Phaser/Aseprite JSON + Godot .tres
+```
+
+Effects are recipes: a few lines that paint light into layers, which the engine turns into shaded, outlined pixel art
+(see [`src/fx/`](src/fx) and [how to add one](CONTRIBUTING.md#adding-an-effect)). A test checks that every recipe keeps its layout when drawn at double size.
+
 ### 🚶 Walk in 4 directions
 
 Humanoids have drawn front, back and side poses; gear follows the view (the weapon swaps hands from behind,
@@ -152,7 +180,8 @@ outlines, drop shadows, hue shifts, flips and rotations, all chainable.
 
 126 base sprites in 7 categories, **441 looks** with variants, 33 of them animated.
 Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamless tiles, props, UI icons,
-emote bubbles and effects (explosions, sparkles, smoke, hits, slashes).
+emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [80 procedural effects](#-545-game-effects)
+add 525 more animated looks; all of them are exported in `assets/` too.
 
 <img src="docs/img/gallery.png" alt="Every base sprite in DOG" width="100%">
 
@@ -206,7 +235,12 @@ node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --sca
 node scripts/dog.js char --random 42 --scale 6 -o npc.png
 node scripts/dog.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
 node scripts/dog.js char heroine --hat cowboy --hand rod --walk left --anim --scale 4 -o walk.png
+node scripts/dog.js fx meteor --element ice --size 64 -o meteor.png      # any effect, color, size
+node scripts/dog.js fx burning --on slime --strip -o burning.png        # status effect on a character
+node scripts/dog.js fxpack meteor poof crit -o effects.zip              # effects as a game pack
 ```
+
+TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `dog.` autocompletes.
 
 ## ✏️ Sprites are just text
 
@@ -258,6 +292,10 @@ import { dog, compose, sheet, text, Pixmap } from './src/index.js'
 | `dog.char.parts` · `dog.char.count()` | every body / hat / hand / off-hand id · number of combinations |
 | `dog.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
 | `dog.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
+| `dog.fx(name, { element, size, seed })` | a procedural effect: frames with `.fps` and `.loop`; `dog.fx.list` has every name |
+| `dog.fx.sequence(steps)` | chain or overlap effects into one animation |
+| `dog.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |
+| `dog.pack(spec)` · `dog.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |
 | `sheet(images, { columns, gap })` | pack into a sprite sheet → `{ image, frames }` |
 | `text('SCORE 9', { color })` | built-in 3×5 pixel font |
@@ -291,6 +329,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [x] Walk cycles in 4 directions
 - [x] Playable demo game screen
 - [x] Game packs for Phaser / Godot, starter templates, AI skill
+- [x] 500+ procedural effects in any color and size, an effects gallery, weapon-aware attacks
+- [x] TypeScript types, visual regression tests
 - [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)

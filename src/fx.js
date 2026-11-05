@@ -19,14 +19,17 @@
 //   p.blob(x, y, r, v, wobble, seed)  lumpy disc (smoke, fire)
 //   p.star(x, y, r, points, v, inner) pointed star
 //   p.spark(x, y, angle, length, v)   thin streak fading toward its tail
-//   p.dot(x, y, v)                    one pixel
+//   p.pt(x, y, v)                     one art pixel: 1px at 32px, 2x2 at 64px (dotted rings, sparkles)
+//   p.dot(x, y, v)                    exactly one canvas pixel (fills)
 //   p.glyph(char, x, y, v, scale)     3x5 font character, scaled by whole pixels
 //   p.emit({...}) / p.particles(list, t, { shape })   seeded particles with gravity and drag
 //   p.rng()                           seeded random number for this effect (same every frame)
 // Recipe flags: loop, wrap (seamless tile: shapes continue across edges), dither, outline, core,
 //   clean (remove lone pixels; turn off for text, whose glyphs have diagonal pixels),
 //   top: 'B' (that layer wins wherever it is drawn), behind (status: draw behind the character)
-//   p.c, p.size, p.s                  center, size, scale (size / 32)
+//   p.c, p.size, p.s, p.px            center, size, scale (size / 32), one art pixel (max(1, round(s)))
+// Write sizes and positions in s (10 * s, not 10) and 1px widths as p.px, so a recipe looks the
+// same at any size; a test draws every recipe at 32 and 64 px and fails if it drifts.
 
 import { glyphBits } from './font.js'
 import { lazySprite } from './sprite.js'
@@ -69,6 +72,8 @@ class Painter {
     this.size = size
     this.c = size / 2
     this.s = size / 32
+    /** One art pixel in canvas pixels: 1 up to 32px, 2 at 64px. Use it for 1px lines and dots that should scale. */
+    this.px = Math.max(1, Math.round(this.s))
     this.fields = { A: new Float32Array(size * size), B: new Float32Array(size * size), C: new Float32Array(size * size) }
     this.cur = this.fields.A
     this.rng = mulberry(seed)
@@ -92,7 +97,15 @@ class Painter {
     for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) fn(px, py, px + 0.5 - x, py + 0.5 - y)
   }
 
+  /** Exactly one canvas pixel (fills, noise). */
   dot(x, y, v = 1) { this._put(Math.floor(x), Math.floor(y), v); return this }
+
+  /** One art pixel: a 1px dot at 32px that grows to 2x2 at 64px, so dotted rings and sparkles keep their look. */
+  pt(x, y, v = 1) {
+    const k = this.px, x0 = Math.floor(x - (k - 1) / 2), y0 = Math.floor(y - (k - 1) / 2)
+    for (let dy = 0; dy < k; dy++) for (let dx = 0; dx < k; dx++) this._put(x0 + dx, y0 + dy, v)
+    return this
+  }
 
   glow(x, y, r, v = 1) {
     if (r <= 0) return this
@@ -147,7 +160,7 @@ class Painter {
   }
 
   spark(x, y, angle, length, v = 1) {
-    return this.line(x, y, x - Math.cos(angle) * length, y - Math.sin(angle) * length, 1, v, v * 0.35)
+    return this.line(x, y, x - Math.cos(angle) * length, y - Math.sin(angle) * length, this.px, v, v * 0.35)
   }
 
   blob(x, y, r, v = 1, wobble = 0.25, seed = 1) {
@@ -199,7 +212,7 @@ class Painter {
       const at = Painter.where(q, t)
       if (!at) continue
       const val = v * (1 - fade * at.age), r = q.size * (1 - shrink * at.age)
-      if (shape === 'dot') this.dot(at.x, at.y, val)
+      if (shape === 'dot') this.pt(at.x, at.y, val)
       else if (shape === 'spark') this.spark(at.x, at.y, Math.atan2(at.dy, at.dx), Math.max(1, r * 2.5), val)
       else if (shape === 'star') this.star(at.x, at.y, Math.max(1, r * 1.5), 4, val, 0.2)
       else this.disc(at.x, at.y, Math.max(0.6, r), val, 0.25)

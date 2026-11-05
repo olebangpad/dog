@@ -1,6 +1,6 @@
 ---
 name: dog-pixel-art
-description: Build 2D pixel-art games and game assets with DOG (Dots Of Games), a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death effects, tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and game assets with DOG (Dots Of Games), a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # DOG: pixel art as code
@@ -55,6 +55,31 @@ dog.char.parts                           // { body, head, hand, offhand }: every
 Actions: `attack` (lunge + slash at the weapon hand), `hit` (flash, knock-back, damage number), `heal` (+number, sparkles),
 `levelup` ("LV UP", jump, aura), `cast` (aura + charging star at the hand), `death` (fade into smoke).
 Elements: `fire` `ice` `poison` `holy` `dark`, or any material name or hex color. Options: `{ element, amount: '-7', text: 'LV UP', label: false }`.
+The attack effect follows the held weapon (`dog.action.styleOf(spec)`): sword/scythe slash, dagger stab, spear/trident thrust,
+axe/hammer/pickaxe smash, bow shoot, staff/wand magic, rod whip, torch burn, flower/lollipop bonk, empty hand punch.
+Force one with `{ style: 'whip' }`.
+
+## Effects
+
+80 procedural effects (`dog.fx.list`), each in up to 11 colors and at any size; every id, its frames and colors are in [catalog.md](catalog.md).
+Kinds (`tags`): burst, magic, element, projectile, beam, weather, environment, status, combat, reward, spectacle; `seamless` ones tile.
+
+```js
+const meteor = dog.fx('meteor')                          // frames (32x32) + .fps + .loop (false: play once, then remove)
+dog.fx('tornado', { element: 'fire', size: 64 })         // fire ice poison holy dark water nature blood arcane steel, or hex
+dog.fx('rain', { size: 64 })                             // seamless loop: repeat the tile over the whole map
+dog.status({ body: 'slime' }, 'frozen')                  // character + overlay, 32x32 frames, feet at (16, 31)
+dog.status('hero', 'burning', { walk: 'down' })          // walking while burning
+dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }]) // chain or overlap
+dog.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row per effect, + Aseprite JSON / Godot .tres
+```
+
+- Center an effect on its target: `drawImage(frame, x - size / 2, y - size / 2)`. Pick the size for the job:
+  16-24 for hit sparks and coin pops, 32 for most, 48-64 for spells and big moments.
+- `glow`, `aura`, `magic-circle` and `loot-beam` read best drawn **under** the character; the rest go on top.
+- Good game feel for little code: `crit` / `pow` / `miss` / `block` over the target, `impact` on a hit, `poof` when an enemy
+  vanishes, `coin-pop` on pickup, `confetti` or `firework` on level-up, `glow` under a campfire, `fireflies` or `leaves` drifting.
+- Like every animation, build them once (`frames.map(toCanvas)`) and only `drawImage` in the loop.
 
 ## Everything else
 
@@ -131,7 +156,7 @@ requestAnimationFrame(function loop(now) {
 
 Grow it from there: enemies are more specs (`{ body: 'slime' }`, `{ body: 'goblin', hand: 'dagger' }`) using `dog.walk` +
 `dog.action(enemy, 'hit')` / `'death'`; pickups are `dog('coin', { frame })` and `dog('heart')` (`.downscale(2)` gives 8×8);
-HUD numbers use `text()`. A complete example with collisions, enemies, coins and a HUD is `web/quest.js` in the repo;
+HUD numbers use `text()`; hit sparks, crits, coin pops and poofs are `dog.fx()` (see Effects). A complete example with collisions, enemies, coins, crits, effects and a HUD is `web/quest.js` in the repo;
 a commented starter is `templates/canvas/index.html`.
 
 ## Recipe: export for Phaser, Godot or any engine

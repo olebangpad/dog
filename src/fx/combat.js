@@ -7,8 +7,10 @@ const bell = (t) => Math.sin(Math.PI * Math.min(1, Math.max(0, t)))
 const clamp = (t) => Math.min(1, Math.max(0, t))
 
 // 5px per letter (not 4) so each letter keeps its own outline and words stay readable
-function word(p, text, x, y, v, scale = 1) {
-  for (let i = 0; i < text.length; i++) p.glyph(text[i], x + i * 5 * scale, y, v, scale)
+/** Pixel-font text centered on cx; letters grow with the effect size (2x at 64px). */
+function word(p, text, cx, y, v) {
+  const k = p.px, x = cx - ((text.length * 5 - 2) * k) / 2
+  for (let i = 0; i < text.length; i++) p.glyph(text[i], x + i * 5 * k, y, v, k)
 }
 
 export const COMBAT = [
@@ -64,9 +66,9 @@ export const COMBAT = [
     variants: ['fire', 'ice', 'poison', 'arcane'],
     draw(p, t, i) {
       const { c, s } = p
-      p.use('A').line(6 * s, c, 22 * s, c, 1, 0.9)
+      p.use('A').line(6 * s, c, 22 * s, c, p.px, 0.9)
       p.use('B').line(22 * s, c - 2 * s, 26 * s, c, 1.3 * s, 1.0).line(22 * s, c + 2 * s, 26 * s, c, 1.3 * s, 1.0)
-      p.use('C').line(6 * s, c - 2 * s, 9 * s, c, 1, 1).line(6 * s, c + 2 * s, 9 * s, c, 1, 1)
+      p.use('C').line(6 * s, c - 2 * s, 9 * s, c, p.px, 1).line(6 * s, c + 2 * s, 9 * s, c, p.px, 1)
       for (let k = 0; k < 3; k++) p.use('C').line((1 + ((i * 3 + k * 2) % 4)) * s, c + (k - 1) * 3 * s, (4 + ((i * 3 + k * 2) % 4)) * s, c + (k - 1) * 3 * s, 1, 0.6)
     },
   },
@@ -77,7 +79,7 @@ export const COMBAT = [
       const grow = t < 0.3 ? out(t / 0.3) : 1 - clamp((t - 0.75) / 0.25)
       if (grow <= 0) return
       p.use('A').star(c, c, 14 * s * grow, 9, 1.0, 0.55)
-      if (grow > 0.6) word(p.use('B'), 'POW', c - 7 * s, c - 2.5 * s, 0.6)
+      if (grow > 0.6) word(p.use('B'), 'POW', c, c - 2.5 * s, 0.6)
     },
   },
   {
@@ -86,14 +88,14 @@ export const COMBAT = [
       const { c, s } = p
       const y = c - 2 * s - out(t) * 6 * s
       if (t < 0.35) p.star(c, y + 2 * s, (4 + 18 * t) * s, 8, 1.1 - t, 0.25)
-      word(p, 'CRIT!', c - 12 * s, y, t > 0.85 ? 0.7 : 1.2)
+      word(p, 'CRIT!', c, y, t > 0.85 ? 0.7 : 1.2)
     },
   },
   {
     id: 'fx-miss', color: 'bone', clean: false, frames: 8, fps: 10, tags: ['combat', 'feedback'], variants: ['ice', 'arcane', 'dark'],
     draw(p, t) {
       const { c, s } = p
-      word(p, 'MISS', c - 9.5 * s, c - out(t) * 8 * s, t > 0.7 ? 0.6 : 1.0)
+      word(p, 'MISS', c, c - out(t) * 8 * s, t > 0.7 ? 0.6 : 1.0)
     },
   },
   {
@@ -124,7 +126,7 @@ export const COMBAT = [
         const a0 = spin + k * Math.PI
         p.arc(c, c + 2 * s, (10 + k) * s, 3 * s * (1 - t * 0.5), a0, a0 + 2.2, 1.15 - 0.3 * t)
       }
-      p.ring(c, c + 2 * s, 13 * s, 1, 0.6 * (1 - t))
+      p.ring(c, c + 2 * s, 13 * s, p.px, 0.6 * (1 - t))
     },
   },
   {

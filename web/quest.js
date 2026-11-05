@@ -1,5 +1,6 @@
 // DOG Quest: a tiny top-down action scene built only from DOG sprites.
 // Characters come from dog.char / dog.walk, attacks and hits from dog.action,
+// crits, coins, poofs, level-ups, firelight and fireflies from dog.fx,
 // tiles, pickups, HUD icons and text from the sprite collection and pixel font.
 // It is a showcase, not a game engine: ~400 lines, no dependencies.
 
@@ -24,6 +25,7 @@ const MAP = [
   'TTTTTTTTTTTTTTTT',
 ]
 const SOLID = new Set('T~brcxs')
+const SWARMS = [[196, 20], [208, 92], [20, 128], [118, 120]]
 
 const ENEMIES = [
   { spec: { body: 'slime' }, hp: 2, speed: 20, weight: 4 },
@@ -61,6 +63,7 @@ function kit(spec, element) {
       walk,
       attack: { right: anim(attack, 20), left: anim(attack.map((f) => f.flipX()), 20) },
       hit: anim(dog.action(spec, 'hit', { element, amount: '-1' }), 16),
+      crit: anim(dog.action(spec, 'hit', { element, amount: '-2' }), 16),
       hurt: anim(dog.action(spec, 'hit', { amount: '-1' }), 16),
       death: anim(dog.action(spec, 'death'), 12),
       levelup: anim(dog.action(spec, 'levelup', 'holy'), 12),
@@ -69,6 +72,7 @@ function kit(spec, element) {
   })
 }
 
+const fx = (name, opts = {}) => once(`fx:${name}:${JSON.stringify(opts)}`, () => anim(dog.fx(name, opts)))
 const small = (id, frame) => once(`small:${id}:${frame}`, () => toCanvas(dog(id, { frame }).downscale(2)))
 const label = (str, color = '#e8f3e4') => once(`text:${str}:${color}`, () => toCanvas(text(str, { color }).outline('#1b1225')))
 const shadow = once('shadow', () => {
@@ -244,7 +248,9 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
         down: dy > -4 && dy < 24 && Math.abs(dx) < 16,
       }[face]
       if (!reach) continue
-      e.hp -= 1
+      e.crit = rand() < 0.2 // a crit hits twice as hard and says so
+      e.hp -= e.crit ? 2 : 1
+      if (e.crit) effect(fx('crit'), e.x, e.y - 26)
       const n = Math.hypot(dx, dy) || 1
       e.kb = [(dx / n) * 60, (dy / n) * 60]
       Object.assign(e, { state: e.hp > 0 ? 'hit' : 'dying', t: 0 })
@@ -260,7 +266,8 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
         move(e, e.kb[0], e.kb[1], dt, e.fly)
         e.kb = e.kb.map((v) => v * 0.9)
         if (e.t >= k.hit.imgs.length / k.hit.fps) {
-          if (e.state === 'dying') { e.state = 'dead'; e.t = 0 } else { e.state = 'walk'; e.t = 0 }
+          if (e.state === 'dying') { e.state = 'dead'; e.t = 0; effect(fx('impact', { element: g.hero.element }), e.x, e.y - 10) }
+          else { e.state = 'walk'; e.t = 0 }
         }
         continue
       }
@@ -268,6 +275,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
         if (e.t >= k.death.imgs.length / k.death.fps) {
           e.gone = true
           g.kills++
+          effect(fx('poof', { size: 24 }), e.x, e.y - 8)
           const roll = rand()
           if (roll < 0.7) g.pickups.push({ kind: 'coin', x: e.x, y: e.y, t: 0 })
           else if (roll < 0.9) g.pickups.push({ kind: 'heart', x: e.x, y: e.y, t: 0 })
@@ -308,6 +316,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     h.maxHp = Math.min(10, h.maxHp + 2)
     h.hp = h.maxHp
     Object.assign(h, { state: 'levelup', t: 0, invuln: 1.5 })
+    effect(fx('confetti', { size: 48 }), h.x, h.y - 20)
   }
 
   function updatePickups(dt) {
@@ -316,7 +325,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
       p.t += dt
       if (dist(p, h) < 12 && h.state !== 'dead') {
         p.gone = true
-        if (p.kind === 'coin') { g.coins++; effect(anim(dog.frames('sparkle', { A: 'gold' }), 20), p.x, p.y - 6) }
+        if (p.kind === 'coin') { g.coins++; effect(fx('coin-pop', { size: 24 }), p.x, p.y - 12) }
         else if (h.hp < h.maxHp) { h.hp = Math.min(h.maxHp, h.hp + 2); effect(anim(dog.frames('sparkle', { A: 'pink' }), 20), p.x, p.y - 6) }
       }
       if (p.t > 12) p.gone = true
@@ -351,7 +360,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     ctx.drawImage(shadow, sx - 6, sy - 2)
     let img, big = true
     if (a.state === 'attack') img = frameOf(k.attack[a.dir === 'left' || (a.dir !== 'right' && a.lastH === 'left') ? 'left' : 'right'], a.t, false)
-    else if (a.state === 'hit' || a.state === 'dying') img = frameOf(k.hit, a.t, false)
+    else if (a.state === 'hit' || a.state === 'dying') img = frameOf(a.crit ? k.crit : k.hit, a.t, false)
     else if (a.state === 'hurt') img = frameOf(k.hurt, a.t, false)
     else if (a.state === 'dead') img = frameOf(k.death, a.t, false)
     else if (a.state === 'levelup') img = frameOf(k.levelup, a.t, false)
@@ -391,7 +400,14 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     const bgs = backgrounds()
     ctx.drawImage(bgs[Math.floor(g.time * 4) % 4], 0, HUD)
     const fire = once('campfire', () => anim(dog.frames('campfire')))
-    MAP.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === 'c') ctx.drawImage(frameOf(fire, g.time), c * T, r * T + HUD) }))
+    const light = fx('glow', { element: 'fire', size: 48 })
+    MAP.forEach((row, r) => [...row].forEach((ch, c) => {
+      if (ch !== 'c') return
+      ctx.globalAlpha = 0.55 // firelight first, so it sits under the fire, and half see-through so the grass shows
+      ctx.drawImage(frameOf(light, g.time), c * T - 16, r * T - 14 + HUD)
+      ctx.globalAlpha = 1
+      ctx.drawImage(frameOf(fire, g.time), c * T, r * T + HUD)
+    }))
     for (const p of g.pickups) {
       const bob = Math.round(Math.sin(p.t * 6) * 1.5)
       if (p.t > 9 && Math.floor(p.t * 8) % 2) continue
@@ -400,7 +416,12 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     }
     const actors = [...g.enemies.map((e) => [e, false]), [g.hero, true]].sort((a, b) => a[0].y - b[0].y)
     for (const [a, isHero] of actors) drawActor(a, isHero)
-    for (const f of g.fx) ctx.drawImage(frameOf(f.a, f.t, false), Math.round(f.x) - 8, Math.round(f.y) - 8 + HUD)
+    // a few firefly swarms: the seamless 32px tile, a different seed per spot so no two match
+    SWARMS.forEach(([x, y], k) => ctx.drawImage(frameOf(fx('fireflies', { seed: k + 1 }), g.time + k * 0.37), x, y + HUD))
+    for (const f of g.fx) {
+      const img = frameOf(f.a, f.t, false)
+      ctx.drawImage(img, Math.round(f.x - img.width / 2), Math.round(f.y - img.height / 2) + HUD)
+    }
     drawHud()
     if (g.auto && Math.floor(g.time * 2) % 2) {
       const msg = label(matchMedia('(pointer: coarse)').matches ? 'TAP TO PLAY' : 'PRESS ANY KEY')

@@ -153,6 +153,7 @@ dog.status = (spec, name, { walk, element, size = 32 } = {}) => {
     return recipe.behind ? new Pixmap(size, size).draw(fx).draw(body) : body.draw(fx)
   })
   out.fps = effect.fps
+  out.loop = Boolean(recipe.loop)
   return out
 }
 

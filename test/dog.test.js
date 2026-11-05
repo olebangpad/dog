@@ -508,3 +508,42 @@ test('dog.fx caches renders but hands out fresh arrays', () => {
   a.pop()
   assert.equal(dog.fx('comet', { size: 20 }).length, b.length)
 })
+
+test('effects keep their layout at any size (no hard-coded pixel positions)', () => {
+  // where the ink sits (centroid, as a fraction of the frame) and how much of it there is, over all frames
+  const ink = (frames, size) => {
+    let sx = 0, sy = 0, n = 0
+    for (const f of frames) for (let i = 3; i < f.data.length; i += 4) if (f.data[i]) { const p = (i - 3) / 4; sx += p % f.w; sy += Math.floor(p / f.w); n++ }
+    return { x: sx / n / size, y: sy / n / size, n }
+  }
+  for (const id of dog.fx.list) {
+    const a = ink(dog.fx(id), 32), b = ink(dog.fx(id, { size: 64 }), 64)
+    assert.ok(Math.hypot(a.x - b.x, a.y - b.y) < 0.1, `${id} drifts when scaled`)
+    assert.ok(b.n / a.n > 1.8, `${id} does not grow with its size (${(b.n / a.n).toFixed(2)}x ink at 2x size)`)
+  }
+})
+
+test('dog.status loops when its effect loops', () => {
+  assert.equal(dog.status('hero', 'burning').loop, true)
+  assert.equal(dog.status('slime', 'heal').loop, false)
+})
+
+test('CLI renders effects and effect packs', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'dog-cli-'))
+  const cli = new URL('../scripts/dog.js', import.meta.url).pathname
+  try {
+    const log = execFileSync('node', [cli, 'fx', 'meteor', '--element', 'ice', '--size', '48', '-o', join(dir, 'm.png')], { encoding: 'utf8' })
+    assert.match(log, /12 frames @ 14fps, plays once/)
+    const png = readFileSync(join(dir, 'm.png'))
+    assert.ok(png.includes(Buffer.from('acTL')), 'animated PNG')
+    assert.equal(png.readUInt32BE(16), 48)
+    assert.match(execFileSync('node', [cli, 'fx', 'burning', '--on', 'slime', '--strip', '-o', join(dir, 's.png')], { encoding: 'utf8' }), /loops/)
+    assert.match(execFileSync('node', [cli, 'fxpack', 'meteor', 'poof', '-o', join(dir, 'p.zip')], { encoding: 'utf8' }), /2 effects/)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})

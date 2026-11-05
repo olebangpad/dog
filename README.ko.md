@@ -4,13 +4,14 @@
 
 # DOG · Dots Of Games
 
-**코드로 만드는 도트 그래픽.** 440개가 넘는 무료 2D 게임 도트 이미지를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
+**코드로 만드는 도트 그래픽.** 440개가 넘는 무료 2D 게임 도트 이미지와 **540개가 넘는 게임 이펙트**를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
 **275만 가지** 조합의 캐릭터 메이커도 들어 있고, 캐릭터는 4방향으로 걷고 행동합니다. 모든 스프라이트는 텍스트 파일이고, 의존성은 0개입니다.
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/dog/game.html) ·
 [플레이그라운드](https://olebangpad.github.io/dog/) ·
 [게임 만들기](#-dog로-게임-만들기) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
+[이펙트 545종](#-이펙트-545종) ·
 [상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
 [걷기](#-4방향-걷기) ·
 [PNG 바로 받기](#-png만-필요하다면) ·
@@ -38,12 +39,14 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 [**DOG Quest**](https://olebangpad.github.io/dog/game.html)는 직접 해볼 수 있는 작은 데모입니다. 화면의 모든 픽셀이 이 레포에서 나옵니다.
 주인공은 `dog.char()`, 걷기는 `dog.walk()`, 공격은 `dog.action('attack')`, 적이 맞으면 `dog.action('hit')`,
-쓰러지면 `dog.action('death')`이고, 타일·코인·하트·HUD 글자도 전부 스프라이트와 도트 폰트입니다.
+쓰러지면 `dog.action('death')`, 크리티컬·코인 획득·적이 사라지는 연기·레벨업 꽃가루·모닥불 불빛·반딧불은 `dog.fx()`이고,
+타일·코인·하트·HUD 글자도 전부 스프라이트와 도트 폰트입니다.
 키를 누르기 전까지는 혼자 플레이하고, 캐릭터 메이커의 **▶ Play as this character** 버튼으로 내가 만든 캐릭터로 플레이할 수 있습니다.
 
 <a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest 플레이 화면" width="512"></a>
 
-세로형 홍보 영상 (`scripts/record-promo.cjs`로 생성): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4)
+세로형 홍보 영상 (`scripts/record-promo.cjs`로 생성): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4) ·
+이펙트 영상 [English](docs/promo/fx-reel-en.mp4) · [한국어](docs/promo/fx-reel-ko.mp4)
 
 ### 🛠 DOG로 게임 만들기
 
@@ -112,6 +115,30 @@ dog.action('hero-mage', 'cast', '#00ffcc')      // 재질 이름이나 hex 색�
 
 <img src="docs/img/actions.png" alt="모든 행동과 속성 조합 애니메이션" width="672">
 
+공격 이펙트는 든 무기를 따라갑니다. 검은 베기, 단검은 찌르기, 창은 관통, 망치·도끼는 내려찍기, 활은 화살, 지팡이는 마법,
+채찍은 휘두르기, 횃불은 불꽃, 꽃은 뿅망치, 맨손은 주먹. `dog.action.styleOf(spec)`로 확인하고 `{ style: 'whip' }`로 바꿀 수 있습니다.
+
+### ✨ 이펙트 545종
+
+**코드로만 그린 이펙트 80종**이 각각 최대 11가지 색, 원하는 크기로 나옵니다. 여기에 손으로 그린 폭발·반짝임·베기가 더해집니다.
+폭발, 마법, 속성, 투사체와 빔, 끝없이 이어지는 날씨, 환경(용암, 안개, 햇살, 물결), 상태이상, 무기별 베기와 타격 피드백(POW, CRIT!, MISS, 막기, 패링),
+보상, 그리고 큰 연출(운석, 토네이도, 블랙홀, 소환, 부활, 꽃가루)까지 있습니다.
+[**이펙트 페이지**](https://olebangpad.github.io/dog/fx.html)에서 보고, 색을 바꾸고, 내려받을 수 있습니다.
+
+<a href="https://olebangpad.github.io/dog/fx.html"><img src="docs/img/fx.png" alt="코드로 만든 모든 이펙트 애니메이션" width="100%"></a>
+
+```js
+dog.fx('meteor')                                   // 프레임 배열 (32×32), .fps와 .loop 포함
+dog.fx('tornado', { element: 'fire', size: 64 })   // 11가지 색이나 hex, 어떤 크기든 선명하게
+dog.fx('rain', { size: 64 })                       // 이음새 없는 타일: 맵 전체에 반복해서 깔기
+dog.status('slime', 'frozen')                      // 상태이상이 걸린 캐릭터 (32×32)
+dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }])
+dog.fxPack(['meteor', 'poof', 'crit'])             // 시트 한 장 + Phaser/Aseprite JSON + Godot .tres
+```
+
+이펙트는 레시피입니다. 빛을 레이어에 칠하는 몇 줄의 코드를 엔진이 음영과 외곽선이 있는 도트로 바꿉니다
+([`src/fx/`](src/fx), [추가하는 법](CONTRIBUTING.md#adding-an-effect)). 모든 레시피는 두 배 크기에서도 모양이 유지되는지 테스트합니다.
+
 ### 🚶 4방향 걷기
 
 사람형 캐릭터는 앞·뒤·옆 모습이 따로 그려져 있고, 장비도 방향에 맞게 바뀝니다
@@ -147,7 +174,8 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 
 7개 카테고리, 기본 126종, 변형 포함 **441가지**, 이 중 33종은 애니메이션입니다.
 캐릭터, 착용 장비, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
-이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다.
+이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다. 여기에 [코드로 만든 이펙트 80종](#-이펙트-545종)이
+애니메이션 525가지를 더하고, 이것도 전부 `assets/`에 PNG로 들어 있습니다.
 
 <img src="docs/img/gallery.png" alt="DOG의 모든 기본 스프라이트" width="100%">
 
@@ -201,7 +229,12 @@ node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --sca
 node scripts/dog.js char --random 42 --scale 6 -o npc.png
 node scripts/dog.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
 node scripts/dog.js char heroine --hat cowboy --hand rod --walk left --anim --scale 4 -o walk.png
+node scripts/dog.js fx meteor --element ice --size 64 -o meteor.png      # 아무 이펙트, 색, 크기
+node scripts/dog.js fx burning --on slime --strip -o burning.png        # 캐릭터에 상태이상
+node scripts/dog.js fxpack meteor poof crit -o effects.zip              # 이펙트 게임 팩
 ```
+
+TypeScript와 에디터 자동완성: 타입이 [`src/index.d.ts`](src/index.d.ts)에 들어 있습니다.
 
 ## ✏️ 스프라이트는 그냥 텍스트
 
@@ -228,6 +261,10 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `dog.char.frames(spec)` · `dog.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
 | `dog.walk(spec, dir)` | 걷기 `down` `up` `left` `right` (24×24 프레임, `.fps`) |
 | `dog.action(spec, name, element)` | 행동 애니메이션 8프레임 (32×32, `.fps`) |
+| `dog.fx(name, { element, size, seed })` | 코드로 만든 이펙트: `.fps`, `.loop`가 붙은 프레임 배열. 전체 이름은 `dog.fx.list` |
+| `dog.fx.sequence(steps)` | 이펙트를 이어 붙이거나 겹쳐서 하나의 애니메이션으로 |
+| `dog.status(spec, effect, { walk })` | 상태이상이 걸린 캐릭터 (32×32 프레임) |
+| `dog.pack(spec)` · `dog.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |
 | `sheet(images, { columns, gap })` | 스프라이트 시트로 묶기 |
 | `text('SCORE 9', { color })` | 내장 3×5 도트 폰트 |

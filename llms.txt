@@ -1,6 +1,6 @@
 # DOG (Dots Of Games)
 
-> Zero-dependency JavaScript library and CC0 collection of pixel-art game sprites. Sprites are text art painted with color ramps, so every sprite can be recolored to any material or hex color, combined, resized and exported in one call. Includes a character maker (2.7 million combinations of bodies, hats and held items), 4-direction walk cycles, attack/hit/heal/level-up/cast/death effects in 5 elements, and game packs (sprite sheet + Aseprite/Phaser JSON + Godot SpriteFrames).
+> Zero-dependency JavaScript library and CC0 collection of pixel-art game sprites. Sprites are text art painted with color ramps, so every sprite can be recolored to any material or hex color, combined, resized and exported in one call. Includes a character maker (2.7 million combinations of bodies, hats and held items), 4-direction walk cycles, attack/hit/heal/level-up/cast/death animations in 5 elements, 500+ procedural game effects (80 designs: explosions, magic, weapon slashes, projectiles, seamless weather, status overlays, crits, meteors; any color, any size), and game packs (sprite sheet + Aseprite/Phaser JSON + Godot SpriteFrames).
 
 Import in a browser with no install: `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'`.
 Art is CC0 (public domain); code is MIT.
@@ -16,7 +16,7 @@ Art is CC0 (public domain); code is MIT.
 - [Canvas starter](https://raw.githubusercontent.com/olebangpad/dog/main/templates/canvas/index.html): a one-file top-down game, no build step
 - [Phaser starter](https://raw.githubusercontent.com/olebangpad/dog/main/templates/phaser/index.html): DOG game packs loaded with load.aseprite
 - [Demo game source](https://raw.githubusercontent.com/olebangpad/dog/main/web/quest.js): collisions, enemies, pickups, HUD
-- [Playable demo](https://olebangpad.github.io/dog/game.html) and [character maker](https://olebangpad.github.io/dog/#maker)
+- [Playable demo](https://olebangpad.github.io/dog/game.html), [character maker](https://olebangpad.github.io/dog/#maker) and [effects gallery](https://olebangpad.github.io/dog/fx.html)
 
 ## Optional
 

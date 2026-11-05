@@ -2,7 +2,7 @@
 import { dog, looks, sheet, encodeAPNG, zip, MATERIALS, FX_COLORS } from '../src/index.js'
 import { $, $$, h, download, copy, toast } from './ui.js'
 
-const KINDS = ['all', 'burst', 'magic', 'element', 'projectile', 'beam', 'weather', 'status', 'combat', 'reward', 'loop']
+const KINDS = ['all', 'burst', 'magic', 'element', 'projectile', 'beam', 'weather', 'environment', 'status', 'combat', 'reward', 'spectacle', 'loop']
 const ids = dog.fx.list
 const state = { kind: 'all', color: null, bg: 'dark' }
 
@@ -37,7 +37,7 @@ function buildGrid() {
   for (const id of ids) {
     const def = looks[id].def
     const canvas = h('canvas', { width: 32, height: 32, 'aria-hidden': 'true' })
-    const kind = KINDS.find((k) => k !== 'all' && k !== 'loop' && def.tags.includes(k)) ?? 'effect'
+    const kind = def.tags.includes('spectacle') ? 'spectacle' : KINDS.find((k) => k !== 'all' && k !== 'loop' && def.tags.includes(k)) ?? 'effect'
     const card = h('button', { class: 'fx-card', 'data-id': id, title: id, onclick: () => openDetail(id) },
       canvas, h('span', {}, id.replace(/^fx-/, '')), h('span', { class: 'kind' }, kind))
     cards.set(id, { card, canvas, def, visible: false, painted: '' })

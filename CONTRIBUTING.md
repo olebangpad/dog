@@ -56,6 +56,34 @@ Hats and held items live in `src/sprites/gear.js`. On top of a normal sprite the
 
 `npm test` renders every piece of gear on every body and fails if anything would be clipped, so you'll know right away.
 
+## Adding an effect
+
+Effects are **recipes** in [`src/fx/`](src/fx): a function that paints *light* (an intensity from 0 to about 1.2) for a time `t`
+from 0 to 1. The engine turns that light into the 4 shades of a ramp, adds the outline, cleans stray pixels and exports
+the result as an ordinary animated sprite, so recoloring, packs and the gallery work with no extra code.
+
+```js
+{
+  id: 'fx-pulse', color: 'pink', frames: 8, fps: 12, tags: ['magic'], variants: ['fire', 'ice', 'dark'],
+  draw(p, t) {
+    const { c, s } = p                                    // c: center, s: size / 32
+    p.ring(c, c, (3 + 10 * t) * s, 2 * s, 1.1 * (1 - t))  // an expanding ring that fades out
+    p.glow(c, c, 4 * s * (1 - t), 1.2)                     // a bright core
+  },
+}
+```
+
+- Put it in the file for its kind (`core`, `motion`, `ambient`, `status`, `combat`, `environment`, `spectacle`); `src/fx/index.js` collects them.
+- **Brushes**: `glow` `disc` `ring` `arc` `line` `blob` `star` `spark` `glyph`, `pt` (one art pixel) and `dot` (one canvas pixel, for fills).
+  `p.use('B')` switches to the second ramp (declare `B: 'stone'`), `p.rng()` is seeded, and `setup(p)` runs once and lands in `p.state`.
+  Particles: `p.emit({ count, x, y, speed, angle, gravity, life })` in `setup`, then `p.particles(p.state, t)` in `draw`.
+- **Write every size and position in `s`** (`10 * s`, not `10`), and use `p.px` for 1px lines, so the effect looks the same at 16, 32 or 64 px.
+  A test draws every recipe at 32 and 64 px and fails if it drifts or stops growing.
+- Flags: `loop: true` for loops; `wrap: true` for seamless tiles (tag them `seamless`); `behind: true` for things drawn under a character;
+  `dither`, `outline: 'none' | 'glow'`, `top: 'B'` (layer B wins where both are lit), `clean: false` for text.
+- `variants` lists colors from `dog.fx.colors` (`fire ice poison holy dark water nature blood arcane steel`); each one becomes a look.
+- Check it with `node scripts/dog.js fx pulse --size 64 --scale 4 -o pulse.png` (or the effects page), then `npm run snapshots` and `npm test`.
+
 ## Text art legend
 
 ```
