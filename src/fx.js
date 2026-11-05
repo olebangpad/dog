@@ -23,7 +23,9 @@
 //   p.glyph(char, x, y, v, scale)     3x5 font character, scaled by whole pixels
 //   p.emit({...}) / p.particles(list, t, { shape })   seeded particles with gravity and drag
 //   p.rng()                           seeded random number for this effect (same every frame)
-// Recipe flags: loop, wrap (seamless tile: shapes continue across edges), dither, outline, core, clean
+// Recipe flags: loop, wrap (seamless tile: shapes continue across edges), dither, outline, core,
+//   clean (remove lone pixels; turn off for text, whose glyphs have diagonal pixels),
+//   top: 'B' (that layer wins wherever it is drawn), behind (status: draw behind the character)
 //   p.c, p.size, p.s                  center, size, scale (size / 32)
 
 import { glyphBits } from './font.js'
@@ -218,7 +220,7 @@ class Painter {
 }
 
 /** Turn the painter's fields into text-art rows. */
-function quantize(p, { dither, core }) {
+function quantize(p, { dither, core, top }) {
   const { size, fields } = p
   const rows = []
   for (let y = 0; y < size; y++) {
@@ -228,6 +230,7 @@ function quantize(p, { dither, core }) {
       let layer = 'A', v = fields.A[i]
       if (fields.B[i] > v) { layer = 'B'; v = fields.B[i] }
       if (fields.C[i] > v) { layer = 'C'; v = fields.C[i] }
+      if (top && fields[top][i] >= CUT) { layer = top; v = fields[top][i] } // e.g. dark text on a bright burst
       if (dither) v += (BAYER[(x & 1) + (y & 1) * 2] / 3 - 0.5) * 0.12
       if (v < CUT) { row += '.'; continue }
       if (core && layer === 'A' && v >= WHITE_AT) { row += 'w'; continue }
@@ -281,7 +284,7 @@ export function runRecipe(recipe, opts = {}) {
     p.state = state
     const t = recipe.loop ? i / n : n === 1 ? 0 : i / (n - 1)
     recipe.draw(p, t, i)
-    let rows = quantize(p, { dither: recipe.dither ?? false, core: recipe.core ?? true })
+    let rows = quantize(p, { dither: recipe.dither ?? false, core: recipe.core ?? true, top: recipe.top })
     if (recipe.clean ?? true) rows = clean(rows, recipe.wrap)
     if ((recipe.outline ?? 'glow') === 'glow') rows = glowOutline(rows, recipe.wrap)
     frames.push(rows)

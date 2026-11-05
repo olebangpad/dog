@@ -93,7 +93,7 @@ export const CORE = [
 
   // ------------------------------------------------------------------- magic
   {
-    id: 'fx-magic-circle', color: 'purple', frames: 8, fps: 8, loop: true, tags: ['magic', 'loop'],
+    id: 'fx-magic-circle', behind: true, color: 'purple', frames: 8, fps: 8, loop: true, tags: ['magic', 'loop'],
     draw(p, t) {
       const { c, s } = p
       const pulse = 0.85 + 0.15 * Math.sin(t * TAU)
@@ -123,7 +123,7 @@ export const CORE = [
     },
   },
   {
-    id: 'fx-aura', color: 'gold', frames: 8, fps: 10, loop: true, tags: ['magic', 'buff', 'loop'],
+    id: 'fx-aura', behind: true, color: 'gold', frames: 8, fps: 10, loop: true, tags: ['magic', 'buff', 'loop'],
     draw(p, t) {
       const { c, s, size } = p
       p.ring(c, size - 4 * s, 11 * s, 1.4 * s, 0.7) // ground ring, squashed below by the frame edge
@@ -332,7 +332,7 @@ export const CORE = [
     },
   },
   {
-    id: 'fx-sleep', color: 'bone', frames: 8, fps: 6, loop: true, tags: ['status', 'loop'], variants: ['water', 'arcane', 'ice'],
+    id: 'fx-sleep', color: 'bone', clean: false, frames: 8, fps: 6, loop: true, tags: ['status', 'loop'], variants: ['water', 'arcane', 'ice'],
     draw(p, t) {
       const { c, s } = p
       for (let k = 0; k < 3; k++) {

@@ -454,3 +454,57 @@ test('dog.fx.sequence chains and overlaps effects', () => {
   assert.equal(looped.length, dog.fx('orb').length * 3)
   assert.ok(seq.fps > 0)
 })
+
+// -------------------------------------------------------- round 3: gameplay
+test('attacks follow the held weapon', () => {
+  const styles = {
+    sword: 'slash', dagger: 'stab', hammer: 'smash', spear: 'thrust', bow: 'shoot', staff: 'magic',
+    rod: 'whip', torch: 'burn', lollipop: 'bonk',
+  }
+  for (const [hand, style] of Object.entries(styles)) assert.equal(dog.action.styleOf({ body: 'hero', hand }), style, hand)
+  assert.equal(dog.action.styleOf({ body: 'hero', hand: 'sword-gold' }), 'slash')
+  assert.equal(dog.action.styleOf('dog'), 'punch')
+  assert.equal(dog.action.styleOf('hero'), 'punch')
+  const bow = dog.action({ body: 'hero', hand: 'bow' }, 'attack'), sword = dog.action({ body: 'hero', hand: 'sword' }, 'attack')
+  assert.equal(bow.length, ACTION_FRAMES)
+  assert.notDeepEqual([...bow[3].data], [...sword[3].data])
+  // a style can be forced: same sword-holder, different attack
+  const forced = dog.action({ body: 'hero', hand: 'sword' }, 'attack', { style: 'shoot' })
+  assert.notDeepEqual([...forced[3].data], [...sword[3].data])
+  for (const style of dog.action.styles) assert.equal(dog.action('hero', 'attack', { style }).length, ACTION_FRAMES)
+})
+
+test('dog.status overlays an effect on a character, idle or walking', () => {
+  const plain = new Set(dog.char('hero').colors())
+  const frames = dog.status('hero', 'burning')
+  assert.ok(frames.length >= 2 && frames.fps > 0)
+  assert.equal(frames[0].w, 32)
+  const colors = new Set(frames.flatMap((f) => f.colors()))
+  assert.ok([...plain].some((c) => colors.has(c)), 'character visible')
+  assert.ok(MATERIALS.orange.some((c) => colors.has(c)), 'flames visible')
+  assert.ok(dog.status('slime', 'frozen', { walk: 'left' }).length >= 4)
+  // aura sits behind the body: the hero's pixels win where they overlap
+  const aura = dog.status('hero', 'aura')[0], body = new Pixmap(32, 32).draw(dog.char('hero'), 4, 8)
+  const i = (20 * 32 + 16) * 4 // a pixel on the hero's chest
+  assert.deepEqual([...aura.data.subarray(i, i + 4)], [...body.data.subarray(i, i + 4)])
+  assert.throws(() => dog.status('hero', 'nope'), /no effect/)
+})
+
+test('dog.fxPack writes one tagged row per effect', () => {
+  const pack = dog.fxPack(['boom', 'fx-comet-ice', 'rain'], { name: 'fx3' })
+  assert.deepEqual(pack.animations, ['boom', 'comet-ice', 'rain'])
+  assert.equal(pack.json.meta.frameTags.length, 3)
+  assert.deepEqual(Object.keys(pack.files).sort(), ['README.txt', 'fx3.json', 'fx3.png', 'fx3.tres'])
+  assert.equal(pack.json.meta.dog.loops.rain, true)
+  assert.equal(pack.json.meta.dog.loops.boom, false)
+  const all = dog.fxPack()
+  assert.equal(all.animations.length, dog.fx.list.length)
+})
+
+test('dog.fx caches renders but hands out fresh arrays', () => {
+  const a = dog.fx('comet', { size: 20 }), b = dog.fx('comet', { size: 20 })
+  assert.notEqual(a, b)
+  assert.equal(a[0], b[0])
+  a.pop()
+  assert.equal(dog.fx('comet', { size: 20 }).length, b.length)
+})

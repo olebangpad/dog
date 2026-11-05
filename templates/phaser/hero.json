@@ -876,13 +876,13 @@
    }
   ],
   "dog": {
+   "cell": 32,
    "spec": {
     "body": "hero",
     "hat": "knight",
     "hand": "sword",
     "offhand": "shield"
    },
-   "cell": 32,
    "origin": {
     "x": 16,
     "y": 31

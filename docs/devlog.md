@@ -129,3 +129,70 @@ Effects are generated at import: with 46 recipes that is now most of the 240 ms 
 ### Checks
 
 42 tests, benchmark before/after, tiled-weather and status-over-character renders, full browser suite.
+
+---
+
+## Round 3 · Effects in gameplay: weapon attacks, status overlays, FX packs, FX gallery
+
+### Plan
+
+**Problem.** The effects exist, but a game dev still has to wire them up by hand. Every attack looks the same
+whatever the character holds, and effects can't be downloaded the way characters can.
+
+**Tech.**
+
+- **Weapon-aware attacks.** `dog.action(spec, 'attack')` picks a style from the held item: sword/scythe slash,
+  dagger stab, axe/hammer/pickaxe smash, spear/trident thrust, bow shoots an arrow, staff/wand fires a magic bolt
+  in the element color, fishing rod whips, torch bursts into flame, lollipop/flower bonk, bare hands punch.
+  Still 8 frames of 32×32, so packs and games don't change. Override it with `{ style }`.
+- **FX memo.** Attacks will now call `dog.fx` often, so cache rendered effects by name, size, seed and colors.
+  This is the cache Round 2 didn't need yet; now there's a real caller.
+- **Status overlays.** `dog.status(spec, 'burning', { walk: 'left' })` puts a status effect on a character
+  (idle or walking). Effects that belong behind the body (aura) draw behind it.
+- **FX packs.** `dog.fxPack(ids)` uses the same format as character packs: one row per effect, Aseprite/Phaser JSON,
+  Godot SpriteFrames, a README. The pack code gets refactored so both packs share one writer.
+- **FX gallery page** (`fx.html`), like the "244 effects" reel that started this: every effect animating at once,
+  filters by kind, one color switch for everything, click to preview big with code, and download one effect or all
+  of them as a pack.
+
+**Effects (target ~12).** Attack effects the styles need: stab, smash, thrust, whip, arrow, pow (comic bonk).
+Plus combat feedback: crit, miss, block, parry, whirlwind (spin attack), loot beam.
+
+**Checks.** Different weapons produce different attacks; status frames contain both character and effect; FX pack
+zip structure and tags; memo returns identical frames; the new page in desktop and mobile browsers.
+
+### Shipped
+
+- **Weapon-aware attacks.** `dog.action(spec, 'attack')` reads the held item: sword/scythe slash, dagger stab,
+  axe/hammer/pickaxe smash (ground shockwave + debris), spear/trident thrust, bow shoots an arrow that flies out,
+  staff/wand fire a magic bolt that bursts, fishing rod whips, torch bursts into flame, lollipop/flower bonk
+  ("POW"), bare hands and animals punch. `dog.action.styleOf(spec)` and `{ style }` override.
+- **12 combat effects (58 total).** stab, smash, thrust, whip, arrow, pow, crit, miss, block, parry, whirlwind,
+  loot beam. **851 looks** in all; 430 of them are effects.
+- **`dog.status(spec, name, { walk })`** puts a status effect on an idle or walking character; aura, magic circle
+  and loot beam draw *behind* the body.
+- **`dog.fxPack(ids)`**: one tagged row per effect, same files as character packs. The pack writer was refactored
+  into a shared `writePack()` that both use (and that centers smaller frames in the cell).
+- **FX memo**: `dog.fx` caches renders (bounded, 300 entries) and hands out fresh arrays.
+- **`fx.html`**: the effects gallery. A big count, filters by kind, 10 colors, dark/grass/light backgrounds,
+  click to preview at 16–64 px with copyable code, download one effect (APNG, strip, pack) or the whole filtered set as a pack.
+
+### What the review caught
+
+- **Text effects were unreadable.** "MISS" showed as "MI::" and "CRIT!" lost its dot. The clean-up pass that removes
+  lone pixels was deleting the font's diagonal pixels. Text recipes now opt out (`clean: false`), and letters are
+  spaced 5 px so their outlines don't merge.
+- **"POW" never showed on its star.** The engine picks the brightest layer per pixel, so dark text always lost.
+  New recipe option `top: 'B'` lets one layer win wherever it's drawn.
+- The FX page first showed "430 effects" with no context. 430 counts color variants, so it now also says
+  "63 designs × up to 11 colors". And one-shot effects all restarted in sync and went blank together; each card is
+  now offset in time.
+- A test I wrote compared a sword-holder forced to shoot against a bow-holder. Those differ in the held item, not
+  the attack, so the test was wrong rather than the code. It now checks that forcing a style changes the same
+  character's attack.
+
+### Checks
+
+46 tests (4 new: weapon → style for every weapon, every style renders 8 frames, status overlay incl. "behind",
+FX pack structure, memo isolation), `fx.html` in desktop + mobile browsers (filter, recolor, pack download, detail
+sizes, APNG download), and the full browser suite.

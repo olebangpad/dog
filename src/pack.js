@@ -37,53 +37,82 @@ export function createPack(dog, looks) {
       rows.push({ tag: a, frames: f, fps: f.fps, loop: false })
     }
 
-    const cols = Math.max(...rows.map((r) => r.frames.length))
-    let image = new Pixmap(cols * PACK_CELL, rows.length * PACK_CELL)
-    const frames = [], frameTags = []
-    rows.forEach((r, ri) => {
-      const from = frames.length
-      r.frames.forEach((f, fi) => {
-        const x = fi * PACK_CELL, y = ri * PACK_CELL
-        image = image.draw(f, x, y)
-        frames.push({
-          filename: String(frames.length), // Phaser's createFromAseprite looks frames up by index
-          frame: { x, y, w: PACK_CELL, h: PACK_CELL },
-          rotated: false, trimmed: false,
-          spriteSourceSize: { x: 0, y: 0, w: PACK_CELL, h: PACK_CELL },
-          sourceSize: { w: PACK_CELL, h: PACK_CELL },
-          duration: Math.round(1000 / r.fps),
-        })
-      })
-      frameTags.push({ name: r.tag, from, to: frames.length - 1, direction: 'forward' })
-    })
-
-    const json = {
-      frames,
-      meta: {
-        app: 'https://github.com/olebangpad/dog',
-        version: '1',
-        image: `${id}.png`,
-        format: 'RGBA8888',
-        size: { w: image.w, h: image.h },
-        scale: '1',
-        frameTags,
-        dog: { spec: s, cell: PACK_CELL, origin: ORIGIN, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
-      },
-    }
-
-    const tres = godot(id, rows, frames)
-    const readme = readmeFor(id, s, rows)
-    const png = image.toPNG(deflate ? { deflate } : undefined)
-    const files = {
-      [`${id}.png`]: png,
-      [`${id}.json`]: JSON.stringify(json, null, 1),
-      [`${id}.tres`]: tres,
-      'README.txt': readme,
-    }
-    return { id, spec: s, image, json, tres, files, animations: rows.map((r) => r.tag), zip: () => zip(files) }
+    return writePack(id, rows, { readme: readmeFor(id, s, rows), meta: { spec: s, origin: ORIGIN }, deflate, extra: { spec: s } })
   }
 
   return pack
+}
+
+/**
+ * Shared pack writer: rows [{ tag, frames, fps, loop }] -> sheet + Aseprite JSON + Godot .tres + README (+ zip).
+ * Every frame goes in a cell the size of the largest frame; smaller frames are centered.
+ */
+export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } = {}) {
+  const cellW = Math.max(...rows.flatMap((r) => r.frames.map((f) => f.w)))
+  const cellH = Math.max(...rows.flatMap((r) => r.frames.map((f) => f.h)))
+  const cols = Math.max(...rows.map((r) => r.frames.length))
+  let image = new Pixmap(cols * cellW, rows.length * cellH)
+  const frames = [], frameTags = []
+  rows.forEach((r, ri) => {
+    const from = frames.length
+    r.frames.forEach((f, fi) => {
+      const x = fi * cellW, y = ri * cellH
+      image = image.draw(f, x + ((cellW - f.w) >> 1), y + ((cellH - f.h) >> 1))
+      frames.push({
+        filename: String(frames.length), // Phaser's createFromAseprite looks frames up by index
+        frame: { x, y, w: cellW, h: cellH },
+        rotated: false, trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: cellW, h: cellH },
+        sourceSize: { w: cellW, h: cellH },
+        duration: Math.round(1000 / r.fps),
+      })
+    })
+    frameTags.push({ name: r.tag, from, to: frames.length - 1, direction: 'forward' })
+  })
+  const json = {
+    frames,
+    meta: {
+      app: 'https://github.com/olebangpad/dog', version: '1', image: `${id}.png`, format: 'RGBA8888',
+      size: { w: image.w, h: image.h }, scale: '1', frameTags,
+      dog: { cell: cellW, ...meta, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
+    },
+  }
+  const tres = godot(id, rows, frames)
+  const files = {
+    [`${id}.png`]: image.toPNG(deflate ? { deflate } : undefined),
+    [`${id}.json`]: JSON.stringify(json, null, 1),
+    [`${id}.tres`]: tres,
+    'README.txt': readme,
+  }
+  return { id, ...extra, image, json, tres, files, animations: rows.map((r) => r.tag), zip: () => zip(files) }
+}
+
+/**
+ * Effect packs: dog.fxPack(['fx-boom', 'fx-comet-ice']) or dog.fxPack() for every effect.
+ * One row per effect, same files as a character pack.
+ */
+export function createFxPack(dog, looks) {
+  return function fxPack(ids = dog.fx.list, { name = 'effects', deflate } = {}) {
+    const rows = ids.map((raw) => {
+      const id = looks[raw] ? raw : `fx-${raw}`
+      if (!looks[id]) throw new Error(`dog: no effect called "${raw}"`)
+      const { def } = looks[id]
+      return { tag: id.replace(/^fx-/, ''), frames: dog.frames(id), fps: def.fps, loop: def.tags.includes('loop') }
+    })
+    const readme = `DOG effects pack: ${name}
+Made with DOG - https://github.com/olebangpad/dog - CC0, use it anywhere.
+
+${name}.png   one effect per row (${rows.length} effects), frames left to right
+${name}.json  Aseprite / TexturePacker JSON array, one frameTag per effect (Phaser: load.aseprite + createFromAseprite)
+${name}.tres  Godot 4 SpriteFrames, one animation per effect
+
+EFFECTS
+${rows.map((r, i) => `  ${String(i).padStart(3)}: ${r.tag.padEnd(22)} ${r.frames.length} frames @ ${r.fps} fps ${r.loop ? 'loop' : 'once'}`).join('\n')}
+
+Directional effects face right: flip them for left. Status effects line up with 32x32 character frames.
+`
+    return writePack(name, rows, { readme, meta: { effects: rows.length }, deflate })
+  }
 }
 
 /** Godot 4 SpriteFrames resource. Animation names use underscores (walk_down). */

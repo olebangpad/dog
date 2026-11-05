@@ -76,7 +76,7 @@ export const STATUS = [
     },
   },
   {
-    id: 'fx-confused', color: 'gold', frames: 8, fps: 8, loop: true, tags: ['status', 'loop'], variants: ['arcane', 'ice', 'nature'],
+    id: 'fx-confused', color: 'gold', clean: false, frames: 8, fps: 8, loop: true, tags: ['status', 'loop'], variants: ['arcane', 'ice', 'nature'],
     draw(p, t) {
       const { s } = p
       for (let k = 0; k < 2; k++) {

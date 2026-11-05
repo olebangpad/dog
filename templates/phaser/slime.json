@@ -986,10 +986,10 @@
    }
   ],
   "dog": {
+   "cell": 32,
    "spec": {
     "body": "slime"
    },
-   "cell": 32,
    "origin": {
     "x": 16,
     "y": 31

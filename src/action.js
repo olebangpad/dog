@@ -72,15 +72,57 @@ export function createActions(dog, looks) {
     })
   }
 
+  // ------------------------------------------------------------ attack styles
+  const WEAPON_STYLE = {
+    sword: 'slash', scythe: 'slash', dagger: 'stab', axe: 'smash', hammer: 'smash', pickaxe: 'smash',
+    spear: 'thrust', trident: 'thrust', bow: 'shoot', staff: 'magic', wand: 'magic', rod: 'whip',
+    torch: 'burn', lollipop: 'bonk', flower: 'bonk',
+  }
+  /** Weapon style for a spec: from the held item's base id ('held-sword-gold' -> 'sword'). */
+  function styleOf(s) {
+    if (!looks[s.body].def.anchors.hand) return 'punch'
+    if (!s.hand) return 'punch'
+    const id = looks[`held-${s.hand}`] ? `held-${s.hand}` : s.hand
+    const base = looks[id]?.def.id.replace(/^held-/, '')
+    return WEAPON_STYLE[base] ?? 'slash'
+  }
+  // effect frames, recolored only when an element was asked for
+  const fxf = (c, name, size) => dog.fx(name, { size, A: c.tinted ? c.material : undefined })
+  const play = (frames, i, from) => (i >= from && i - from < frames.length ? frames[i - from] : null)
+  const at = (img, x, y) => img && img.at(Math.round(x), Math.round(y))
+
+  const ATTACK_STYLES = {
+    slash: { draw: (c, i, dx) => {
+      const k = [null, 0, 1, 2, 3, null, null, null][i]
+      return k != null && centered(fx('slash', k, c.material), c.pts.hand[0] + 3 + dx, c.pts.hand[1] + 1)
+    } },
+    stab: { lunge: [-1, 2, 3, 3, 1, 0, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'stab', 24), i, 1), c.pts.hand[0] - 4 + dx, c.pts.hand[1] - 12) },
+    thrust: { lunge: [-2, 2, 3, 3, 2, 0, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'thrust', 24), i, 1), c.pts.hand[0] - 4 + dx, c.pts.hand[1] - 13) },
+    whip: { draw: (c, i, dx) => at(play(fxf(c, 'whip', 24), i, 1), c.pts.hand[0] - 3 + dx, c.pts.hand[1] - 14) },
+    smash: { lunge: [0, -1, 1, 2, 2, 1, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'smash', 24), i, 2), c.pts.hand[0] - 8 + dx, 31 - 21) },
+    burn: { draw: (c, i, dx) => at(play(fxf(c, 'burst', 20), i, 1), c.pts.hand[0] - 6 + dx, c.pts.hand[1] - 12) },
+    bonk: { draw: (c, i, dx) => at(play(fxf(c, 'pow', 20), i, 2), c.pts.hand[0] - 6 + dx, c.pts.hand[1] - 14) },
+    punch: { draw: (c, i, dx) => at(play(fxf(c, 'impact', 16), i, 2), c.pts.hand[0] - 4 + dx, c.pts.hand[1] - 9) },
+    // projectiles leave the hand and fly right; a small burst where they stop
+    shoot: { lunge: [0, -1, -1, 0, 0, 0, 0, 0], draw: (c, i) => {
+      const arrow = fxf(c, 'arrow', 16)
+      if (i < 1 || i > 6) return null
+      return at(arrow[i % arrow.length], c.pts.hand[0] - 6 + (i - 1) * 5, c.pts.hand[1] - 9)
+    } },
+    magic: { lunge: [0, 0, -1, -1, 0, 0, 0, 0], draw: (c, i) => {
+      const orb = fxf(c, 'orb', 14)
+      if (i >= 1 && i <= 5) return at(orb[i % orb.length], c.pts.hand[0] - 5 + (i - 1) * 4, c.pts.hand[1] - 15)
+      if (i >= 6) return at(play(fxf(c, 'burst', 16), i, 6), 32 - 16, c.pts.hand[1] - 16)
+      return null
+    } },
+  }
+
   const ACTIONS = {
-    // lunge forward and swing; the slash arcs in front of the hand
+    // the attack follows the held item: slash, stab, smash, thrust, shoot, magic bolt, whip, flame, bonk or punch
     attack: { fps: 12, fallback: 'bone', build(c) {
-      const lunge = [-1, 1, 2, 2, 1, 0, 0, 0]
-      const slash = [null, 0, 1, 2, 3, null, null, null]
-      return lunge.map((dx, i) => frame(
-        charAt(c.char(i), dx),
-        slash[i] != null && centered(fx('slash', slash[i], c.material), c.pts.hand[0] + 3 + dx, c.pts.hand[1] + 1),
-      ))
+      const style = ATTACK_STYLES[c.o.style ?? styleOf(c.s)] ?? ATTACK_STYLES.slash
+      const lunge = style.lunge ?? [-1, 1, 2, 2, 1, 0, 0, 0]
+      return lunge.map((dx, i) => frame(charAt(c.char(i), dx), style.draw(c, i, dx)))
     } },
 
     // white flash, knock-back, hit spark, damage number; elements tint the target
@@ -166,6 +208,8 @@ export function createActions(dog, looks) {
   }
 
   action.list = Object.keys(ACTIONS)
+  action.styles = Object.keys(ATTACK_STYLES)
+  action.styleOf = (spec) => styleOf(typeof spec === 'string' ? { body: spec } : spec)
   action.elements = Object.keys(ELEMENTS)
   action.fps = (name) => ACTIONS[name]?.fps
   action.size = ACTION_SIZE

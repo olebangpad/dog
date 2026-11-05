@@ -13,7 +13,7 @@ import { encodePNG, encodeAPNG } from './png.js'
 import { text, FONT_CHARS } from './font.js'
 import { createCharacters, CHAR_SIZE } from './character.js'
 import { createActions, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from './action.js'
-import { createPack, PACK_CELL } from './pack.js'
+import { createPack, createFxPack, PACK_CELL } from './pack.js'
 import { runRecipe, FX_COLORS } from './fx.js'
 import { RECIPES } from './fx/index.js'
 import { zip } from './zip.js'
@@ -104,7 +104,20 @@ dog.pack = createPack(dog, looks)
  *   dog.fx('boom', { size: 64, seed: 3, element: 'ice' })
  */
 const recipeById = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
-dog.fx = (name, { size, seed, frames: count, element, A, B, C } = {}) => {
+// rendered effects are cached: attacks and games ask for the same few over and over
+const fxMemo = new Map()
+const FX_MEMO_MAX = 300
+dog.fx = (name, opts = {}) => {
+  const key = name + JSON.stringify(opts)
+  let hit = fxMemo.get(key)
+  if (!hit) {
+    hit = renderFx(name, opts)
+    if (fxMemo.size >= FX_MEMO_MAX) fxMemo.delete(fxMemo.keys().next().value)
+    fxMemo.set(key, hit)
+  }
+  return Object.assign([...hit], { fps: hit.fps, loop: hit.loop }) // a fresh array; the images are immutable
+}
+function renderFx(name, { size, seed, frames: count, element, A, B, C } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`dog: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
   const { frames } = runRecipe(recipe, { size, seed, frames: count })
@@ -116,6 +129,31 @@ dog.fx = (name, { size, seed, frames: count, element, A, B, C } = {}) => {
   return out
 }
 dog.fx.list = RECIPES.map((r) => r.id)
+
+/** Every effect (or the ids you pass) as one game pack: sheet + Phaser/Aseprite JSON + Godot .tres. */
+dog.fxPack = createFxPack(dog, looks)
+
+/**
+ * A character with a status effect on it, idle or walking: 32x32 frames like dog.action.
+ *   dog.status({ body: 'hero', hat: 'crown' }, 'burning')
+ *   dog.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
+ */
+dog.status = (spec, name, { walk, element, size = 32 } = {}) => {
+  const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
+  if (!recipe) throw new Error(`dog: no effect called "${name}"`)
+  const effect = dog.fx(recipe.id, { element, size })
+  const base = walk ? dog.walk(spec, walk) : dog.char.frames(spec)
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a)
+  const lcm = (base.length * effect.length) / gcd(base.length, effect.length)
+  const n = lcm <= 48 ? lcm : Math.max(base.length, effect.length)
+  const out = Array.from({ length: n }, (_, i) => {
+    const body = new Pixmap(size, size).draw(base[i % base.length], (size - 24) >> 1, size - 24)
+    const fx = effect[i % effect.length]
+    return recipe.behind ? new Pixmap(size, size).draw(fx).draw(body) : body.draw(fx)
+  })
+  out.fps = effect.fps
+  return out
+}
 
 /**
  * Play effects one after another or overlapping, as one frame list.
