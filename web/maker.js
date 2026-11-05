@@ -1,5 +1,5 @@
 // Character maker: body + hat + held item + off-hand, snapped together by dog.char().
-import { dog, looks, sheet, encodeAPNG, Pixmap, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE } from '../src/index.js'
+import { dog, looks, sheet, encodeAPNG, Pixmap, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
 import { $, h, paint, thumb, download, copy, toast, encode, decode, readHash, writeHash } from './ui.js'
 
 const REPO = 'olebangpad/dog'
@@ -12,6 +12,8 @@ const KINDS = [
 const SCALES = [1, 4, 8]
 const ACTION_LABELS = { attack: 'Attack', hit: 'Hit', heal: 'Heal', levelup: 'Level up', cast: 'Cast', death: 'Death' }
 const ELEMENT_ICONS = { fire: '🔥', ice: '❄', poison: '☠', holy: '✦', dark: '☾' }
+const WALK_ARROWS = { down: '↓', up: '↑', left: '←', right: '→' }
+const walkDir = () => (action?.startsWith('walk-') ? action.slice(5) : null)
 
 let spec = { body: 'hero', hat: 'hat-crown', hand: 'held-sword', offhand: 'held-shield' }
 let frames = []
@@ -40,6 +42,10 @@ function codeFor(s) {
   if (s.offhand && anchorsOf(s.body).offhand) opts.push(`offhand: '${short(s.offhand, 'offhand')}'`)
   if (s.A) opts.push(`A: '${s.A}'`)
   const imp = `import { dog } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\n`
+  if (walkDir()) {
+    const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
+    return `${imp}const frames = dog.walk(${obj}, '${walkDir()}')\n// ${frames.length} frames, ${CHAR_SIZE}x${CHAR_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[1].scale(8).toCanvas())`
+  }
   if (action) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
     return `${imp}const frames = dog.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${ACTION_SIZE}x${ACTION_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
@@ -51,7 +57,11 @@ function codeFor(s) {
 // ---------------------------------------------------------------- render
 function refresh({ pickers = true } = {}) {
   spec = cleanSpec(spec)
-  if (action) {
+  if (walkDir()) {
+    frames = dog.walk(spec, walkDir())
+    fps = frames.fps
+    preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE).draw(f, 4, 8))
+  } else if (action) {
     frames = dog.action(spec, action, element ?? undefined)
     fps = frames.fps
     preview = [...frames, ...Array(5).fill(frames[frames.length - 1])] // short pause between loops
@@ -122,13 +132,15 @@ function outfitPicker() {
 function actionPicker() {
   const btn = (label, pressed, onclick, title) => h('button', { 'aria-pressed': String(pressed), title: title ?? label, onclick }, label)
   return h('div', { class: 'picker' },
-    h('div', { class: 'picker-head' }, h('b', {}, 'Action'), h('span', { class: 'muted' }, action ? `${action}${element ? ' · ' + element : ''}` : 'idle')),
-    h('div', { class: 'seg wrap actions' },
+    h('div', { class: 'picker-head' }, h('b', {}, 'Action'), h('span', { class: 'muted' }, action ? `${action}${element && !walkDir() ? ' · ' + element : ''}` : 'idle')),
+    h('div', { class: 'seg wrap moves' },
       btn('Idle', !action, () => { action = null; refresh() }),
+      dog.walk.dirs.map((d) => btn(`Walk ${WALK_ARROWS[d]}`, action === `walk-${d}`, () => { action = `walk-${d}`; refresh() }, `Walk ${d}`))),
+    h('div', { class: 'seg wrap actions' },
       dog.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() }))),
-    h('div', { class: 'seg wrap elements' + (action ? '' : ' muted-seg') },
-      btn('Default', !element, () => { element = null; if (!action) action = 'attack'; refresh() }, 'Default effect colors'),
-      dog.action.elements.map((e) => btn(`${ELEMENT_ICONS[e] ?? ''} ${e}`, element === e, () => { element = e; if (!action) action = 'attack'; refresh() }))),
+    h('div', { class: 'seg wrap elements' + (action && !walkDir() ? '' : ' muted-seg') },
+      btn('Default', !element, () => { element = null; if (!action || walkDir()) action = 'attack'; refresh() }, 'Default effect colors'),
+      dog.action.elements.map((e) => btn(`${ELEMENT_ICONS[e] ?? ''} ${e}`, element === e, () => { element = e; if (!action || walkDir()) action = 'attack'; refresh() }))),
   )
 }
 
@@ -159,7 +171,7 @@ export function initMaker({ openInStudio }) {
   if (fromLink) try {
     const s = decode(fromLink)
     if (looks[s.body]) {
-      action = dog.action.list.includes(s.action) ? s.action : null
+      action = dog.action.list.includes(s.action) || /^walk-(down|up|left|right)$/.test(s.action) ? s.action : null
       element = ELEMENTS[s.element] ? s.element : null
       spec = s
     }
@@ -174,8 +186,8 @@ export function initMaker({ openInStudio }) {
       for (const b of $('#maker-scale').children) b.setAttribute('aria-pressed', String(Number(b.dataset.s) === s))
     },
   }, `${s}x`)))
-  const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element ? '-' + element : ''}` : '')
-  $('#mk-png').addEventListener('click', () => download(`${name()}.png`, frames[action ? 2 : 0].scale(scale).toPNG()))
+  const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element && !walkDir() ? '-' + element : ''}` : '')
+  $('#mk-png').addEventListener('click', () => download(`${name()}.png`, frames[action && !walkDir() ? 2 : 0].scale(scale).toPNG()))
   $('#mk-anim').addEventListener('click', () => download(`${name()}-anim.png`, encodeAPNG(frames.map((f) => f.scale(scale)), { fps })))
   $('#mk-strip').addEventListener('click', () => download(`${name()}-strip.png`, sheet(frames).image.scale(scale).toPNG()))
   $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}.png`, sheet(history.map((s) => dog.char(s)), { columns: 8 }).image.scale(scale).toPNG()))

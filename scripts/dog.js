@@ -22,6 +22,7 @@ usage:
   dog char --random [seed] -o out.png      a random character (same seed, same character)
   dog char <body> ... --action attack [--element fire] --anim -o hit.png
                                            actions: attack hit heal levelup cast death
+  dog char <body> ... --walk left --anim -o walk.png   directions: down up left right
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
@@ -62,6 +63,7 @@ function parse(argv) {
     else if (a === '--hat' || a === '--hand' || a === '--offhand') opts[a.slice(2)] = next()
     else if (a === '--random') opts.random = optional() ?? true
     else if (a === '--action') opts.action = next()
+    else if (a === '--walk') opts.walk = optional() ?? 'down'
     else if (a === '--element') opts.element = next()
     else if (a === '--strip') opts.strip = true
     else if (a === '-h' || a === '--help') opts.help = true
@@ -133,11 +135,11 @@ if (!cmd || o.help) {
   const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
   console.log(spec)
-  const name = o.out ?? `${spec.body}${o.action ? '-' + o.action : ''}.png`
-  const frames = o.action ? dog.action(spec, o.action, o.element) : dog.char.frames(spec)
+  const name = o.out ?? `${spec.body}${o.walk ? '-walk-' + o.walk : o.action ? '-' + o.action : ''}.png`
+  const frames = o.walk ? dog.walk(spec, o.walk) : o.action ? dog.action(spec, o.action, o.element) : dog.char.frames(spec)
   const fps = frames.fps ?? looks[spec.body].def.fps
   if (o.anim) save(name, encodeAPNG(frames.map((f) => finish(f, o)), { fps, deflate }))
-  else if (o.strip || o.action) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
+  else if (o.strip || o.action || o.walk) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
   else save(name, finish(dog.char(spec), o).toPNG({ deflate }))
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))

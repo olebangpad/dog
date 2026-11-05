@@ -46,6 +46,13 @@ async function buildAssets() {
     }
     def.frames.forEach((_, i) => atlasFrames.push({ name: def.frames.length > 1 ? `${id}#${i}` : id, img: dog(id, { frame: i }) }))
   }
+  // walk strips for every base body in every direction (variants: use dog.walk with that body)
+  for (const body of dog.char.parts.body.filter((b) => !looks[b].variant)) {
+    for (const dir of dog.walk.dirs) {
+      await write(join(out, 'walk', `${body}-${dir}.png`), png(sheet(dog.walk(body, dir)).image))
+      files++
+    }
+  }
   const cols = 32
   const { image, frames } = sheet(atlasFrames.map((f) => f.img), { columns: cols })
   await write(join(out, 'atlas.png'), png(image))
@@ -188,6 +195,8 @@ function scene() {
     place('bat', 120, 6 + Math.round(Math.sin((t / nFrames) * Math.PI * 2) * 3))
     place('chick', 140, 60)
     place('fish-salmon', 40 + ((t * 2) % 160), 92)
+    const walker = dog.walk({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, 'left')
+    place(walker[t % walker.length], 186 - t * 3, 58)
     if (t >= 10 && t < 18) place(frameOf('sparkle', t - 10), 26, 40)
     frames.push(img.scale(3))
   }
@@ -252,6 +261,28 @@ function actions() {
   })
 }
 
+// Walk cycles in all four directions.
+function walks() {
+  const cast = [
+    { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' },
+    { body: 'heroine', hat: 'wizard', hand: 'staff', offhand: 'orb' },
+    { body: 'skeleton', hat: 'pirate', hand: 'scythe' },
+    { body: 'heroine-blonde', hat: 'cowboy', hand: 'rod' },
+    { body: 'hero-orc', hat: 'horns', hand: 'hammer', offhand: 'buckler' },
+    { body: 'dog-shiba', hat: 'party' },
+  ]
+  const grid = dog.walk.dirs.map((dir) => cast.map((c) => dog.walk(c, dir)))
+  const cell = 24, gap = 4, labelW = 26
+  return Array.from({ length: 8 }, (_, t) => {
+    let img = new Pixmap(labelW + cast.length * (cell + gap), grid.length * (cell + gap))
+    grid.forEach((row, r) => {
+      img = img.draw(text(dog.walk.dirs[r].toUpperCase(), { color: ACCENT }), 0, r * (cell + gap) + 10)
+      row.forEach((frames, c) => { img = img.draw(frames[t % frames.length], labelW + c * (cell + gap), r * (cell + gap)) })
+    })
+    return framed(img, 8).scale(3)
+  })
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   await write(join(dir, 'gallery.png'), png(gallery()))
@@ -262,6 +293,7 @@ async function buildShowcase() {
   await write(join(dir, 'banner.png'), apng(banner(), 8))
   await write(join(dir, 'characters.png'), apng(characters(), 6))
   await write(join(dir, 'actions.png'), apng(actions(), 10))
+  await write(join(dir, 'walk.png'), apng(walks(), 6))
 }
 
 const t0 = Date.now()

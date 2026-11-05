@@ -50,6 +50,9 @@ Hats and held items live in `src/sprites/gear.js`. On top of a normal sprite the
 - **Hats**: the pivot is the bottom row of the brim, horizontally centred. It lands on the top of the head.
 - **Held items**: the pivot is the top pixel of the grip. It lands just outside the fist.
 - **New bodies** declare `anchors: { head: [x, y], hand: [x, y], offhand: [x, y] }`, optionally one point per animation frame.
+  An anchor can carry a third value, `'back'`, to draw that gear behind the body (e.g. a shield in side view).
+- **Walk poses** are sprites named `<body>-walk-down`, `-walk-up` and `-walk-side` (facing right) with the `walk` tag and their own anchors.
+  Bodies without them hop in place.
 
 `npm test` renders every piece of gear on every body and fails if anything would be clipped, so you'll know right away.
 

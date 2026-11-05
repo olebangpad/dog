@@ -81,6 +81,12 @@ dog.char = createCharacters(looks)
  */
 dog.action = createActions(dog, looks)
 
+/**
+ * Walk cycles: dog.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
+ * directions: down up left right
+ */
+dog.walk = dog.char.walk
+
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,

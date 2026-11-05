@@ -4,19 +4,20 @@
 
 # DOG · Dots Of Games
 
-**Pixel art as code.** 340+ free game sprites you can **combine, resize and recolor in one line**,<br>
-plus a character maker with **228,384 gear combinations**. Every sprite is plain text. Zero dependencies.
+**Pixel art as code.** 420+ free game sprites you can **combine, resize and recolor in one line**,<br>
+plus a character maker with **1.8 million combinations** that walk in 4 directions and act. Every sprite is plain text. Zero dependencies.
 
 [**▶ Open the playground**](https://olebangpad.github.io/dog/) ·
 [Character maker](#-character-maker) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
+[Walking](#-walk-in-4-directions) ·
 [Download sprites](#-just-want-the-pngs) ·
 [Use in code](#-use-it-in-code) ·
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-90_base_·_346_looks-a8e05a?style=flat-square)
-![characters](https://img.shields.io/badge/characters-228%2C384-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-118_base_·_425_looks-a8e05a?style=flat-square)
+![characters](https://img.shields.io/badge/characters-1%2C838%2C176-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
 ![size](https://img.shields.io/badge/tile-16×16-a8e05a?style=flat-square)
@@ -48,8 +49,8 @@ dog.char('slime-pink', { hat: 'wizard' })
 dog.char(dog.char.random(42))                     // same seed → same character, great for NPCs
 ```
 
-9 bodies (hero, skeleton, dog, cat, chick, slime, ghost, skull, frog) × 10 hats × 9 held items × 3 off-hand items,
-with color variants: **228,384 combinations** before you even change the outfit color.
+10 bodies (hero, heroine, skeleton, dog, cat, chick, slime, ghost, skull, frog) × 18 hats × 15 held items × 6 off-hand items,
+with color variants: **1,838,176 combinations** before you even change the outfit color.
 
 <img src="docs/img/characters.png" alt="24 random characters made with dog.char.random()" width="654">
 
@@ -67,9 +68,20 @@ dog.action('slime', 'hit', { element: 'ice', amount: '-12' })
 dog.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as an element
 ```
 
-**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 228,384 characters.
+**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 1.8 million characters.
 
 <img src="docs/img/actions.png" alt="Every action in every element, animated" width="672">
+
+### 🚶 Walk in 4 directions
+
+Humanoids have drawn front, back and side poses; gear follows the view (the weapon swaps hands from behind,
+the shield tucks behind the body from the side). Animals and monsters hop or float. `left` mirrors `right`.
+
+```js
+dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // frames (24×24), .fps
+```
+
+<img src="docs/img/walk.png" alt="Six characters walking down, up, left and right" width="630">
 
 ### 🎨 One drawing, any color
 
@@ -93,7 +105,7 @@ outlines, drop shadows, hue shifts, flips and rotations, all chainable.
 
 ## 🖼 The collection
 
-90 base sprites in 7 categories, **346 looks** with variants, 17 of them animated.
+118 base sprites in 7 categories, **425 looks** with variants, 27 of them animated.
 Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamless tiles, props, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes).
 
@@ -109,6 +121,7 @@ Everything is pre-exported in [`assets/`](assets). No build step needed.
 | `assets/png@4x/` | the same at 64×64 |
 | `assets/anim/` | animated PNGs (4x) of every animated look |
 | `assets/strips/` | horizontal frame strips (1x) for game engines |
+| `assets/walk/` | walk-cycle strips for every body in every direction |
 | `assets/atlas.png` + `atlas.json` | one texture atlas with every frame, plus animation lists |
 
 All art is **CC0**: use it in commercial games, remix it, no credit required (credit is appreciated ❤).
@@ -147,6 +160,7 @@ node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
 node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --scale 6 -o mage.png
 node scripts/dog.js char --random 42 --scale 6 -o npc.png
 node scripts/dog.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
+node scripts/dog.js char heroine --hat cowboy --hand rod --walk left --anim --scale 4 -o walk.png
 ```
 
 ## ✏️ Sprites are just text
@@ -197,6 +211,7 @@ import { dog, compose, sheet, text, Pixmap } from './src/index.js'
 | `dog.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `dog.char.frames(spec)` · `dog.char.random(seed)` | animation frames · a reproducible random character |
 | `dog.char.parts` · `dog.char.count()` | every body / hat / hand / off-hand id · number of combinations |
+| `dog.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
 | `dog.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |
 | `sheet(images, { columns, gap })` | pack into a sprite sheet → `{ image, frames }` |
@@ -228,7 +243,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 
 - [x] Character maker with automatic gear placement
 - [x] Character actions: attack / hit / heal / level-up / cast / death, in 5 elements
-- [ ] Walk cycles and directional (left / right / up / down) characters
+- [x] Walk cycles in 4 directions
+- [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)
 - [ ] 32×32 characters with walk cycles

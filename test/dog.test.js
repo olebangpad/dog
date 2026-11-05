@@ -208,9 +208,10 @@ test('character animation covers body and gear frames', () => {
   assert.notDeepEqual(a.data, b.data) // the hat rides the bounce
 })
 
-test('no gear is clipped on any body', () => {
+test('no gear is clipped on any body or walk pose', () => {
   const { parts } = dog.char
-  for (const bodyId of parts.body) {
+  const poses = Object.keys(looks).filter((id) => Object.keys(looks[id].def.anchors).length)
+  for (const bodyId of poses) {
     const body = looks[bodyId].def
     for (const kind of ['head', 'hand', 'offhand']) {
       if (!body.anchors[kind]) continue
@@ -272,4 +273,34 @@ test('death ends without the character', () => {
   assert.ok(last.colors().length > 0)
   assert.ok(last.colors().every((c) => smoke.includes(c)), last.colors().join(' '))
   assert.throws(() => dog.action('hero', 'dance'), /unknown action/)
+})
+
+// ------------------------------------------------------------------ walk
+test('walk works for every body in every direction', () => {
+  for (const body of dog.char.parts.body.filter((b) => !looks[b].variant)) {
+    for (const dir of dog.walk.dirs) {
+      const frames = dog.walk({ body, hat: 'crown' }, dir)
+      assert.ok(frames.length >= 2, `${body} ${dir}`)
+      assert.ok(frames.fps > 0)
+      assert.ok(frames.every((f) => f.w === CHAR_SIZE && f.h === CHAR_SIZE))
+      assert.notDeepEqual(frames[0].data, frames[1].data, `${body} ${dir} does not move`)
+    }
+  }
+})
+
+test('left is the mirror of right, and humanoids have real back and side poses', () => {
+  const spec = { body: 'heroine', hat: 'wizard', hand: 'staff', offhand: 'book' }
+  const right = dog.walk(spec, 'right'), left = dog.walk(spec, 'left')
+  right.forEach((f, i) => assert.deepEqual(left[i].data, f.flipX().data))
+  const down = dog.walk(spec, 'down')[0], up = dog.walk(spec, 'up')[0]
+  assert.notDeepEqual(down.data, up.data)
+  assert.notDeepEqual(down.data, right[0].data)
+  // body colors carry over to the walk poses
+  assert.ok(dog.walk('hero-red', 'up')[0].colors().includes(MATERIALS.red[2]))
+})
+
+test('walk keeps gear on, and walk poses are not offered as bodies', () => {
+  assert.notDeepEqual(dog.walk({ body: 'hero', hat: 'crown' }, 'right')[0].data, dog.walk('hero', 'right')[0].data)
+  assert.ok(!dog.char.parts.body.some((b) => b.includes('-walk-')))
+  assert.throws(() => dog.walk('hero', 'diagonal'), /walk direction/)
 })

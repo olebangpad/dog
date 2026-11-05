@@ -15,6 +15,7 @@ export const CHAR_SIZE = 24
 export const BODY_AT = [4, 8] // where the 16x16 body sits inside the 24x24 character
 const KINDS = ['hand', 'offhand', 'head'] // draw order: hats end up on top
 const PREFIX = { head: 'hat', hand: 'held', offhand: 'held' }
+export const WALK_DIRS = ['down', 'up', 'left', 'right']
 
 function rng(seed) {
   if (seed == null) return Math.random
@@ -31,7 +32,8 @@ function rng(seed) {
 export function createCharacters(looks) {
   const all = Object.values(looks)
   const parts = {
-    body: all.filter((l) => Object.keys(l.def.anchors).length).map((l) => l.id),
+    // walk-cycle views (hero-walk-side, ...) have anchors too, but they are poses, not bodies
+    body: all.filter((l) => Object.keys(l.def.anchors).length && !l.def.tags.includes('walk')).map((l) => l.id),
     head: all.filter((l) => l.def.equip === 'head').map((l) => l.id),
     hand: all.filter((l) => l.def.equip === 'hand').map((l) => l.id),
     offhand: all.filter((l) => l.def.equip === 'offhand').map((l) => l.id),
@@ -53,12 +55,14 @@ export function createCharacters(looks) {
     return spec
   }
 
-  function layers(spec) {
+  // `view` swaps in another pose of the same body (a walk-cycle sprite) but keeps the body's colors
+  function layers(spec, view) {
     const body = looks[spec.body]
-    const out = [{ kind: 'body', look: body, ramps: { ...body.ramps, ...pickRamps(spec) } }]
+    const def = view ?? body.def
+    const out = [{ kind: 'body', look: { ...body, def }, ramps: { ...body.ramps, ...pickRamps(spec) } }]
     for (const kind of KINDS) {
       const part = resolvePart(spec[kind === 'head' ? 'hat' : kind], kind)
-      if (part && body.def.anchors[kind]) out.push({ kind, ...part })
+      if (part && def.anchors[kind]) out.push({ kind, ...part })
     }
     return out
   }
@@ -68,17 +72,18 @@ export function createCharacters(looks) {
     return Math.max(...layers(normalize(spec)).map((l) => l.look.def.sequence.length))
   }
 
-  function build(spec, step) {
-    const ls = layers(spec)
+  function build(spec, step, view, bodyStep = step) {
+    const ls = layers(spec, view)
     const [body] = ls
     const bdef = body.look.def
-    const bframe = bdef.sequence[step % bdef.sequence.length]
+    const bframe = bdef.sequence[bodyStep % bdef.sequence.length]
     const back = [], front = []
     for (const l of ls.slice(1)) {
       const d = l.look.def
-      const [ax, ay] = d.equip && bdef.anchors[d.equip][bframe]
+      // an anchor may carry a third value, 'back', to tuck gear behind the body (a shield in side view)
+      const [ax, ay, layer = d.layer] = bdef.anchors[d.equip][bframe]
       const img = render(d, { ...l.ramps, frame: d.sequence[step % d.sequence.length] })
-      ;(d.layer === 'back' ? back : front).push(img.at(BODY_AT[0] + ax - d.pivot[0], BODY_AT[1] + ay - d.pivot[1]))
+      ;(layer === 'back' ? back : front).push(img.at(BODY_AT[0] + ax - d.pivot[0], BODY_AT[1] + ay - d.pivot[1]))
     }
     const bodyImg = render(bdef, { ...body.ramps, frame: bframe }).at(...BODY_AT)
     let img = new Pixmap(CHAR_SIZE, CHAR_SIZE)
@@ -97,6 +102,32 @@ export function createCharacters(looks) {
     const spec = normalize(body, opts)
     return Array.from({ length: length(spec) }, (_, i) => build(spec, i))
   }
+
+  /**
+   * Walk cycle in a direction: 'down' (default), 'up', 'left' or 'right'.
+   * Humanoids have drawn front / back / side poses; 'left' mirrors the side pose.
+   * Bodies without walk poses hop (or float) in place, mirrored for 'left'.
+   */
+  char.walk = (body, dir = 'down', opts = {}) => {
+    if (typeof dir === 'object') [dir, opts] = [dir.dir ?? 'down', dir]
+    if (!WALK_DIRS.includes(dir)) throw new Error(`dog: walk direction must be one of ${WALK_DIRS.join(', ')}`)
+    const spec = normalize(body, opts)
+    const base = looks[spec.body].def.id
+    const view = dir === 'left' || dir === 'right' ? 'side' : dir
+    const pose = looks[`${base}-walk-${view}`] ?? looks[`${base}-walk-side`] // e.g. a dog walks "up" in side view
+    let frames
+    if (pose) {
+      frames = pose.def.sequence.map((_, i) => build(spec, i, pose.def))
+    } else {
+      // hold the body's first pose and let the hop do the moving (its own float/squash could cancel it out)
+      const hop = [0, -1, -2, -1]
+      frames = hop.map((dy, i) => new Pixmap(CHAR_SIZE, CHAR_SIZE).draw(build(spec, i, undefined, 0), 0, dy))
+    }
+    if (dir === 'left') frames = frames.map((f) => f.flipX())
+    frames.fps = pose ? pose.def.fps : 6
+    return frames
+  }
+  char.walk.dirs = WALK_DIRS
 
   /** A random character spec. Pass a seed (number or string) to get the same one every time. */
   char.random = (seed, { outfit = 0.5 } = {}) => {
