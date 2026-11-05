@@ -283,6 +283,25 @@ function walks() {
   })
 }
 
+// 1280x640 image for GitHub's social preview (Settings -> General -> Social preview).
+function social() {
+  let img = Pixmap.create(320, 160, BG)
+  img = img.draw(text('DOG', { color: ACCENT }).scale(5), 16, 18)
+  img = img.draw(text('DOTS OF GAMES', { color: DIM }), 16, 48)
+  const lines = [
+    ['PIXEL ART AS CODE', INK],
+    [`${dog.char.count().toLocaleString('en-US')} CHARACTERS`, ACCENT],
+    ['WALK - ATTACK - CAST - LEVEL UP', INK],
+    ['FREE - CC0 - ZERO DEPENDENCIES', DIM],
+  ]
+  lines.forEach(([str, color], i) => { img = img.draw(text(str, { color }), 16, 70 + i * 11) })
+  img = img.draw(text('GITHUB.COM/OLEBANGPAD/DOG', { color: ACCENT }), 16, 136)
+  const chars = Array.from({ length: 20 }, (_, i) => dog.char(dog.char.random(i + 40)))
+  const { image } = sheet(chars, { columns: 5, gap: 2 })
+  img = img.draw(image, 320 - image.w - 14, (160 - image.h) >> 1)
+  return img.scale(4)
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   await write(join(dir, 'gallery.png'), png(gallery()))
@@ -294,6 +313,7 @@ async function buildShowcase() {
   await write(join(dir, 'characters.png'), apng(characters(), 6))
   await write(join(dir, 'actions.png'), apng(actions(), 10))
   await write(join(dir, 'walk.png'), apng(walks(), 6))
+  await write(join(dir, 'social.png'), png(social()))
 }
 
 const t0 = Date.now()

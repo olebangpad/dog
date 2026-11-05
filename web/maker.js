@@ -79,6 +79,7 @@ function refresh({ pickers = true } = {}) {
   $('#maker-seed').textContent = seed == null ? '' : `seed ${seed}`
   if (pickers) renderPickers()
   writeHash('c', encode({ ...spec, action, element }))
+  $('#mk-play').href = `game.html#c=${encode(spec)}`
 }
 
 function tile(img, label, selected, onclick, disabled = false) {

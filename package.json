@@ -1,7 +1,7 @@
 {
   "name": "dots-of-games",
   "version": "0.1.0",
-  "description": "Pixel art as code: CC0 game sprites you can combine, resize and recolor in one line. Zero dependencies.",
+  "description": "Pixel art as code: CC0 game sprites you can combine, resize and recolor in one line, plus a 2.7M-combination character maker. Zero dependencies.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -20,7 +20,8 @@
     "test": "node --test test/*.test.js",
     "validate": "node scripts/validate.js",
     "check": "node scripts/validate.js && node --test test/*.test.js",
-    "dev": "python3 -m http.server 8080"
+    "dev": "python3 -m http.server 8080",
+    "promo": "node scripts/record-promo.cjs"
   },
   "keywords": [
     "pixel-art",

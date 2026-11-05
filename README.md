@@ -4,10 +4,11 @@
 
 # DOG · Dots Of Games
 
-**Pixel art as code.** 420+ free game sprites you can **combine, resize and recolor in one line**,<br>
-plus a character maker with **1.8 million combinations** that walk in 4 directions and act. Every sprite is plain text. Zero dependencies.
+**Pixel art as code.** 440+ free game sprites you can **combine, resize and recolor in one line**,<br>
+plus a character maker with **2.7 million combinations** that walk in 4 directions and act. Every sprite is plain text. Zero dependencies.
 
-[**▶ Open the playground**](https://olebangpad.github.io/dog/) ·
+[**▶ Play the demo**](https://olebangpad.github.io/dog/game.html) ·
+[Open the playground](https://olebangpad.github.io/dog/) ·
 [Character maker](#-character-maker) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
@@ -16,8 +17,8 @@ plus a character maker with **1.8 million combinations** that walk in 4 directio
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-118_base_·_425_looks-a8e05a?style=flat-square)
-![characters](https://img.shields.io/badge/characters-1%2C838%2C176-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-126_base_·_441_looks-a8e05a?style=flat-square)
+![characters](https://img.shields.io/badge/characters-2%2C756%2C176-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
 ![size](https://img.shields.io/badge/tile-16×16-a8e05a?style=flat-square)
@@ -38,6 +39,17 @@ can become any color, size or combination in a single call:
 dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
 
+### 🎮 A game screen made only from DOG
+
+[**DOG Quest**](https://olebangpad.github.io/dog/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
+The hero is a `dog.char()`, it moves with `dog.walk()`, swings with `dog.action('attack')`, enemies flash with
+`dog.action('hit')` and puff away with `dog.action('death')`; tiles, coins, hearts and the HUD text are sprites and the pixel font.
+It plays itself until you press a key, and the character maker has a **▶ Play as this character** button.
+
+<a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
+
+Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4)
+
 ### 🧙 Character maker
 
 Put gear on a body **by name**. Bodies know where their head and hands are, gear knows where it's held,
@@ -49,8 +61,8 @@ dog.char('slime-pink', { hat: 'wizard' })
 dog.char(dog.char.random(42))                     // same seed → same character, great for NPCs
 ```
 
-10 bodies (hero, heroine, skeleton, dog, cat, chick, slime, ghost, skull, frog) × 18 hats × 15 held items × 6 off-hand items,
-with color variants: **1,838,176 combinations** before you even change the outfit color.
+12 bodies (hero, heroine, skeleton, goblin, robot, dog, cat, chick, slime, ghost, skull, frog) × 18 hats × 15 held items × 6 off-hand items,
+with color variants: **2,756,176 combinations** before you even change the outfit color.
 
 <img src="docs/img/characters.png" alt="24 random characters made with dog.char.random()" width="654">
 
@@ -68,7 +80,7 @@ dog.action('slime', 'hit', { element: 'ice', amount: '-12' })
 dog.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as an element
 ```
 
-**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 1.8 million characters.
+**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 2.7 million characters.
 
 <img src="docs/img/actions.png" alt="Every action in every element, animated" width="672">
 
@@ -105,7 +117,7 @@ outlines, drop shadows, hue shifts, flips and rotations, all chainable.
 
 ## 🖼 The collection
 
-118 base sprites in 7 categories, **425 looks** with variants, 27 of them animated.
+126 base sprites in 7 categories, **441 looks** with variants, 33 of them animated.
 Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamless tiles, props, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes).
 
@@ -244,6 +256,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [x] Character maker with automatic gear placement
 - [x] Character actions: attack / hit / heal / level-up / cast / death, in 5 elements
 - [x] Walk cycles in 4 directions
+- [x] Playable demo game screen
 - [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)

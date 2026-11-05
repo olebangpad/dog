@@ -4,10 +4,11 @@
 
 # DOG · Dots Of Games
 
-**코드로 만드는 도트 그래픽.** 420개가 넘는 무료 2D 게임 도트 이미지를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
-**183만 가지** 조합의 캐릭터 메이커도 들어 있고, 캐릭터는 4방향으로 걷고 행동합니다. 모든 스프라이트는 텍스트 파일이고, 의존성은 0개입니다.
+**코드로 만드는 도트 그래픽.** 440개가 넘는 무료 2D 게임 도트 이미지를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
+**275만 가지** 조합의 캐릭터 메이커도 들어 있고, 캐릭터는 4방향으로 걷고 행동합니다. 모든 스프라이트는 텍스트 파일이고, 의존성은 0개입니다.
 
-[**▶ 플레이그라운드 열기**](https://olebangpad.github.io/dog/) ·
+[**▶ 데모 게임 하기**](https://olebangpad.github.io/dog/game.html) ·
+[플레이그라운드](https://olebangpad.github.io/dog/) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
 [상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
 [걷기](#-4방향-걷기) ·
@@ -32,6 +33,17 @@ DOG는 모든 스프라이트를 **텍스트**로 저장하고, 고정된 색 �
 dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
 
+### 🎮 DOG로만 만든 게임 화면
+
+[**DOG Quest**](https://olebangpad.github.io/dog/game.html)는 직접 해볼 수 있는 작은 데모입니다. 화면의 모든 픽셀이 이 레포에서 나옵니다.
+주인공은 `dog.char()`, 걷기는 `dog.walk()`, 공격은 `dog.action('attack')`, 적이 맞으면 `dog.action('hit')`,
+쓰러지면 `dog.action('death')`이고, 타일·코인·하트·HUD 글자도 전부 스프라이트와 도트 폰트입니다.
+키를 누르기 전까지는 혼자 플레이하고, 캐릭터 메이커의 **▶ Play as this character** 버튼으로 내가 만든 캐릭터로 플레이할 수 있습니다.
+
+<a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest 플레이 화면" width="512"></a>
+
+세로형 홍보 영상 (`scripts/record-promo.cjs`로 생성): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4)
+
 ### 🧙 캐릭터 메이커
 
 몸에 장비를 **이름만으로** 입힙니다. 몸은 머리와 손 위치를, 장비는 잡히는 지점을 알고 있어서
@@ -43,8 +55,8 @@ dog.char('slime-pink', { hat: 'wizard' })
 dog.char(dog.char.random(42))                     // 같은 시드 → 같은 캐릭터 (NPC 만들 때 좋아요)
 ```
 
-몸 10종(영웅, 여자 영웅, 해골, 강아지, 고양이, 병아리, 슬라임, 유령, 해골 머리, 개구리) × 모자 18종 × 무기 15종 × 보조 장비 6종,
-색 변형까지 합치면 옷 색을 바꾸기 전에도 **1,838,176가지** 조합이 나옵니다.
+몸 12종(영웅, 여자 영웅, 해골, 고블린, 로봇, 강아지, 고양이, 병아리, 슬라임, 유령, 해골 머리, 개구리) × 모자 18종 × 무기 15종 × 보조 장비 6종,
+색 변형까지 합치면 옷 색을 바꾸기 전에도 **2,756,176가지** 조합이 나옵니다.
 
 <img src="docs/img/characters.png" alt="dog.char.random()으로 만든 랜덤 캐릭터 24명" width="654">
 
@@ -63,7 +75,7 @@ dog.action('hero-mage', 'cast', '#00ffcc')      // 재질 이름이나 hex 색�
 ```
 
 **행동 6종**(`attack` 공격, `hit` 피격, `heal` 회복, `levelup` 레벨업, `cast` 시전, `death` 사망) ×
-**속성 5종**(`fire` 불, `ice` 얼음, `poison` 독, `holy` 빛, `dark` 어둠)을 183만 가지 캐릭터 누구에게나 쓸 수 있습니다.
+**속성 5종**(`fire` 불, `ice` 얼음, `poison` 독, `holy` 빛, `dark` 어둠)을 275만 가지 캐릭터 누구에게나 쓸 수 있습니다.
 
 <img src="docs/img/actions.png" alt="모든 행동과 속성 조합 애니메이션" width="672">
 
@@ -100,7 +112,7 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 
 ## 🖼 수록 스프라이트
 
-7개 카테고리, 기본 118종, 변형 포함 **425가지**, 이 중 27종은 애니메이션입니다.
+7개 카테고리, 기본 126종, 변형 포함 **441가지**, 이 중 33종은 애니메이션입니다.
 캐릭터, 착용 장비, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
 이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다.
 

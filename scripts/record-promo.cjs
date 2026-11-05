@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+// Records the promo videos from promo.html, frame by frame, so pixel art stays crisp.
+// Dev-only tool: needs Playwright and ffmpeg installed (the library itself has no dependencies).
+//
+//   python3 -m http.server 8765 &        # serve the repo
+//   node scripts/record-promo.cjs        # -> docs/promo/*.mp4, docs/promo/gameplay.gif
+//
+// The page clock is frozen and stepped one frame at a time, so the result does
+// not depend on how fast the machine is.
+
+const { chromium } = require('playwright')
+const { execFileSync } = require('node:child_process')
+const { mkdirSync, rmSync, mkdtempSync } = require('node:fs')
+const { join } = require('node:path')
+const os = require('node:os')
+
+const BASE = process.argv[2] ?? 'http://localhost:8765'
+const OUT = join(__dirname, '..', 'docs', 'promo')
+
+const JOBS = [
+  { name: 'dog-reel-en.mp4', url: '/promo.html?lang=en', viewport: [1080, 1920], seconds: 15, fps: 30 },
+  { name: 'dog-reel-ko.mp4', url: '/promo.html?lang=ko', viewport: [1080, 1920], seconds: 15, fps: 30 },
+  { name: 'gameplay.gif', url: '/promo.html?mode=clip', viewport: [1024, 768], seconds: 10, fps: 15, selector: '#game' },
+]
+
+async function record(browser, job) {
+  const dir = mkdtempSync(join(os.tmpdir(), 'dog-frames-'))
+  const page = await browser.newPage({ viewport: { width: job.viewport[0], height: job.viewport[1] } })
+  await page.clock.install({ time: 0 })
+  await page.goto(BASE + job.url, { waitUntil: 'networkidle' })
+  await page.evaluate(() => document.fonts.ready)
+  // install() lets time keep flowing in real time; pause it so only runFor() moves it
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 50)
+  const target = job.selector ? page.locator(job.selector) : page
+  const total = job.seconds * job.fps
+  for (let i = 0; i < total; i++) {
+    await page.clock.runFor(1000 / job.fps)
+    await target.screenshot({ path: join(dir, `f${String(i).padStart(4, '0')}.png`) })
+    if (i % job.fps === 0) process.stdout.write(`\r${job.name}: ${Math.round((i / total) * 100)}%`)
+  }
+  await page.close()
+  const input = ['-y', '-framerate', String(job.fps), '-i', join(dir, 'f%04d.png')]
+  if (job.name.endsWith('.gif')) {
+    execFileSync('ffmpeg', [...input, '-vf',
+      'scale=iw/2:ih/2:flags=neighbor,split[a][b];[a]palettegen=max_colors=96:stats_mode=full[p];[b][p]paletteuse=dither=none',
+      '-loop', '0', join(OUT, job.name)], { stdio: 'ignore' })
+  } else {
+    execFileSync('ffmpeg', [...input, '-c:v', 'libx264', '-preset', 'slow', '-crf', '16',
+      '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(OUT, job.name)], { stdio: 'ignore' })
+  }
+  rmSync(dir, { recursive: true, force: true })
+  process.stdout.write(`\r${job.name}: done          \n`)
+}
+
+;(async () => {
+  mkdirSync(OUT, { recursive: true })
+  const browser = await chromium.launch()
+  for (const job of JOBS) await record(browser, job)
+  await browser.close()
+})()

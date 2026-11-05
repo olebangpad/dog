@@ -1,0 +1,28 @@
+.game-wrap { max-width: 1100px; margin: 0 auto; padding: 16px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
+.screen {
+  position: relative; display: grid; place-items: center; background: #0b0f0c;
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; overflow: hidden;
+}
+#game { display: block; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
+.game-bar { display: flex; flex-direction: column; gap: 10px; }
+.game-bar .row { margin-top: 0; }
+
+/* touch controls: shown on touch screens only */
+.pad { display: none; position: absolute; inset: auto 0 10px 0; padding: 0 14px; justify-content: space-between; align-items: end; pointer-events: none; }
+.pad button {
+  pointer-events: auto; border: 0; border-radius: 12px; background: #ffffff26; color: #fff; font: 16px var(--pixel);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.pad button.held { background: #a8e05a88; }
+.dpad { display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px); gap: 2px; }
+.dpad .up { grid-area: 1 / 2; } .dpad .left { grid-area: 2 / 1; } .dpad .right { grid-area: 2 / 3; } .dpad .down { grid-area: 3 / 2; }
+.pad .a { width: 70px; height: 70px; border-radius: 50%; font-size: 22px; }
+@media (pointer: coarse) {
+  .pad { display: flex; }
+  .screen { padding-bottom: 170px; }
+}
+@media (max-width: 860px) {
+  .game-wrap { padding: 12px 12px 32px; }
+  .game-page .stats { display: none; }
+}
+a.btn { text-decoration: none; color: inherit; display: inline-block; }
