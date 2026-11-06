@@ -320,7 +320,7 @@ function social() {
   img = img.draw(text('PIXSPELL', { color: ACCENT }).scale(5), 16, 18)
   img = img.draw(text('GAME ASSETS AS CODE', { color: DIM }), 16, 48)
   const lines = [
-    ['545 EFFECTS - 66 SOUNDS', INK],
+    [`545 EFFECTS - 66 SOUNDS - ${spell.music.list.length} SONGS`, INK],
     [`${spell.char.count().toLocaleString('en-US')} CHARACTERS`, ACCENT],
     ['WALK - ATTACK - CAST - LEVEL UP', INK],
     ['FREE - CC0 - ZERO DEPENDENCIES', DIM],

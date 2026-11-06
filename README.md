@@ -27,6 +27,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 ![sprites](https://img.shields.io/badge/sprites-224_base_·_845_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
+![music](https://img.shields.io/badge/music-17_tracks-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C761%2C072-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
