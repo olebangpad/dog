@@ -1,14 +1,15 @@
 name: Release
 
-# Publishing a GitHub Release (e.g. v0.1.0) runs the checks and publishes the package to npm.
-# One-time setup: add an npm "Automation" access token as the repository secret NPM_TOKEN.
+# Pushing a version tag (git tag v0.1.0 && git push origin v0.1.0) runs the checks, publishes the package to npm
+# with provenance, and creates the GitHub Release with that version's CHANGELOG section as its notes.
+# One-time setup: an npm access token with publish rights, saved as the repository secret NPM_TOKEN.
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write # create the GitHub Release
   id-token: write # npm provenance: the package links back to this workflow run
 
 jobs:
@@ -20,12 +21,21 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - name: Version matches the release tag
-        run: node -e "const v = require('./package.json').version; const tag = process.env.TAG.replace(/^v/, ''); if (v !== tag) throw new Error('package.json is ' + v + ' but the release is ' + tag)"
+      - name: Token and version are ready
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "::error::Add the npm token as the repository secret NPM_TOKEN first"; exit 1; fi
+          node -e "const v = require('./package.json').version; const tag = process.env.GITHUB_REF_NAME.replace(/^v/, ''); if (v !== tag) throw new Error('package.json is ' + v + ' but the tag is ' + tag)"
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: node scripts/validate.js
       - run: node --test test/*.test.js
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: GitHub Release with the changelog notes
+        run: |
+          node -e "const md = require('fs').readFileSync('CHANGELOG.md', 'utf8'); const v = process.env.GITHUB_REF_NAME.replace(/^v/, ''); \
+            const part = md.split(/^## /m).find((s) => s.startsWith(v + ' ')) ?? ''; require('fs').writeFileSync('notes.md', part.split('\n').slice(1).join('\n').trim() + '\n\n\`npm i pixspell@' + v + '\`\n')"
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "PixSpell $GITHUB_REF_NAME" --notes-file notes.md
+        env:
+          GH_TOKEN: ${{ github.token }}

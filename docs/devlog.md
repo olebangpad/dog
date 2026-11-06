@@ -713,3 +713,8 @@ the social preview, `NPM_TOKEN`, and a `v0.1.0` release.
   favicon is the wizard hat. The dog sprite stays in the collection.
 - Rename leftovers fixed: AGENTS.md named the CLI `spell.js` (it's `pixspell.js`) and listed the API as `dog`; one README
   line said `dog.` autocompletes.
+- **Releasing is one tag:** `release.yml` now runs on a pushed `v*` tag. It checks that the npm token exists and that
+  the version matches, runs the tests, publishes to npm with provenance, and creates the GitHub Release with that
+  version's CHANGELOG section as notes. After the repo was renamed (Pages redeployed fine at the new address), the
+  owner's steps are: the About box, the social preview (GitHub has no API for it), and the `NPM_TOKEN` secret. Then
+  pushing `v0.1.0` does the rest.
