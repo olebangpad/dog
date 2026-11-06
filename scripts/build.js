@@ -408,6 +408,26 @@ function showTiles() {
   }
 }
 
+// Every monster, idling, with its name; each one is also a character body (hats, walks, actions)
+function monstersShowcase() {
+  const ids = Object.values(sprites).filter((d) => d.category === 'monsters').map((d) => d.id)
+  const all = ids.map((id) => spell.frames(id))
+  const cols = 7, col = 32, cell = 16, gapY = 8, labelH = 8
+  const rows = Math.ceil(ids.length / cols)
+  const short = { 'baby-dragon': 'dragon', jellyfish: 'jelly' }
+  return Array.from({ length: 8 }, (_, t) => {
+    let img = new Pixmap(cols * col, rows * (cell + labelH + gapY) - gapY)
+    ids.forEach((id, i) => {
+      const x = (i % cols) * col, y = Math.floor(i / cols) * (cell + labelH + gapY)
+      const f = all[i]
+      img = img.draw(f[Math.floor(t / 2) % f.length], x + ((col - cell) >> 1), y)
+      const l = text((short[id] ?? id).toUpperCase().slice(0, 8), { color: DIM })
+      img = img.draw(l, x + ((col - l.w) >> 1), y + cell + 2)
+    })
+    return framed(img, 8).scale(3)
+  })
+}
+
 // A village and a dungeon room built only from tiles and props, animated (lava, torches, cauldron, fountain, banners)
 function worldShowcase() {
   const T = 16, W = 14, H = 9
@@ -461,6 +481,7 @@ async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   { const { frames, fps } = heroExample(); await write(join(dir, 'hero.png'), apng(frames, fps)) }
   await write(join(dir, 'world.png'), apng(worldShowcase(), 6))
+  await write(join(dir, 'monsters.png'), apng(monstersShowcase(), 6))
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {
     for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase, gridsShowcase })) {

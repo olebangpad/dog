@@ -7,7 +7,7 @@
 **2D 게임에 필요한 에셋 전부를 코드로.** 걷고 싸우는 캐릭터, 아이템과 타일, 빛나는 이펙트, 효과음까지
 자바스크립트 한 줄로 만들고, 색과 크기를 바꿉니다. AI 코딩 에이전트에게 시켜도 됩니다. 그림은 CC0, 의존성 0개.
 
-걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **614**개 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
+걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **686**개 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 15종](#-캐릭터-메이커) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 66개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -214,10 +214,17 @@ spell.char('slime-pink', { hat: 'wizard' })
 spell.char(spell.char.random(42))                     // 같은 시드 → 같은 캐릭터 (NPC 만들 때 좋아요)
 ```
 
-몸 12종(영웅, 여자 영웅, 해골, 고블린, 로봇, 강아지, 고양이, 병아리, 슬라임, 유령, 해골 머리, 개구리) × 모자 18종 × 무기 15종 × 보조 장비 6종,
-색 변형까지 합치면 옷 색을 바꾸기 전에도 **2,756,176가지** 조합이 나옵니다.
+몸 27종 × 모자 18종 × 무기 15종 × 보조 장비 6종, 색 변형까지 합치면 옷 색을 바꾸기 전에도 **2,761,072가지** 조합이 나옵니다.
+몸은 사람(영웅, 여자 영웅, 해골, 고블린, 로봇), 동물(강아지, 고양이, 병아리), 그리고 모든 몬스터입니다.
 
 <img src="docs/img/characters.png" alt="spell.char.random()으로 만든 랜덤 캐릭터 24명" width="654">
+
+**몬스터 21종, 전부 캐릭터 몸체입니다:** 슬라임, 박쥐, 유령, 해골 머리, 눈알, 개구리, 거미, 뱀, 쥐, 늑대, 버섯 괴물, 게, 딱정벌레,
+골렘, 임프, 도깨비불, 해파리, 식인 식물, 미믹, 벌, 아기 드래곤. 각각 3~6가지 색이 있습니다(`wolf-fox`, `golem-lava`, `mimic-gold`,
+`baby-dragon-black`...). 그래서 다른 캐릭터처럼 모자를 쓰고, 걷고, 공격하고, 맞고, 레벨업하고, 쓰러집니다:
+`spell.walk('golem', 'left')`, `spell.action({ body: 'mimic', hat: 'pirate' }, 'attack')`.
+
+<img src="docs/img/monsters.png" alt="몬스터 21종이 이름과 함께 움직이는 모습" width="672">
 
 ### ⚔️ 상황 이펙트
 
@@ -320,7 +327,7 @@ spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×2
 광차와 레일, 선인장, 전나무, 큰 버섯, 수정, 연잎, 그리고 이어 붙일 수 있는 자갈길, 지붕 기와, 카펫, 체크 바닥, 다리,
 흐르는 용암까지. 모두 재질 변형이 있습니다(`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-7개 카테고리, 기본 168종, 변형 포함 **614가지**, 이 중 38종은 애니메이션입니다.
+7개 카테고리, 기본 183종, 변형 포함 **686가지**, 이 중 53종은 애니메이션입니다.
 캐릭터, 착용 장비, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
 이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다. 여기에 [코드로 만든 이펙트 80종](#-이펙트-545종)이
 애니메이션 525가지를 더하고, 이것도 전부 `assets/`에 PNG로 들어 있습니다.

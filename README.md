@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **614** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **686** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -24,10 +24,10 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-168_base_·_614_looks-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-183_base_·_686_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
-![characters](https://img.shields.io/badge/characters-2%2C756%2C176-a8e05a?style=flat-square)
+![characters](https://img.shields.io/badge/characters-2%2C761%2C072-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
 ![tiles](https://img.shields.io/badge/tiles-8_·_16_·_32_·_64_px-a8e05a?style=flat-square)
@@ -70,7 +70,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [15 new monsters](#-character-maker) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -219,10 +219,17 @@ spell.char('slime-pink', { hat: 'wizard' })
 spell.char(spell.char.random(42))                     // same seed → same character, great for NPCs
 ```
 
-12 bodies (hero, heroine, skeleton, goblin, robot, dog, cat, chick, slime, ghost, skull, frog) × 18 hats × 15 held items × 6 off-hand items,
-with color variants: **2,756,176 combinations** before you even change the outfit color.
+27 bodies × 18 hats × 15 held items × 6 off-hand items, with color variants: **2,761,072 combinations** before you even
+change the outfit color. Bodies are people (hero, heroine, skeleton, goblin, robot), animals (dog, cat, chick) and every monster.
 
 <img src="docs/img/characters.png" alt="24 random characters made with spell.char.random()" width="654">
+
+**21 monsters, and each one is a body:** slime, bat, ghost, skull, eye, frog, spider, snake, rat, wolf, mushroom monster,
+crab, beetle, golem, imp, will-o-wisp, jellyfish, biting plant, mimic, bee and a baby dragon, each in 3 to 6 colors
+(`wolf-fox`, `golem-lava`, `mimic-gold`, `baby-dragon-black`...). So they wear hats, walk, attack, get hit, level up and
+die like any character: `spell.walk('golem', 'left')`, `spell.action({ body: 'mimic', hat: 'pirate' }, 'attack')`.
+
+<img src="docs/img/monsters.png" alt="All 21 monsters, idling, with their names" width="672">
 
 ### ⚔️ Actions & effects
 
@@ -326,7 +333,7 @@ torches, pillars, spike traps, stairs, cobwebs, bones, tombstones, mine carts an
 mushrooms, crystals and lily pads, plus seamless cobblestone, roof tiles, carpet, checkered floors, bridges and
 flowing lava. Each comes in several materials (`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-168 base sprites in 7 categories, **614 looks** with variants, 38 of them animated.
+183 base sprites in 7 categories, **686 looks** with variants, 53 of them animated.
 Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamless tiles, props, furniture, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [80 procedural effects](#-545-game-effects)
 add 525 more animated looks; all of them are exported in `assets/` too.

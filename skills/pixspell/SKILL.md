@@ -44,7 +44,9 @@ A character is a spec: `{ body, hat?, hand?, offhand?, A?, B?, C? }`.
 
 - Short names work: `hat: 'crown'` means `hat-crown`, `hand: 'sword'` means `held-sword`. Variants add a suffix: `'sword-gold'`, `'hero-red'`.
 - Humanoid bodies (`hero`, `heroine`, `skeleton`, `goblin`, `robot` and their variants) hold `hand` and `offhand` items.
-  Animals and monsters (`dog`, `cat`, `chick`, `slime`, `ghost`, `skull`, `frog`) only wear hats.
+  Animals and monsters only wear hats: `dog` `cat` `chick` and every monster (`slime` `bat` `ghost` `skull` `eye` `frog`
+  `spider` `snake` `rat` `wolf` `shroom` `crab` `beetle` `golem` `imp` `wisp` `jellyfish` `plant` `mimic` `bee` `baby-dragon`,
+  each with color variants like `wolf-fox` or `golem-lava`). They all walk and do actions, so any monster can be an enemy.
 - `A`, `B`, `C` recolor the body's ramps (A is usually the outfit): a material name or any hex color.
 
 ```js

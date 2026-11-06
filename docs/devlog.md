@@ -928,3 +928,20 @@ characters had little world to stand in. The plan is world building, then monste
 - **Showcase:** `docs/img/world.png` is a village and a dungeon room built only from these sprites, with a walking
   wizard and knight.
 - **Checks:** the snapshots changed only by adding the 173 new looks; no existing look changed.
+
+### (b) Shipped: 15 more monsters, each a character body
+
+- **The new monsters:** spider, snake, rat, wolf, mushroom monster, crab, beetle, golem, imp, will-o-wisp, jellyfish,
+  biting plant, mimic, bee and a baby dragon. Each has a 2-frame idle animation and 3–5 colors. There are now 21
+  monsters and 72 more looks (686 in all).
+- **Each one declares a head anchor, which makes it a character body.** Hats, `spell.walk`, every `spell.action` in
+  every element, status effects and game packs all work on them with no extra art. There are 27 bodies now and
+  2,761,072 combinations.
+- **What the checks caught:**
+  - The gear test failed on `hat-cap` on the wolf: its head anchor sat too close to the right edge, so the cap's brim
+    clipped. The anchor moved one pixel left.
+  - The spider's legs were drawn in the outline color and vanished on dark backgrounds, so they now use the body's
+    dark shade. Its default color moved from black to purple; black is a variant.
+- **Snapshots:** 72 new looks. The only changed snapshots are the random-seed characters (`char:N`, `walk:N`), because
+  `spell.char.random` now picks from more bodies. GitHub heroes don't change: they pick from humanoid bodies only.
+- **Showcase:** `docs/img/monsters.png` shows all 21 monsters idling, with their names.
