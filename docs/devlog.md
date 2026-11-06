@@ -812,3 +812,25 @@ need to look as good as the rest.
 - The promo reels and the gameplay GIF were re-recorded, so every video shows the glowing effects.
 - **Checks:** 57 tests, types, plugin validation, the browser suite (main, demo, effects, sounds, templates, mascot),
   and GIF frames reviewed around the meteor moment.
+
+## Round 10: what the new wave of pixel-art agent tools teaches
+
+Plan: study the pixel-art and agent-skill repos from the last months (pixelfx 5.4k★, sprite-normals 770★,
+aseprite-ai-artist 600★, git-koi 560★, diorama, pixel-path, spritekiln, codixel, pixel-anims, Pokémon Claude Red...)
+and take what works into PixSpell, in three steps: (a) README, (b) a profile-README character, (c) agent tooling.
+
+### (a) Shipped: a README that shows, then tells
+
+- **"What one line makes":** nine animated 256 px tiles at the top (`docs/img/show/`, drawn by `showTiles()` in
+  `scripts/build.js`), each captioned with the exact call that drew it. Random characters, a fire attack, an ice meteor,
+  a walk, a recolored slime, a fire tornado, one knight at 8/16/32/64 px, a burning skeleton, a level-up.
+  The frozen skeleton was swapped for a burning one: under ice it didn't read as a skeleton.
+- **Spell Survivors, told like the games that got attention:** the GIF first, `image files: 0` / `audio files: 0` /
+  `one HTML file` / `written by Claude Code` badges, a ▶ Play link, and the prompt to make your own. It says plainly
+  that the prompt is one to try, not the one it was made from.
+- **The skill now follows the open Agent Skills spec.** The spec says `name` must match the folder, and ours was
+  `game-assets` in `skills/pixspell/`, so it's now `pixspell`. `npx pixspell skill` copies it into `.agents/skills/`,
+  the cross-client folder (Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode...); `--claude` uses `.claude/skills/`.
+  A paste-this prompt covers agents with nothing installed. A test checks both folders and the name rule.
+- **Also:** an Agent Skill badge, a one-line "New" strip, Credits (Scale2x, sfxr, Silkscreen), roadmap items for
+  normal maps and 8-direction walks, and two leftover `dog-32px.zip` mentions fixed.

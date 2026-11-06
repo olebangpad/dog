@@ -354,8 +354,62 @@ function gridsShowcase() {
   return sheet(rows, { columns: 1, gap: PAD, padding: 12, background: '#0f1712' }).image
 }
 
+// The README's showcase: one 256 px animated tile per idea, each made by the one line of code captioned under it.
+// Most are drawn on a 64 px stage and zoomed 4x; returns { name: { frames, fps } }.
+function showTiles() {
+  const L = 64, Z = 4, BG = '#101712'
+  const stage = () => Pixmap.create(L, L, BG)
+  const center = (img, sprite, zoom = 1, dy = 0) => {
+    const s = zoom === 1 ? sprite : sprite.scale(zoom)
+    return img.draw(s, (L - s.w) >> 1, ((L - s.h) >> 1) + dy)
+  }
+  const tile = (frames, fps) => ({ frames: frames.map((f) => f.scale(Z)), fps })
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
+  const mage = { body: 'heroine', hat: 'wizard', hand: 'staff' }
+
+  // a mage walking right over scrolling grass (a 32 px stage at 2x)
+  const walk = () => {
+    const w = spell.walk(mage, 'right')
+    return Array.from({ length: 16 }, (_, i) => {
+      let img = Pixmap.create(32, 32, BG)
+      const off = (i * 2) % 32
+      for (let x = -off; x < 48; x += 16) img = img.draw(spell('grass'), x, 22)
+      for (const [id, x, y] of [['flower', 30, 19], ['rock', 14, 22]]) for (const k of [0, 32]) img = img.draw(spell(id), x - off + k, y)
+      return img.draw(w[Math.floor(i / 2) % w.length], 4, 1).scale(2)
+    })
+  }
+  const hexes = ['#ff4fd8', '#4fc3ff', '#ffd23f', '#7cff6b', '#b388ff', '#ff6b4f', '#4fffd2', '#ffffff']
+  const slimes = hexes.flatMap((A) => { const f = spell.frames('slime', { A }); return [0, 0, 1, 1].map((j) => center(stage(), f[j % f.length], 2)) })
+  const chars = Array.from({ length: 8 }, (_, i) => spell.char.frames(spell.char.random(i + 7)))
+    .flatMap((f) => [0, 0, 1, 1].map((j) => center(stage(), f[j % f.length], 2)))
+  const meteor = spell.fx('meteor', { element: 'ice', size: 64 })
+  const pad = (frames, n) => [...frames, ...Array.from({ length: n }, () => new Pixmap(frames[0].w, frames[0].h))]
+
+  // the same knight at every tile grid, shown the same size: 12, 24, 48 and 96 px drawn into 192 px
+  const grids = spell.grids.flatMap((g) => {
+    const c = spell.char({ ...knight, grid: g })
+    const big = c.scale(192 / c.w)
+    const img = Pixmap.create(L * Z, L * Z, BG).draw(big, (L * Z - big.w) >> 1, L * Z - big.h - 12)
+      .draw(text(`${g}X${g}`, { color: ACCENT }).scale(4), 12, 12)
+    return Array(6).fill(img)
+  })
+
+  return {
+    characters: tile(chars, 6),
+    attack: tile(spell.action(knight, 'attack', 'fire').map((f) => center(stage(), f, 2)), 12),
+    meteor: tile(pad(meteor, 4).map((f) => center(stage(), f)), meteor.fps),
+    walk: { frames: walk().map((f) => f.scale(Z)), fps: 10 },
+    recolor: tile(slimes, 8),
+    tornado: (() => { const f = spell.fx('tornado', { element: 'fire', size: 64 }); return tile(f.map((x) => center(stage(), x)), f.fps) })(),
+    grids: { frames: grids, fps: 6 },
+    status: (() => { const f = spell.status({ body: 'skeleton', hat: 'viking', hand: 'axe' }, 'burning'); return tile(f.map((x) => center(stage(), x, 2)), 8) })(),
+    levelup: (() => { const f = spell.action({ body: 'hero', hat: 'crown', hand: 'sword-gold' }, 'levelup'); return tile(f.map((x) => center(stage(), x, 2)), f.fps) })(),
+  }
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
+  for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {
     for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase, gridsShowcase })) {
       const s = Date.now(); const r = fn(); const m = Date.now() - s

@@ -2,7 +2,7 @@
 
 A small survivor-style arena game: you walk, your spells fire by themselves, enemies come in waves, and every level
 you pick a new spell. **Every sprite, walk cycle, death animation, glowing effect and sound comes from PixSpell
-calls.** There are no image or audio files, just [`index.html`](index.html), about 450 lines.
+calls.** There are no image or audio files, just [`index.html`](index.html), under 500 lines.
 
 [▶ Play it](https://olebangpad.github.io/pixspell/examples/spell-survivors/) ·
 [watch it play itself](https://olebangpad.github.io/pixspell/examples/spell-survivors/?demo)
@@ -42,5 +42,8 @@ Install the skill, then ask. In Claude Code:
 > automatically at the nearest enemy, enemies come in growing waves, they drop gems, and every level I pick one of
 > three new spells. Use PixSpell for every sprite, effect and sound, with a night-time look so the effects glow.
 
+In Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode or another [Agent Skills client](https://agentskills.io/clients),
+run `npx pixspell skill` in your project first. Any other agent can read
+[`SKILL.md`](https://raw.githubusercontent.com/olebangpad/pixspell/main/skills/pixspell/SKILL.md) from its URL.
+
 Your game will differ from this one (agents don't write the same code twice), but the assets will all be there.
-Other agents (Codex, Cursor, ...) can read [`SKILL.md`](../../skills/pixspell/SKILL.md) or [`llms.txt`](../../llms.txt).

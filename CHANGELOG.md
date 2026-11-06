@@ -21,6 +21,7 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Any tile size:** `grid: 8 | 16 | 32 | 64` on every call; a download-everything zip per tile size.
 - **Game packs** for Phaser (Aseprite JSON) and Godot 4 (`SpriteFrames`); canvas and Phaser starter templates.
 - **Spell Survivors** (`examples/spell-survivors`): a complete game whose every asset is a PixSpell call, written by an AI agent.
-- **For AI coding agents:** `SKILL.md` (also a Claude Code plugin), `llms.txt`, a generated sprite catalog,
-  TypeScript types.
-- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export` (`npx pixspell ...`).
+- **For AI coding agents:** `SKILL.md` in the open Agent Skills format (also a Claude Code plugin), `llms.txt`, a generated
+  sprite catalog, TypeScript types. `npx pixspell skill` installs the skill into `.agents/skills/` for Codex, Cursor,
+  Gemini CLI, GitHub Copilot, OpenCode and other Agent Skills clients (`--claude`: `.claude/skills/`).
+- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export | skill` (`npx pixspell ...`).

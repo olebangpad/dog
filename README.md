@@ -30,6 +30,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
 ![tiles](https://img.shields.io/badge/tiles-8_·_16_·_32_·_64_px-a8e05a?style=flat-square)
+[![Agent Skill](https://img.shields.io/badge/Agent_Skill-Claude_Code_·_Codex_·_Cursor_·_more-d97757?style=flat-square)](#-make-a-game-with-pixspell)
 [![CI](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml)
 
 <img src="docs/promo/code.gif" alt="PixSpell code typed line by line: a pink slime, a wizard, a spell cast, an ice meteor and a coin sound appear as each line finishes" width="100%">
@@ -44,6 +45,32 @@ const swing = spell.action('hero', 'attack', { element: 'fire', grid: 32 })     
 spell.sfx('slash', { element: 'fire' }).play()                                           // and its sound
 document.body.append(knight.scale(8).toCanvas())
 ```
+
+### What one line makes
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/img/show/characters.png" width="240" alt="Random characters with different bodies, hats and weapons"><br><sub><code>spell.char.random(seed)</code><br>2.7 million characters</sub></td>
+    <td align="center"><img src="docs/img/show/attack.png" width="240" alt="A knight swinging a fire sword"><br><sub><code>spell.action(knight, 'attack', 'fire')</code><br>6 actions × 5 elements</sub></td>
+    <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="A glowing ice meteor falling and bursting"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>545 effects that glow</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/show/walk.png" width="240" alt="A wizard walking right over grass"><br><sub><code>spell.walk(mage, 'right')</code><br>4-way walk cycles</sub></td>
+    <td align="center"><img src="docs/img/show/recolor.png" width="240" alt="A slime changing through eight colors"><br><sub><code>spell('slime', { A: '#ff4fd8' })</code><br>any sprite, any color</sub></td>
+    <td align="center"><img src="docs/img/show/tornado.png" width="240" alt="A fire tornado"><br><sub><code>spell.fx('tornado', { element: 'fire', size: 64 })</code><br>any size, still crisp</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/show/grids.png" width="240" alt="The same knight at 8, 16, 32 and 64 pixel tiles"><br><sub><code>spell.char(knight, { grid: 8 })</code><br>8, 16, 32 or 64 px tiles</sub></td>
+    <td align="center"><img src="docs/img/show/status.png" width="240" alt="A skeleton on fire"><br><sub><code>spell.status(skeleton, 'burning')</code><br>status effects on anyone</sub></td>
+    <td align="center"><img src="docs/img/show/levelup.png" width="240" alt="A crowned hero leveling up"><br><sub><code>spell.action(king, 'levelup')</code><br>and a sound for each: <code>spell.sfx('levelup')</code></sub></td>
+  </tr>
+</table>
+
+<sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
+<code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
+
+**New:** effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
 
@@ -64,12 +91,26 @@ person or an AI agent can go from an empty file to a game that looks and sounds 
 
 ### 🤖 A whole game, made by an AI agent with PixSpell
 
-[**Spell Survivors**](examples/spell-survivors) is a survivor-style arena game: waves of monsters, spells that fire by
-themselves, a new spell every level, sound on every hit. Claude (in Claude Code) wrote it with the PixSpell skill, in one
-HTML file. **Every sprite, walk cycle, glowing effect and sound is a PixSpell call; there's no image or audio file.**
-[Play it](https://olebangpad.github.io/pixspell/examples/spell-survivors/), or [see how each part was made and try the prompt yourself](examples/spell-survivors/README.md).
-
 <a href="https://olebangpad.github.io/pixspell/examples/spell-survivors/"><img src="docs/promo/survivors.gif" alt="Spell Survivors: a wizard surrounded by slimes, goblins and skeletons, with fire aura, ice blades, lightning and meteors" width="640"></a>
+
+![image files: 0](https://img.shields.io/badge/image_files-0-a8e05a?style=flat-square)
+![audio files: 0](https://img.shields.io/badge/audio_files-0-a8e05a?style=flat-square)
+![one HTML file](https://img.shields.io/badge/one_HTML_file-under_500_lines-a8e05a?style=flat-square)
+![written by Claude Code](https://img.shields.io/badge/written_by-Claude_Code-d97757?style=flat-square)
+
+[**▶ Play Spell Survivors**](https://olebangpad.github.io/pixspell/examples/spell-survivors/) ·
+[watch it play itself](https://olebangpad.github.io/pixspell/examples/spell-survivors/?demo) ·
+[how each part was made](examples/spell-survivors/README.md)
+
+A survivor-style arena game: waves of monsters, spells that fire by themselves, a new spell every level, a sound on every hit.
+Claude (in Claude Code) wrote it with the PixSpell skill, using only the public API. **Every sprite, walk cycle, glowing effect
+and sound is a PixSpell call.**
+
+**Make your own.** [Install the skill](#-make-a-game-with-pixspell) and give your agent the same idea:
+
+> Make a survivor-style arena game in one HTML file using PixSpell. A wizard walks with the arrow keys, spells fire
+> automatically at the nearest enemy, enemies come in growing waves, they drop gems, and every level I pick one of
+> three new spells. Use PixSpell for every sprite, effect and sound, with a night-time look so the effects glow.
 
 ### 🎮 A game screen made only from PixSpell
 
@@ -113,10 +154,18 @@ a full game recipe, engine exports, sounds, tile sizes) and [`catalog.md`](skill
   /plugin marketplace add olebangpad/pixspell
   /plugin install pixspell@pixspell
   ```
-- **Codex, Cursor and other agents:** copy `SKILL.md` into your project (or its contents into your `AGENTS.md` / rules file),
-  or point the agent at [`llms.txt`](llms.txt).
+- **Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode** and the other [Agent Skills clients](https://agentskills.io/clients):
+  run this in your project. It copies the skill into `.agents/skills/pixspell/`, where those agents look for skills
+  (`--claude` puts it in `.claude/skills/` instead).
+  ```
+  npx pixspell skill
+  ```
+- **Any agent, nothing to install:** paste this into the chat.
+  > Read https://raw.githubusercontent.com/olebangpad/pixspell/main/skills/pixspell/SKILL.md and use PixSpell for every
+  > sprite, effect and sound. Then make a top-down game where a goblin with a dagger fights slimes.
 
 Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, with sounds, using PixSpell"*.
+Agents can also read [`llms.txt`](llms.txt).
 
 ### 🧙 Character maker
 
@@ -251,7 +300,7 @@ walk strips, effects and sounds made for that grid:
 <img src="docs/img/grids.png" alt="The same sprites, character and effects at 8, 16, 32 and 64 px tiles" width="100%">
 
 In code it's one option: `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 8 })`, `spell.pack(spec, { grid: 64 })`.
-On the command line: `node scripts/pixspell.js export --grid 32` writes `dog-32px.zip`.
+On the command line: `node scripts/pixspell.js export --grid 32` writes `pixspell-32px.zip`.
 
 The 16 px originals are also pre-exported in [`assets/`](assets). No build step needed.
 
@@ -416,11 +465,21 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [x] TypeScript types, visual regression tests
 - [x] Sound effects made by code, matched to every attack, action and effect
 - [x] Every download at 8, 16, 32 or 64 px tiles
+- [x] Effects that glow; a whole game built by an AI agent; the skill for any Agent Skills client
 - [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)
 - [ ] 32×32 characters with walk cycles
+- [ ] Normal maps, so sprites react to 2D lights
+- [ ] 8-direction walks
 - [ ] npm package
+
+## 🙏 Credits
+
+- The smoothing behind 32 and 64 px tiles is **Scale2x**, Andrea Mazzoleni's take on the EPX algorithm ([scale2x.it](https://www.scale2x.it/)).
+- The sound engine borrows the idea behind DrPetter's **sfxr**: a game sound is a handful of numbers, not a recording.
+- The website and promo clips use the **Silkscreen** font by Jason Kottke.
+- Every sprite, effect and sound in this repository was drawn or written for PixSpell.
 
 ## 📄 License
 

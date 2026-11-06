@@ -566,6 +566,13 @@ test('CLI renders effects and effect packs', async () => {
     assert.equal(png.readUInt32BE(16), 48)
     assert.match(execFileSync('node', [cli, 'fx', 'burning', '--on', 'slime', '--strip', '-o', join(dir, 's.png')], { encoding: 'utf8' }), /loops/)
     assert.match(execFileSync('node', [cli, 'fxpack', 'meteor', 'poof', '-o', join(dir, 'p.zip')], { encoding: 'utf8' }), /2 effects/)
+    // pixspell skill: copies the skill where Agent Skills clients look, with a name matching its folder (the spec's rule)
+    execFileSync('node', [cli, 'skill'], { cwd: dir })
+    const skill = readFileSync(join(dir, '.agents', 'skills', 'pixspell', 'SKILL.md'), 'utf8')
+    assert.match(skill, /^---\nname: pixspell\n/)
+    assert.ok(readFileSync(join(dir, '.agents', 'skills', 'pixspell', 'catalog.md'), 'utf8').includes('# PixSpell sprite catalog'))
+    execFileSync('node', [cli, 'skill', '--claude'], { cwd: dir })
+    assert.equal(readFileSync(join(dir, '.claude', 'skills', 'pixspell', 'SKILL.md'), 'utf8'), skill)
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }

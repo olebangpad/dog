@@ -26,6 +26,7 @@
 <img src="docs/promo/code.gif" alt="PixSpell 코드를 한 줄씩 치면 분홍 슬라임, 마법사, 주문 시전, 얼음 운석, 코인 효과음이 나타나는 장면" width="100%">
 
 [![CI](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml)
+[![Agent Skill](https://img.shields.io/badge/Agent_Skill-Claude_Code_·_Codex_·_Cursor_·_more-d97757?style=flat-square)](#-pixspell로-게임-만들기)
 
 </div>
 
@@ -37,6 +38,32 @@ const swing = spell.action('hero', 'attack', { element: 'fire', grid: 32 })     
 spell.sfx('slash', { element: 'fire' }).play()                                           // 그리고 그 소리
 document.body.append(knight.scale(8).toCanvas())
 ```
+
+### 한 줄이 만드는 것
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/img/show/characters.png" width="240" alt="몸, 모자, 무기가 다른 랜덤 캐릭터들"><br><sub><code>spell.char.random(seed)</code><br>캐릭터 275만 가지</sub></td>
+    <td align="center"><img src="docs/img/show/attack.png" width="240" alt="불꽃 검을 휘두르는 기사"><br><sub><code>spell.action(knight, 'attack', 'fire')</code><br>행동 6가지 × 속성 5가지</sub></td>
+    <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="빛나는 얼음 운석이 떨어져 터지는 모습"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>빛나는 이펙트 545종</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/show/walk.png" width="240" alt="풀밭 위를 오른쪽으로 걷는 마법사"><br><sub><code>spell.walk(mage, 'right')</code><br>4방향 걷기</sub></td>
+    <td align="center"><img src="docs/img/show/recolor.png" width="240" alt="여덟 가지 색으로 바뀌는 슬라임"><br><sub><code>spell('slime', { A: '#ff4fd8' })</code><br>어떤 스프라이트든 어떤 색이든</sub></td>
+    <td align="center"><img src="docs/img/show/tornado.png" width="240" alt="불꽃 회오리"><br><sub><code>spell.fx('tornado', { element: 'fire', size: 64 })</code><br>크기를 키워도 선명하게</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/show/grids.png" width="240" alt="8, 16, 32, 64픽셀 타일로 그린 같은 기사"><br><sub><code>spell.char(knight, { grid: 8 })</code><br>8·16·32·64픽셀 타일</sub></td>
+    <td align="center"><img src="docs/img/show/status.png" width="240" alt="불타는 해골"><br><sub><code>spell.status(skeleton, 'burning')</code><br>누구에게나 상태이상</sub></td>
+    <td align="center"><img src="docs/img/show/levelup.png" width="240" alt="왕관 쓴 영웅의 레벨업"><br><sub><code>spell.action(king, 'levelup')</code><br>소리도 하나씩: <code>spell.sfx('levelup')</code></sub></td>
+  </tr>
+</table>
+
+<sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
+<code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
+
+**새 기능:** 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+효과음 66개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
 
@@ -57,13 +84,29 @@ spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 ### 🤖 AI 에이전트가 PixSpell로 만든 게임 하나
 
-[**Spell Survivors**](examples/spell-survivors)는 서바이버 장르의 아레나 게임입니다. 몰려오는 몬스터, 알아서 날아가는 주문,
-레벨마다 새 주문 고르기, 타격마다 효과음. Claude(Claude Code)가 PixSpell 스킬로 HTML 파일 하나에 만들었습니다.
-**모든 스프라이트, 걷기 애니메이션, 빛나는 이펙트, 효과음이 PixSpell 호출이고, 이미지·오디오 파일은 하나도 없습니다.**
-[직접 해보기](https://olebangpad.github.io/pixspell/examples/spell-survivors/) ·
-[어떤 호출로 만들었는지 보고 같은 프롬프트로 직접 만들어 보기](examples/spell-survivors/README.md)
-
 <a href="https://olebangpad.github.io/pixspell/examples/spell-survivors/"><img src="docs/promo/survivors.gif" alt="Spell Survivors: 슬라임·고블린·해골에 둘러싸인 마법사가 불꽃 오라, 얼음 칼날, 번개, 운석을 쓰는 장면" width="640"></a>
+
+![image files: 0](https://img.shields.io/badge/image_files-0-a8e05a?style=flat-square)
+![audio files: 0](https://img.shields.io/badge/audio_files-0-a8e05a?style=flat-square)
+![one HTML file](https://img.shields.io/badge/one_HTML_file-under_500_lines-a8e05a?style=flat-square)
+![written by Claude Code](https://img.shields.io/badge/written_by-Claude_Code-d97757?style=flat-square)
+
+[**▶ Spell Survivors 하기**](https://olebangpad.github.io/pixspell/examples/spell-survivors/) ·
+[혼자 플레이하는 모습 보기](https://olebangpad.github.io/pixspell/examples/spell-survivors/?demo) ·
+[어떤 호출로 만들었는지](examples/spell-survivors/README.md)
+
+서바이버 장르의 아레나 게임입니다. 몰려오는 몬스터, 알아서 날아가는 주문, 레벨마다 새 주문 고르기, 타격마다 효과음.
+Claude(Claude Code)가 PixSpell 스킬로, 공개 API만 써서 만들었습니다. **모든 스프라이트, 걷기 애니메이션, 빛나는 이펙트,
+효과음이 PixSpell 호출입니다.**
+
+**직접 만들어 보기.** [스킬을 설치](#-pixspell로-게임-만들기)하고 에이전트에게 같은 아이디어를 주세요.
+
+> Make a survivor-style arena game in one HTML file using PixSpell. A wizard walks with the arrow keys, spells fire
+> automatically at the nearest enemy, enemies come in growing waves, they drop gems, and every level I pick one of
+> three new spells. Use PixSpell for every sprite, effect and sound, with a night-time look so the effects glow.
+
+(한국어로 요청해도 됩니다: *"PixSpell로 HTML 파일 하나짜리 서바이버 게임 만들어줘. 마법사가 방향키로 움직이고, 주문은 가장 가까운 적에게
+자동으로 날아가고, 적은 점점 많이 몰려오고, 보석을 떨어뜨리고, 레벨업마다 새 주문 세 개 중 하나를 고르게. 스프라이트·이펙트·효과음은 전부 PixSpell로, 이펙트가 빛나 보이게 밤 분위기로."*)
 
 ### 🎮 PixSpell로만 만든 게임 화면
 
@@ -106,9 +149,18 @@ hero.play({ key: 'walk-left', repeat: -1 })
   /plugin marketplace add olebangpad/pixspell
   /plugin install pixspell@pixspell
   ```
-- **Codex, Cursor 등 다른 에이전트:** `SKILL.md`를 프로젝트에 복사하거나(내용을 `AGENTS.md`·규칙 파일에 넣어도 됩니다) [`llms.txt`](llms.txt)를 읽게 하세요.
+- **Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode** 등 [Agent Skills를 지원하는 에이전트](https://agentskills.io/clients):
+  프로젝트에서 아래 명령을 실행하세요. 이 에이전트들이 스킬을 찾는 `.agents/skills/pixspell/`에 스킬을 복사합니다
+  (`--claude`를 붙이면 `.claude/skills/`에 넣습니다).
+  ```
+  npx pixspell skill
+  ```
+- **설치 없이 아무 에이전트에서나:** 채팅에 이렇게 붙여넣으세요.
+  > https://raw.githubusercontent.com/olebangpad/pixspell/main/skills/pixspell/SKILL.md 를 읽고, 스프라이트·이펙트·효과음은 전부
+  > PixSpell로 만들어줘. 단검 든 고블린이 슬라임이랑 싸우는 탑다운 게임을 만들어줘.
 
 그리고 *"PixSpell로 단검 든 고블린이 슬라임이랑 싸우는 탑다운 게임 만들어줘. 효과음도 넣어줘"*처럼 요청하면 됩니다.
+[`llms.txt`](llms.txt)를 읽게 해도 됩니다.
 
 ### 🧙 캐릭터 메이커
 
@@ -242,7 +294,7 @@ spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×2
 <img src="docs/img/grids.png" alt="같은 스프라이트, 캐릭터, 이펙트를 8, 16, 32, 64픽셀 타일로" width="100%">
 
 코드에서는 옵션 하나입니다: `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 8 })`, `spell.pack(spec, { grid: 64 })`.
-명령어로는 `node scripts/pixspell.js export --grid 32` 하면 `dog-32px.zip`이 만들어집니다.
+명령어로는 `node scripts/pixspell.js export --grid 32` 하면 `pixspell-32px.zip`이 만들어집니다.
 
 16픽셀 원본은 [`assets/`](assets) 폴더에도 미리 뽑아 두었습니다. 빌드할 필요가 없습니다.
 
@@ -364,6 +416,13 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 3. `npm run check && npm run build` 후 PR
 
 스타일 가이드는 [CONTRIBUTING.md](CONTRIBUTING.md)에 있습니다. 원하는 스프라이트를 이슈로 요청해도 좋습니다.
+
+## 🙏 크레딧
+
+- 32·64픽셀 타일의 매끄러운 확대는 Andrea Mazzoleni가 EPX 알고리즘을 다듬은 **Scale2x**입니다 ([scale2x.it](https://www.scale2x.it/)).
+- 효과음 엔진은 DrPetter의 **sfxr** 아이디어를 빌렸습니다: 게임 효과음은 녹음이 아니라 숫자 몇 개라는 것.
+- 웹사이트와 홍보 영상에는 Jason Kottke의 **Silkscreen** 폰트를 씁니다.
+- 이 레포의 모든 스프라이트, 이펙트, 효과음은 PixSpell을 위해 새로 그리고 만든 것입니다.
 
 ## 📄 라이선스
 

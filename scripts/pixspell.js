@@ -7,8 +7,9 @@
 //   node scripts/pixspell.js combine hero crown@0,-7 --scale 6 -o king.png
 //   node scripts/pixspell.js outline < my-art.txt                              (auto-outline helper)
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { deflateSync } from 'node:zlib'
 import { spell, looks, sprites, compose, sheet, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
 
@@ -33,8 +34,10 @@ usage:
   pixspell sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
                                            a sound effect as a WAV file (pixspell sfx alone lists them)
   pixspell sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
-  pixspell export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o dog-32px.zip
+  pixspell export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o pixspell-32px.zip
                                            everything for one tile size in one zip
+  pixspell skill [--claude] [--dir path]       install the PixSpell skill for your coding agent: into .agents/skills/
+                                           (Codex, Cursor, Gemini CLI, Copilot, OpenCode...), --claude: .claude/skills/
   pixspell outline                              read text art on stdin, add # outlines
   pixspell materials                            list named materials
 
@@ -89,6 +92,7 @@ function parse(argv) {
     else if (a === '--no-sounds') opts.noSounds = true
     else if (a === '--all-colors') opts.allColors = true
     else if (a === '--volume') opts.volume = Number(next())
+    else if (a === '--claude') opts.claude = true
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -227,6 +231,13 @@ if (!cmd || o.help) {
   process.stderr.write('\r')
   save(o.out ?? `pixspell-${grid}px.zip`, zip(files))
   console.log(`${items.length} files for ${grid}x${grid} tiles`)
+} else if (cmd === 'skill') {
+  // the skill ships in the package: copy it where agents look for skills (the Agent Skills convention)
+  const from = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'pixspell')
+  const to = o.dir ?? join(o.claude ? '.claude' : '.agents', 'skills', 'pixspell')
+  mkdirSync(to, { recursive: true })
+  for (const f of ['SKILL.md', 'catalog.md']) copyFileSync(join(from, f), join(to, f))
+  console.log(`installed the PixSpell skill in ${to}/\nnow ask your agent for a game, e.g. "make a top-down game where a goblin fights slimes, with sounds, using PixSpell"`)
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {
