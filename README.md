@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **845** sprites · **665** effects · **66** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **845** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -16,7 +16,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Make a game](#-make-a-game-with-pixspell) ·
 [Character maker](#-character-maker) ·
 [Effects](#-665-game-effects) ·
-[Sounds](#-66-game-sounds-made-by-code) ·
+[Sounds](#-103-game-sounds-made-by-code) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
 [Download (8/16/32/64 px)](#-just-want-the-pngs) ·
@@ -26,7 +26,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 
 ![sprites](https://img.shields.io/badge/sprites-224_base_·_845_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-110_designs_·_665_looks-a8e05a?style=flat-square)
-![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
+![sounds](https://img.shields.io/badge/sounds-103_×_10_elements-a8e05a?style=flat-square)
 ![music](https://img.shields.io/badge/music-17_tracks-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C761%2C072-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
@@ -72,7 +72,7 @@ document.body.append(knight.scale(8).toCanvas())
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
 **New:** [42 world-building tiles and props](#-the-collection) · [15 new monsters](#-character-maker) · 26 new items · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
-66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
+103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
 
@@ -277,7 +277,7 @@ spell.fxPack(['meteor', 'poof', 'crit'])             // one sheet + Phaser/Asepr
 Effects are recipes: a few lines that paint light into layers, which the engine turns into shaded, outlined pixel art
 (see [`src/fx/`](src/fx) and [how to add one](CONTRIBUTING.md#adding-an-effect)). A test checks that every recipe keeps its layout when drawn at double size.
 
-### 🔊 66 game sounds, made by code
+### 🔊 103 game sounds, made by code
 
 Sounds work like the art: **recipes, not files**. Every attack style and action has one, so the right swing sound comes with
 the weapon. Add an **element** the way you'd recolor an effect, change the pitch, or roll small variations so repeated hits
@@ -292,8 +292,11 @@ await spell.sfx('levelup').save('levelup.wav')            // Node; .toWAV() byte
 spell.sfxPack(['slash', 'hit', 'coin']).zip()             // WAVs in one zip
 ```
 
-UI blips, jumps and steps, coins, gems and chests, every weapon swing, hits, crits, blocks and parries, spells, explosions,
-meteors and quakes, element sounds, win / lose / fanfare jingles, and seamless rain, wind and campfire loops.
+UI blips, beeps, notifications, buying, equipping, unlocking, doors and switches; jumps, steps, climbing, swimming, falling
+and bouncing; coins, gems and chests; every weapon swing, bites, throws, gunshots, hits, crits, blocks, parries, clangs
+and shattering glass; spells, drains, curses, haste and slow, barriers; explosions, meteors and quakes; creatures (roar,
+squeak, hiss, buzz, squish, ghostly wail); element sounds; win / lose / fanfare / secret jingles; and seamless rain, wind,
+campfire, stream, lava, crickets and heartbeat loops. Every effect that makes a noise has its sound.
 All of them are pre-exported in `assets/sfx/` as 16-bit WAV, CC0.
 
 ### 🎵 Music, made by code

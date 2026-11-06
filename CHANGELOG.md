@@ -31,7 +31,7 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
   - 6 actions (attack, hit, heal, level up, cast, death) in 5 elements, with attacks that follow the weapon.
 - **Effects that glow:** 110 procedural designs (665 looks), with a translucent light layer (`light: false` for flat pixels): bursts, magic, projectiles, beams, seamless weather, environment,
   status overlays, combat feedback and big moments. Any color, any size; sequences; effects on characters.
-- **Sounds:** 66 procedural sound effects matching every attack style, action and effect; 10 element flavors,
+- **Sounds:** 103 procedural sound effects (UI, movement, combat, magic, creatures, loops and jingles) matching every attack style, action and effect; 10 element flavors,
   variations, pitch; WAV export and browser playback.
 - **Any tile size:** `grid: 8 | 16 | 32 | 64` on every call; a download-everything zip per tile size.
 - **Game packs** for Phaser (Aseprite JSON) and Godot 4 (`SpriteFrames`); canvas and Phaser starter templates.

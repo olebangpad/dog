@@ -93,6 +93,55 @@ export const SOUNDS = [
   { id: 'rain', tags: ['loop', 'weather'], loop: 2, level: 0.64, layers: [{ wave: 'noise', freq: 22050, lowpass: 5000, highpass: 600, attack: 0.001, hold: 2.5, decay: 0.01, volume: 0.5 }, { wave: 'sine', freq: 1200, to: 600, attack: 0.001, decay: 0.03, volume: 0.25, repeat: { count: 30, every: 0.08, jitter: 0.9 } }] },
   { id: 'wind', tags: ['loop', 'weather'], loop: 4, level: 0.71, layers: [{ wave: 'noise', freq: 22050, lowpass: 450, tremolo: [0.5, 0.75], attack: 0.001, hold: 4.5, decay: 0.01, volume: 0.8 }, { wave: 'noise', freq: 22050, lowpass: 1600, highpass: 900, tremolo: [0.75, 0.9], attack: 0.001, hold: 4.5, decay: 0.01, volume: 0.25 }] },
   { id: 'campfire', tags: ['loop', 'fire'], loop: 2, level: 0.71, layers: [{ wave: 'noise', freq: 22050, lowpass: 280, attack: 0.001, hold: 2.5, decay: 0.01, volume: 0.6 }, { wave: 'noise', freq: 22050, highpass: 2500, attack: 0.001, decay: 0.012, volume: 0.6, repeat: { count: 34, every: 0.07, jitter: 0.9 } }] },
+
+  // ------------------------------------------------------- more ui and world
+  { id: 'hover', tags: ['ui'], level: 0.5, layers: [{ wave: 'sine', freq: 1800, attack: 0.001, decay: 0.025, volume: 0.4 }] },
+  { id: 'beep', tags: ['ui'], level: 0.71, layers: [{ wave: 'square', freq: 'A5', attack: 0.002, hold: 0.09, decay: 0.03 }] },
+  { id: 'pause', tags: ['ui'], level: 0.71, layers: [{ wave: 'square', notes: ['E6', 'A5'], every: 0.06, hold: 0.06, decay: 0.08 }] },
+  { id: 'notify', tags: ['ui'], level: 0.79, layers: [{ wave: 'triangle', notes: ['G5', 'D6'], every: 0.09, hold: 0.12, decay: 0.25 }, { wave: 'sine', freq: 'G6', delay: 0.1, attack: 0.002, decay: 0.3, volume: 0.25 }] },
+  { id: 'buy', tags: ['ui', 'pickup'], level: 0.9, layers: [{ wave: 'square', notes: ['C6', 'E6', 'G6'], every: 0.05, hold: 0.05, decay: 0.1, volume: 0.35 }, { wave: 'noise', freq: 22050, highpass: 4000, attack: 0.001, decay: 0.08, volume: 0.5, delay: 0.02 }, { wave: 'sine', freq: 'E7', attack: 0.002, decay: 0.4, volume: 0.35, delay: 0.12 }] },
+  { id: 'equip', tags: ['ui', 'pickup'], level: 0.86, layers: [{ wave: 'pulse', duty: 0.3, freq: 1200, attack: 0.001, decay: 0.07, volume: 0.3 }, { wave: 'noise', freq: 22050, lowpass: 2000, attack: 0.001, decay: 0.05, volume: 0.5 }, { wave: 'square', freq: 900, attack: 0.001, decay: 0.05, volume: 0.3, delay: 0.06 }] },
+  { id: 'unlock', tags: ['ui', 'pickup'], level: 0.86, layers: [{ wave: 'noise', freq: 22050, highpass: 2000, attack: 0.001, decay: 0.02, volume: 0.7, repeat: { count: 2, every: 0.08 } }, { wave: 'square', freq: 1500, to: 2200, attack: 0.001, decay: 0.05, volume: 0.3, delay: 0.08 }, { wave: 'triangle', notes: ['C6', 'G6'], every: 0.06, delay: 0.12, hold: 0.06, decay: 0.2, volume: 0.35 }] },
+  { id: 'door', tags: ['ui', 'world'], level: 0.93, layers: [{ wave: 'saw', freq: 140, to: 210, vibrato: [9, 0.08], lowpass: 900, attack: 0.05, hold: 0.25, decay: 0.2, volume: 0.5 }, thud(120, 60, 0.15, 0.6, { delay: 0.45 })] },
+  { id: 'switch', tags: ['ui', 'world'], level: 0.79, layers: [{ wave: 'noise', freq: 22050, highpass: 1500, attack: 0.001, decay: 0.015, volume: 0.7, repeat: { count: 2, every: 0.05 } }, { wave: 'square', freq: 300, to: 200, attack: 0.001, decay: 0.05, volume: 0.4 }] },
+
+  // ------------------------------------------------------- more movement
+  { id: 'climb', tags: ['move'], level: 0.71, layers: [{ wave: 'noise', freq: 22050, lowpass: 2200, attack: 0.001, decay: 0.03, volume: 0.6, repeat: { count: 3, every: 0.12 } }, { wave: 'triangle', freq: 300, to: 380, attack: 0.001, decay: 0.05, volume: 0.3, repeat: { count: 3, every: 0.12, pitch: 1.05 } }] },
+  { id: 'swim', tags: ['move', 'water'], level: 0.79, layers: [whoosh(800, 2500, 0.3, 0.6), { wave: 'sine', freq: 400, to: 900, attack: 0.002, decay: 0.04, volume: 0.4, delay: 0.1, repeat: { count: 3, every: 0.07, pitch: 1.1, jitter: 0.3 } }] },
+  { id: 'fall', tags: ['move'], level: 0.79, layers: [{ wave: 'sine', freq: 1500, to: 300, attack: 0.01, hold: 0.5, decay: 0.1, volume: 0.5 }] },
+  { id: 'bounce', tags: ['move'], level: 0.86, layers: [{ wave: 'triangle', freq: 200, to: 600, vibrato: [25, 0.15], attack: 0.002, decay: 0.25, volume: 0.7 }, { wave: 'sine', freq: 400, to: 800, attack: 0.002, decay: 0.1, volume: 0.3 }] },
+  { id: 'slide', tags: ['move'], level: 0.71, layers: [{ wave: 'noise', freq: 22050, lowpass: 1500, highpass: 300, tremolo: [30, 0.3], attack: 0.02, hold: 0.3, decay: 0.1, volume: 0.6 }] },
+
+  // ------------------------------------------------------- more combat
+  { id: 'bite', tags: ['attack', 'combat'], level: 1, layers: [{ wave: 'noise', freq: 22050, lowpass: 3000, attack: 0.001, decay: 0.06, volume: 0.7, repeat: { count: 3, every: 0.03, jitter: 0.3 } }, { wave: 'square', freq: 220, to: 90, attack: 0.001, decay: 0.08, volume: 0.4 }, thud(160, 70, 0.08, 0.6)] },
+  { id: 'throw', tags: ['attack', 'combat'], level: 0.86, layers: [whoosh(700, 5000, 0.18, 0.7), { wave: 'triangle', freq: 400, to: 700, attack: 0.002, decay: 0.06, volume: 0.2 }] },
+  { id: 'gunshot', tags: ['attack', 'combat', 'explosion'], level: 1.29, layers: [{ wave: 'noise', freq: 22050, lowpass: 6000, lowpassTo: 600, attack: 0.001, decay: 0.25, curve: 1.4, volume: 1 }, thud(160, 50, 0.12, 0.9), { wave: 'noise', freq: 22050, highpass: 3000, attack: 0.001, decay: 0.02, volume: 0.6 }] },
+  { id: 'shatter', tags: ['combat', 'feedback'], level: 1, layers: [{ wave: 'noise', freq: 22050, highpass: 3500, attack: 0.001, decay: 0.2, volume: 0.6 }, { wave: 'triangle', notes: ['E7', 'C8', 'G7', 'D8', 'A7'], every: 0.025, attack: 0.001, decay: 0.12, volume: 0.35 }, { wave: 'sine', freq: 3000, to: 3600, attack: 0.001, decay: 0.04, volume: 0.3, delay: 0.05, repeat: { count: 6, every: 0.04, jitter: 0.6, pitch: 1.05, fade: 0.1 } }] },
+  { id: 'thunk', tags: ['combat', 'feedback'], level: 0.93, layers: [thud(260, 120, 0.07, 0.9), { wave: 'noise', freq: 22050, lowpass: 1200, attack: 0.001, decay: 0.04, volume: 0.5 }, { wave: 'triangle', freq: 180, vibrato: [40, 0.1], attack: 0.002, decay: 0.18, volume: 0.3 }] },
+  { id: 'clang', tags: ['combat', 'feedback'], level: 1.07, layers: [{ wave: 'pulse', duty: 0.3, freq: 1320, attack: 0.001, decay: 0.4, curve: 1.2, volume: 0.4 }, { wave: 'square', freq: 1870, attack: 0.001, decay: 0.3, volume: 0.25 }, { wave: 'noise', freq: 22050, highpass: 4000, attack: 0.001, decay: 0.04, volume: 0.7 }, { wave: 'sine', freq: 2640, attack: 0.001, decay: 0.5, volume: 0.2 }] },
+
+  // ------------------------------------------------------- more magic
+  { id: 'drain', tags: ['magic', 'debuff'], level: 0.86, layers: [{ wave: 'sine', freq: 900, to: 150, vibrato: [12, 0.04], attack: 0.3, hold: 0.05, decay: 0.1, curve: 1 }, whoosh(4000, 600, 0.4, 0.4, { attack: 0.35, decay: 0.05 })] },
+  { id: 'curse', tags: ['magic', 'debuff'], level: 0.86, layers: [{ wave: 'square', duty: 0.4, notes: ['F4', 'B3'], every: 0.15, vibrato: [5, 0.04], lowpass: 1500, hold: 0.3, decay: 0.25, volume: 0.4 }, { wave: 'saw', freq: 'F#3', lowpass: 600, attack: 0.1, hold: 0.3, decay: 0.3, volume: 0.3 }] },
+  { id: 'haste', tags: ['magic', 'buff'], level: 0.86, layers: [{ wave: 'pulse', duty: 0.25, freq: 300, to: 1500, attack: 0.01, hold: 0.18, decay: 0.05 }, whoosh(1000, 8000, 0.2, 0.3)] },
+  { id: 'slow', tags: ['magic', 'debuff'], level: 0.79, layers: [{ wave: 'triangle', freq: 900, to: 250, vibrato: [6, 0.08], attack: 0.02, hold: 0.35, decay: 0.2 }] },
+  { id: 'barrier', tags: ['magic', 'buff'], level: 0.86, layers: [{ wave: 'sine', freq: 220, tremolo: [12, 0.4], attack: 0.05, hold: 0.4, decay: 0.2, volume: 0.5 }, { wave: 'triangle', notes: ['A5', 'E6'], every: 0.08, hold: 0.1, decay: 0.3, volume: 0.3 }] },
+  { id: 'twinkle', tags: ['magic', 'reward'], level: 0.79, layers: [{ wave: 'sine', notes: ['E7', 'B6', 'G7', 'D7', 'A7'], every: 0.05, attack: 0.001, hold: 0.25, decay: 0.3, volume: 0.4 }, { wave: 'triangle', freq: 'E8', delay: 0.2, attack: 0.002, decay: 0.3, volume: 0.15 }] },
+
+  // ------------------------------------------------------- creatures
+  { id: 'roar', tags: ['creature'], level: 1.21, layers: [{ wave: 'saw', freq: 90, to: 70, vibrato: [7, 0.1], lowpass: 900, attack: 0.05, hold: 0.4, decay: 0.35, volume: 0.7 }, { wave: 'noise', freq: 22050, lowpass: 1200, tremolo: [25, 0.5], attack: 0.05, hold: 0.4, decay: 0.35, volume: 0.5 }] },
+  { id: 'squeak', tags: ['creature'], level: 0.71, layers: [{ wave: 'triangle', freq: 2200, to: 3000, vibrato: [30, 0.05], attack: 0.005, decay: 0.08, repeat: { count: 2, every: 0.1, pitch: 1.1 } }] },
+  { id: 'hiss', tags: ['creature'], level: 0.79, layers: [{ wave: 'noise', freq: 22050, highpass: 3500, lowpass: 9000, attack: 0.05, hold: 0.3, decay: 0.2, volume: 0.7 }] },
+  { id: 'buzz', tags: ['creature', 'loop'], loop: 1, level: 0.64, layers: [{ wave: 'square', freq: 180, vibrato: [25, 0.03], tremolo: [6, 0.4], lowpass: 1800, attack: 0.001, hold: 1.4, decay: 0.01, volume: 0.5 }] },
+  { id: 'squish', tags: ['creature'], level: 0.86, layers: [{ wave: 'sine', freq: 300, to: 120, attack: 0.002, decay: 0.12, volume: 0.6 }, { wave: 'noise', freq: 22050, lowpass: 900, attack: 0.001, decay: 0.08, volume: 0.5 }, { wave: 'sine', freq: 600, to: 900, attack: 0.002, decay: 0.04, volume: 0.3, delay: 0.06 }] },
+  { id: 'wail', tags: ['creature'], level: 0.79, layers: [{ wave: 'sine', freq: 440, to: 660, vibrato: [5, 0.06], attack: 0.2, hold: 0.4, decay: 0.4 }, { wave: 'triangle', freq: 880, to: 1320, vibrato: [5.5, 0.05], attack: 0.25, hold: 0.35, decay: 0.4, volume: 0.25 }] },
+
+  // ------------------------------------------------------- more loops and a jingle
+  { id: 'stream', tags: ['loop', 'water'], loop: 3, level: 0.64, layers: [{ wave: 'noise', freq: 22050, lowpass: 2200, highpass: 300, tremolo: [1.3, 0.3], attack: 0.001, hold: 3.5, decay: 0.01, volume: 0.6 }, { wave: 'sine', freq: 700, to: 1400, attack: 0.001, decay: 0.03, volume: 0.2, repeat: { count: 40, every: 0.08, jitter: 0.9 } }] },
+  { id: 'lava', tags: ['loop', 'fire'], loop: 3, level: 0.71, layers: [{ wave: 'noise', freq: 22050, lowpass: 160, attack: 0.001, hold: 3.5, decay: 0.01, volume: 0.7 }, { wave: 'sine', freq: 90, to: 220, attack: 0.002, decay: 0.1, volume: 0.5, repeat: { count: 10, every: 0.3, jitter: 0.8 } }] },
+  { id: 'crickets', tags: ['loop', 'nature'], loop: 2, level: 0.5, layers: [{ wave: 'pulse', duty: 0.3, freq: 4200, tremolo: [45, 0.9], attack: 0.002, hold: 0.12, decay: 0.03, volume: 0.3, repeat: { count: 6, every: 0.33, jitter: 0.3 } }] },
+  { id: 'heartbeat', tags: ['loop', 'ui'], loop: 1, level: 0.86, layers: [thud(70, 45, 0.12, 0.9), thud(70, 45, 0.12, 0.7, { delay: 0.22 })] },
+  { id: 'secret', tags: ['jingle', 'reward'], level: 0.93, layers: [{ wave: 'square', duty: 0.35, notes: ['E5', 'G#5', 'B5', 'D#6', 'E6'], every: [0.08, 0.08, 0.08, 0.08, 0.4], hold: 0.55, decay: 0.3 }, { wave: 'triangle', notes: ['E4', 'B4', 'E5'], every: [0.16, 0.16, 0.45], hold: 0.55, decay: 0.3, volume: 0.45 }] },
 ]
 
 // Element flavors: extra layers sized to the sound they join (len = its length in seconds).
@@ -123,11 +172,11 @@ export const EFFECT_SOUNDS = {
   rain: 'rain', snow: 'wind', leaves: 'wind', embers: 'campfire', burning: 'fire', frozen: 'ice', poisoned: 'poison', buff: 'buff',
   debuff: 'debuff', confused: 'debuff', love: 'heal', stab: 'stab', smash: 'smash', thrust: 'thrust', whip: 'whip', arrow: 'shoot',
   pow: 'bonk', crit: 'crit', miss: 'miss', block: 'block', parry: 'parry', whirlwind: 'slash', 'loot-beam': 'gem', smoke: 'poof',
-  lava: 'campfire', fog: 'wind', wind: 'wind', geyser: 'splash', ripple: 'splash', meteor: 'meteor', tornado: 'wind', quake: 'quake',
+  lava: 'lava', fog: 'wind', wind: 'wind', geyser: 'splash', ripple: 'splash', meteor: 'meteor', tornado: 'wind', quake: 'quake',
   'black-hole': 'portal', summon: 'summon', revive: 'revive', thorns: 'smash', 'electric-field': 'zap', confetti: 'fanfare',
   poof: 'poof', drip: 'splash', notes: 'win',
-  bite: 'hit', 'triple-slash': 'slash', shuriken: 'shoot', 'rock-throw': 'smash', 'muzzle-flash': 'boom', 'shield-break': 'block',
-  ko: 'crit', barrier: 'shield', drain: 'dark', soul: 'holy', curse: 'debuff', haste: 'buff', slow: 'debuff', 'holy-cross': 'holy',
-  'ice-spike': 'ice', vine: 'smash', checkmark: 'confirm', exclaim: 'select', countdown: 'select', 'star-fall': 'gem',
-  'dragon-breath': 'fire', bleeding: 'hurt', shocked: 'zap', wet: 'splash', regen: 'heal', waterfall: 'rain',
+  bite: 'bite', 'triple-slash': 'slash', shuriken: 'throw', 'rock-throw': 'throw', 'muzzle-flash': 'gunshot', 'shield-break': 'shatter',
+  ko: 'crit', barrier: 'barrier', drain: 'drain', soul: 'wail', curse: 'curse', haste: 'haste', slow: 'slow', 'holy-cross': 'holy',
+  'ice-spike': 'ice', vine: 'slide', checkmark: 'confirm', exclaim: 'notify', countdown: 'beep', 'star-fall': 'twinkle',
+  'dragon-breath': 'fire', bleeding: 'hurt', shocked: 'zap', wet: 'splash', regen: 'heal', waterfall: 'stream', fireflies: 'crickets',
 }

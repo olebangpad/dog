@@ -2,8 +2,8 @@
 import { spell, zip, MATERIALS, FX_COLORS } from '../src/index.js'
 import { $, $$, h, download, copy, toast } from './ui.js'
 
-const KINDS = ['all', 'ui', 'move', 'pickup', 'attack', 'action', 'magic', 'explosion', 'element', 'jingle', 'loop']
-const KIND_COLOR = { ui: 'ice', move: 'sand', pickup: 'gold', attack: 'orange', action: 'red', magic: 'pink', explosion: 'orange', element: 'purple', jingle: 'lime', loop: 'blue' }
+const KINDS = ['all', 'ui', 'move', 'pickup', 'attack', 'action', 'magic', 'explosion', 'element', 'creature', 'jingle', 'loop']
+const KIND_COLOR = { ui: 'ice', move: 'sand', pickup: 'gold', attack: 'orange', action: 'red', magic: 'pink', explosion: 'orange', element: 'purple', jingle: 'lime', loop: 'blue', creature: 'green' }
 const ids = spell.sfx.list
 const state = { kind: 'all', element: null, pitch: 1, vary: false, last: 'coin' }
 

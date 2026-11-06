@@ -1,6 +1,6 @@
 ---
 name: pixspell
-description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 600+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 600+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 100+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # PixSpell: pixel art as code
@@ -93,7 +93,7 @@ spell.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row p
 
 ## Sounds
 
-66 sound effects made by code (`spell.sfx.list`), listed in [catalog.md](catalog.md). Every attack style and every action
+103 sound effects made by code (`spell.sfx.list`), listed in [catalog.md](catalog.md). Every attack style and every action
 has a sound of the same name, and `spell.sfx.forEffect()` gives an effect's sound.
 
 ```js

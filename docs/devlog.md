@@ -1015,3 +1015,20 @@ characters had little world to stand in. The plan is world building, then monste
   - The thrown rock got bigger.
 - **Checks:** 170 new looks; no existing snapshot changed. The effects page loads all 110 in under 2 s, and the new
   status overlays show up under its status filter.
+
+### (b) Shipped: 37 more sound effects
+
+- **103 sounds now,** all exported to `assets/sfx/`:
+  - UI: hover, beep, pause, notify, buy, equip, unlock, door, switch.
+  - Movement: climb, swim, fall, bounce, slide.
+  - Combat: bite, throw, gunshot, shatter, thunk, clang.
+  - Magic: drain, curse, haste, slow, barrier, twinkle.
+  - Creatures: roar, squeak, hiss, a looping buzz, squish, wail.
+  - Loops: stream, lava, crickets, heartbeat.
+  - Jingle: secret, an original arpeggio, not a known game's.
+- **The new effects now use the new sounds,** for example bite → `bite`, shield break → `shatter`, drain → `drain`,
+  countdown → `beep`, falling stars → `twinkle`, waterfall → `stream`. The lava tile and the fireflies, which were
+  silent or borrowed the campfire, now get `lava` and `crickets`.
+- **The sounds page** has a `creature` filter.
+- **Checks:** every sound renders between 0.05 and 3 s, doesn't clip and is loud enough. 37 new snapshot hashes,
+  none changed.

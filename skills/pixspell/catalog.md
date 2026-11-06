@@ -448,6 +448,43 @@ Elements: `fire` `ice` `poison` `holy` `dark` `water` `nature` `blood` `arcane` 
 | `rain` | 2.00s loop | loop, weather |
 | `wind` | 4.00s loop | loop, weather |
 | `campfire` | 2.00s loop | loop, fire |
+| `hover` | 0.05s | ui |
+| `beep` | 0.14s | ui |
+| `pause` | 0.17s | ui |
+| `notify` | 0.42s | ui |
+| `buy` | 0.54s | ui, pickup |
+| `equip` | 0.13s | ui, pickup |
+| `unlock` | 0.41s | ui, pickup |
+| `door` | 0.62s | ui, world |
+| `switch` | 0.09s | ui, world |
+| `climb` | 0.31s | move |
+| `swim` | 0.34s | move, water |
+| `fall` | 0.63s | move |
+| `bounce` | 0.27s | move |
+| `slide` | 0.44s | move |
+| `bite` | 0.16s | attack, combat |
+| `throw` | 0.20s | attack, combat |
+| `gunshot` | 0.27s | attack, combat, explosion |
+| `shatter` | 0.43s | combat, feedback |
+| `thunk` | 0.20s | combat, feedback |
+| `clang` | 0.52s | combat, feedback |
+| `drain` | 0.47s | magic, debuff |
+| `curse` | 0.72s | magic, debuff |
+| `haste` | 0.26s | magic, buff |
+| `slow` | 0.59s | magic, debuff |
+| `barrier` | 0.67s | magic, buff |
+| `twinkle` | 0.57s | magic, reward |
+| `roar` | 0.82s | creature |
+| `squeak` | 0.21s | creature |
+| `hiss` | 0.57s | creature |
+| `buzz` | 1.00s loop | creature, loop |
+| `squish` | 0.14s | creature |
+| `wail` | 1.02s | creature |
+| `stream` | 3.00s loop | loop, water |
+| `lava` | 3.00s loop | loop, fire |
+| `crickets` | 2.00s loop | loop, nature |
+| `heartbeat` | 1.00s loop | loop, ui |
+| `secret` | 0.88s | jingle, reward |
 
 ## Materials
 

@@ -44,7 +44,7 @@ const STEPS = [
   { code: `spell.walk('slime-pink', 'left')`, label: 'monsters in any color' },
   { code: `spell.action(mage, 'cast', 'fire')`, label: 'attack, cast, level up' },
   { code: `spell.fx('meteor', { element: 'fire' })`, label: '665 effects that glow' },
-  { code: `spell.sfx('meteor').play()`, label: '66 sounds' },
+  { code: `spell.sfx('meteor').play()`, label: '103 sounds' },
   { code: `spell('coin')`, label: 'items and loot' },
 ]
 const CPS = 32, SHOW = 1.3
