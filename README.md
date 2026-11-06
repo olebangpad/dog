@@ -11,6 +11,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
+[**🧙 Your GitHub hero**](https://olebangpad.github.io/pixspell/hero.html) ·
 [Open the playground](https://olebangpad.github.io/pixspell/) ·
 [Make a game](#-make-a-game-with-pixspell) ·
 [Character maker](#-character-maker) ·
@@ -69,7 +70,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -111,6 +112,37 @@ and sound is a PixSpell call.**
 > Make a survivor-style arena game in one HTML file using PixSpell. A wizard walks with the arrow keys, spells fire
 > automatically at the nearest enemy, enemies come in growing waves, they drop gems, and every level I pick one of
 > three new spells. Use PixSpell for every sprite, effect and sound, with a night-time look so the effects glow.
+
+### 🧙 Your GitHub account as a game hero
+
+<a href="https://olebangpad.github.io/pixspell/hero.html"><img src="docs/img/hero.png" alt="An example hero card: a level 28 TypeScript knight, in battle today" width="600"></a>
+
+Type a username on the [**hero page**](https://olebangpad.github.io/pixspell/hero.html) and meet its hero. The login picks the look,
+the top language the class and colors (TypeScript makes a knight, Go a ranger, Rust a blacksmith, Python a druid),
+repos and stars the level (the weapon upgrades at 15 and 35), and the last day's activity what it's doing:
+in battle, on a quest, or resting at the inn.
+
+**Put yours on your profile README**, redrawn every day by the PixSpell GitHub Action. In your profile repository
+(`github.com/<you>/<you>`) add `.github/workflows/pixspell-hero.yml`:
+
+```yaml
+name: PixSpell hero
+on:
+  schedule: [{ cron: '23 5 * * *' }]   # once a day
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  hero:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: olebangpad/pixspell@main
+```
+
+Run it once from the **Actions** tab, then add the card to your README:
+`[![my PixSpell hero](pixspell-hero.png)](https://github.com/olebangpad/pixspell)`.
+On the command line it's `npx pixspell hero <login>`.
 
 ### 🎮 A game screen made only from PixSpell
 
@@ -362,10 +394,12 @@ node scripts/pixspell.js char heroine --hat cowboy --hand rod --walk left --anim
 node scripts/pixspell.js fx meteor --element ice --size 64 -o meteor.png      # any effect, color, size
 node scripts/pixspell.js fx burning --on slime --strip -o burning.png        # status effect on a character
 node scripts/pixspell.js fxpack meteor poof crit -o effects.zip              # effects as a game pack
-node scripts/pixspell.js sfx slash --element fire -o slash.wav              # a sound effect (spell.js sfx lists them)
+node scripts/pixspell.js sfx slash --element fire -o slash.wav              # a sound effect (pixspell.js sfx lists them)
 node scripts/pixspell.js sfxpack -o sounds.zip                              # every sound as WAVs
 node scripts/pixspell.js export --grid 32                                   # everything for 32x32 tiles in one zip
 node scripts/pixspell.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid works on render, char, fx, pack
+node scripts/pixspell.js hero octocat -o hero.png                         # a GitHub account as a game hero card
+node scripts/pixspell.js skill                                              # install the skill for your coding agent
 ```
 
 TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `spell.` autocompletes.

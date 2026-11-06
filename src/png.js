@@ -99,6 +99,28 @@ export function encodePNG(img, { deflate = zlibStore } = {}) {
 }
 
 /** Encode same-sized frames as an animated PNG (plays in browsers & GitHub). */
+// The smallest rectangle where two same-size frames differ, or null when they're identical.
+function changedBox(a, b) {
+  const { w, h } = a
+  let x0 = w, y0 = h, x1 = -1, y1 = -1
+  const words = (p) => (p.data.byteOffset % 4 === 0 ? new Uint32Array(p.data.buffer, p.data.byteOffset, w * h) : new Uint32Array(new Uint8Array(p.data).buffer))
+  const A = words(a), B = words(b)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0, i = y * w; x < w; x++, i++) {
+      if (A[i] === B[i]) continue
+      if (x < x0) x0 = x
+      if (x > x1) x1 = x
+      if (y < y0) y0 = y
+      y1 = y
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 }
+}
+
+/**
+ * Animated PNG. After the first frame, each frame stores only the rectangle that changed since the one before
+ * (it is drawn over the previous frame), so mostly still animations stay small.
+ */
 export function encodeAPNG(frames, { fps = 8, loops = 0, deflate = zlibStore } = {}) {
   if (frames.length === 1) return encodePNG(frames[0], { deflate })
   const { w, h } = frames[0]
@@ -106,11 +128,13 @@ export function encodeAPNG(frames, { fps = 8, loops = 0, deflate = zlibStore } =
   let seq = 0
   frames.forEach((f, i) => {
     if (f.w !== w || f.h !== h) throw new Error('pixspell: APNG frames must share one size')
+    const box = i === 0 ? { x: 0, y: 0, w, h } : changedBox(frames[i - 1], f) ?? { x: 0, y: 0, w: 1, h: 1 }
+    const part = box.w === w && box.h === h ? f : f.crop(box.x, box.y, box.w, box.h)
     parts.push(chunk('fcTL', new Uint8Array([
-      ...u32(seq++), ...u32(w), ...u32(h), ...u32(0), ...u32(0),
-      ...u16(1), ...u16(fps), 1, 0, // delay 1/fps, dispose: background, blend: source
+      ...u32(seq++), ...u32(box.w), ...u32(box.h), ...u32(box.x), ...u32(box.y),
+      ...u16(1), ...u16(fps), 0, 0, // delay 1/fps, dispose: none (keep the frame), blend: source (replace the rectangle)
     ])))
-    const z = new Uint8Array(deflate(scanlines(f)))
+    const z = new Uint8Array(deflate(scanlines(part)))
     if (i === 0) parts.push(chunk('IDAT', z))
     else parts.push(chunk('fdAT', concat([new Uint8Array(u32(seq++)), z])))
   })

@@ -834,3 +834,38 @@ and take what works into PixSpell, in three steps: (a) README, (b) a profile-REA
   A paste-this prompt covers agents with nothing installed. A test checks both folders and the name rule.
 - **Also:** an Agent Skill badge, a one-line "New" strip, Credits (Scale2x, sfxr, Silkscreen), roadmap items for
   normal maps and 8-direction walks, and two leftover `dog-32px.zip` mentions fixed.
+
+### (b) Shipped: your GitHub account as a game hero
+
+git-koi got 560★ in ten days with one idea: draw something from your GitHub account for your profile README, so every
+user's profile shows it off. PixSpell has 2.7M characters, which suits that idea well.
+
+- **`src/profile.js`** (internal, not part of `spell`):
+  - `fetchStats(login)` makes three public REST calls: the user, their own repos, their recent public events.
+  - `heroOf(stats)` maps the stats onto a character:
+    - the login (hashed) picks the body (only ones that hold weapons), the hat and the off-hand;
+    - the top language among the user's own repos picks the class, the weapon family and the outfit and effect color
+      (GitHub's language color). 39 languages have a class; any other language gets a stable one by name;
+    - `10·repos + 5·stars + 3·followers + 20·years` on a log scale sets the level (1–99), and the weapon upgrades at
+      15 and 35;
+    - activity in the last day / week picks the mood: in battle, on a quest, resting at the inn.
+  - `heroCard(hero)` draws a 200×72 card at 3×: the hero at 2× on grass, doing today's thing, next to the name, level,
+    XP bar, stats and mood.
+- **Three ways to get one:**
+  - `hero.html`: type a name and see the card, download it, copy the workflow;
+  - `pixspell hero <login>` (uses `$GITHUB_TOKEN` if set; `--stats file.json` works offline);
+  - `action.yml` at the repo root, so `uses: olebangpad/pixspell@main` redraws it daily in a profile repo and
+    commits it.
+- **Smaller APNGs everywhere:** a profile card is mostly still text, so `encodeAPNG` now stores, after the first frame,
+  only the rectangle that changed (dispose none, blend source). A test decodes the file back and compares every frame.
+  Chromium plays them right. Sizes:
+  - the README tiles dropped by 20–80%;
+  - `assets/` shrank by 350 KB;
+  - a hero card is 5–9 KB.
+- The browser's download goes through `CompressionStream`, so it is as small as the CLI's.
+- **What looking at it changed:**
+  - The first card drew the hero at 1×, small next to the text, so the stage is now drawn at 2×.
+  - The Zzz was clipped, so the card uses `spell.status(spec, 'sleep')`, which already places it.
+  - The new 3×5 `@` read as an "e", so the card shows the bare login; the glyph stays in the font.
+- **Not checked live:** this session can't reach GitHub's user API, so the tests and the page check use responses with
+  the API's shape. The first real run of the Action is the live test.

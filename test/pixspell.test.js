@@ -147,6 +147,47 @@ test('APNG has animation chunks', () => {
   assert.ok(s.includes('acTL') && s.includes('fcTL') && s.includes('fdAT'))
 })
 
+// a small APNG reader for our own files (filter 0, RGBA, dispose none, blend source): every frame composited
+function decodeAPNG(bytes) {
+  const b = Buffer.from(bytes)
+  let w = 0, h = 0, canvas = null, rect = null, data = []
+  const frames = [], rects = []
+  const flush = () => {
+    if (!rect) return
+    const px = inflateSync(Buffer.concat(data)), row = rect.w * 4 + 1
+    for (let y = 0; y < rect.h; y++) {
+      assert.equal(px[y * row], 0, 'filter none')
+      canvas.set(px.subarray(y * row + 1, (y + 1) * row), ((rect.y + y) * w + rect.x) * 4)
+    }
+    frames.push(new Uint8Array(canvas)); rects.push(rect); rect = null; data = []
+  }
+  for (let o = 8; o < b.length;) {
+    const len = b.readUInt32BE(o), type = b.toString('latin1', o + 4, o + 8), d = b.subarray(o + 8, o + 8 + len)
+    if (type === 'IHDR') { w = d.readUInt32BE(0); h = d.readUInt32BE(4); canvas = new Uint8Array(w * h * 4) }
+    if (type === 'fcTL') {
+      flush()
+      rect = { w: d.readUInt32BE(4), h: d.readUInt32BE(8), x: d.readUInt32BE(12), y: d.readUInt32BE(16) }
+      assert.equal(d[24], 0, 'dispose none'); assert.equal(d[25], 0, 'blend source')
+    }
+    if (type === 'IDAT') data.push(d)
+    if (type === 'fdAT') data.push(d.subarray(4))
+    o += 12 + len
+  }
+  flush()
+  return { w, h, frames, rects }
+}
+
+test('APNG frames after the first store only what changed, and decode back to the same pixels', () => {
+  const frames = spell.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire').map((f) => f.scale(2))
+  frames.push(frames[frames.length - 1]) // an unchanged frame
+  const out = decodeAPNG(encodeAPNG(frames, { fps: 12 }))
+  assert.equal(out.frames.length, frames.length)
+  out.frames.forEach((px, i) => assert.deepEqual(px, new Uint8Array(frames[i].data.buffer), `frame ${i}`))
+  assert.deepEqual(out.rects[0], { x: 0, y: 0, w: 64, h: 64 })
+  assert.ok(out.rects.slice(1, -1).some((r) => r.w * r.h < 64 * 64), 'some frames are partial')
+  assert.deepEqual(out.rects.at(-1), { x: 0, y: 0, w: 1, h: 1 })
+})
+
 test('animation sequences and covers point at real frames', () => {
   for (const def of Object.values(sprites)) {
     assert.ok(def.sequence.every((i) => def.frames[i]), def.id)
@@ -690,4 +731,98 @@ test('grid: effects are redrawn natively, sprites smoothed or zoomed, 8 px keeps
     if (slime.data[i] === 0x1b && slime.data[i + 2] === 0x25 && n.every(Boolean)) inner++
   }
   assert.ok(inner >= 1, 'slime keeps its eyes at 8 px')
+})
+
+// ------------------------------------------------------------------ GitHub hero (src/profile.js)
+import { fetchStats, heroOf, heroCard, heroAlt, LANGUAGES, CARD } from '../src/profile.js'
+
+const NOW = Date.parse('2026-11-06T12:00:00Z')
+const statsOf = (over = {}) => ({ login: 'Octo-Cat', createdAt: '2019-03-01T00:00:00Z', repos: 42, followers: 120, stars: 860,
+  languages: { TypeScript: 12, JavaScript: 9 }, activity: { day: 0, week: 3 }, ...over })
+
+test('hero: the login picks the look, the top language the class, the level the weapon', () => {
+  const a = heroOf(statsOf(), { now: NOW })
+  assert.deepEqual(heroOf(statsOf({ login: 'octo-cat' }), { now: NOW }).spec, a.spec, 'login case does not matter')
+  assert.equal(a.language, 'TypeScript')
+  assert.equal(a.title, 'knight')
+  assert.equal(a.color, LANGUAGES.TypeScript[0])
+  assert.equal(a.spec.A, LANGUAGES.TypeScript[0])
+  assert.match(a.spec.body, /^(hero|heroine|skeleton|goblin|robot)/, 'a body that holds a weapon')
+  assert.ok(spell.char.parts.hand.includes(a.spec.hand))
+  // same login, another language: same body and hat, another class
+  const b = heroOf(statsOf({ languages: { Rust: 3 } }), { now: NOW })
+  assert.equal(b.spec.body, a.spec.body); assert.equal(b.spec.hat, a.spec.hat)
+  assert.equal(b.title, 'blacksmith'); assert.match(b.spec.hand, /hammer/)
+  // a language without a class still gets one, the same every time; no language at all is an adventurer
+  const c = heroOf(statsOf({ languages: { Brainfuck: 1 } }), { now: NOW })
+  assert.deepEqual(c, heroOf(statsOf({ languages: { Brainfuck: 1 } }), { now: NOW }))
+  assert.match(c.color, /^#[0-9a-f]{6}$/)
+  assert.equal(heroOf(statsOf({ languages: {} }), { now: NOW }).title, 'adventurer')
+  // the weapon upgrades with the level
+  const lo = heroOf(statsOf({ repos: 1, stars: 0, followers: 0, createdAt: '2026-10-01T00:00:00Z' }), { now: NOW })
+  const hi = heroOf(statsOf({ stars: 90000, followers: 30000 }), { now: NOW })
+  assert.ok(lo.level < 15 && hi.level >= 35, `${lo.level} ${hi.level}`)
+  assert.equal(lo.spec.hand, 'held-sword'); assert.equal(hi.spec.hand, 'held-sword-crystal')
+  assert.ok(hi.level <= 99 && lo.level >= 1 && lo.progress >= 0 && lo.progress < 1)
+  assert.equal(heroAlt(a), `@Octo-Cat: LV ${a.level} TypeScript knight`)
+})
+
+test('hero: activity picks the mood, and every mood draws a card', () => {
+  const moods = { battle: { day: 2, week: 5 }, quest: { day: 0, week: 1 }, rest: { day: 0, week: 0 } }
+  for (const [mood, activity] of Object.entries(moods)) {
+    const hero = heroOf(statsOf({ activity }), { now: NOW })
+    assert.equal(hero.mood, mood)
+    const { frames, fps } = heroCard(hero, { scale: 2 })
+    assert.ok(frames.length >= 6 && fps > 0, mood)
+    for (const f of frames) { assert.equal(f.w, CARD.w * 2); assert.equal(f.h, CARD.h * 2) }
+    assert.notDeepEqual(frames[0].data, frames[frames.length >> 1].data, `${mood} moves`)
+  }
+  // a login too long for big letters still fits
+  assert.equal(heroCard(heroOf(statsOf({ login: 'a'.repeat(39) }), { now: NOW }), { scale: 1 }).frames[0].w, CARD.w)
+})
+
+test('hero: fetchStats reads the user, own repos (not forks) and recent events', async () => {
+  const iso = (days) => new Date(NOW - days * 86400000).toISOString()
+  const calls = []
+  const fake = async (url, init) => {
+    calls.push([url, init.headers.authorization])
+    const body = url.includes('/repos?') ? [
+      { fork: false, language: 'Go', stargazers_count: 10, pushed_at: iso(30) },
+      { fork: false, language: 'Go', stargazers_count: 5, pushed_at: iso(9) },
+      { fork: false, language: null, stargazers_count: 1, pushed_at: iso(60) },
+      { fork: true, language: 'Python', stargazers_count: 500, pushed_at: iso(0.1) },
+    ] : url.includes('/events/') ? [{ type: 'PushEvent', created_at: iso(3) }, { type: 'WatchEvent', created_at: iso(12) }]
+      : { login: 'Gopher', public_repos: 4, followers: 7, created_at: '2020-01-01T00:00:00Z' }
+    return { ok: true, status: 200, json: async () => body }
+  }
+  const s = await fetchStats('gopher', { fetch: fake, token: 't0k', now: NOW })
+  assert.deepEqual(s, { login: 'Gopher', createdAt: '2020-01-01T00:00:00Z', repos: 4, followers: 7, stars: 16,
+    languages: { Go: 2 }, activity: { day: 0, week: 1 } })
+  assert.equal(calls.length, 3)
+  assert.ok(calls.every(([url, auth]) => url.startsWith('https://api.github.com/users/gopher') && auth === 'Bearer t0k'))
+  const missing = async () => ({ ok: false, status: 404 })
+  await assert.rejects(fetchStats('ghost-user', { fetch: missing }), /no GitHub user "ghost-user"/)
+  const limited = async () => ({ ok: false, status: 403 })
+  await assert.rejects(fetchStats('gopher', { fetch: limited }), /rate limit/)
+  await assert.rejects(fetchStats('not a login!', { fetch: fake }), /not a GitHub login/)
+})
+
+test('CLI: pixspell hero draws a card from stats', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const { mkdtempSync, writeFileSync, readFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-hero-'))
+  const cli = new URL('../scripts/pixspell.js', import.meta.url).pathname
+  try {
+    writeFileSync(join(dir, 'stats.json'), JSON.stringify(statsOf({ activity: { day: 1, week: 1 } })))
+    const log = execFileSync('node', [cli, 'hero', '--stats', join(dir, 'stats.json'), '--scale', '2', '-o', join(dir, 'h.png')], { encoding: 'utf8' })
+    assert.match(log, /@Octo-Cat: LV \d+ TypeScript knight, in battle today/)
+    const png = readFileSync(join(dir, 'h.png'))
+    assert.ok(png.includes(Buffer.from('acTL')))
+    assert.equal(png.readUInt32BE(16), CARD.w * 2)
+    assert.ok(png.length < 20000, `small enough for a README (${png.length} bytes)`)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })

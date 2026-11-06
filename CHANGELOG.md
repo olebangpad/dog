@@ -21,7 +21,12 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Any tile size:** `grid: 8 | 16 | 32 | 64` on every call; a download-everything zip per tile size.
 - **Game packs** for Phaser (Aseprite JSON) and Godot 4 (`SpriteFrames`); canvas and Phaser starter templates.
 - **Spell Survivors** (`examples/spell-survivors`): a complete game whose every asset is a PixSpell call, written by an AI agent.
+- **Your GitHub hero:** a username becomes an animated character card for a profile README (login → look, top language →
+  class and colors, repos and stars → level and weapon, recent activity → what it's doing). On the hero page, with
+  `pixspell hero <login>`, or redrawn daily by the GitHub Action (`uses: olebangpad/pixspell@main`).
+- **Smaller animated PNGs:** after the first frame, each frame stores only the rectangle that changed. The pixel font
+  gained `@`.
 - **For AI coding agents:** `SKILL.md` in the open Agent Skills format (also a Claude Code plugin), `llms.txt`, a generated
   sprite catalog, TypeScript types. `npx pixspell skill` installs the skill into `.agents/skills/` for Codex, Cursor,
   Gemini CLI, GitHub Copilot, OpenCode and other Agent Skills clients (`--claude`: `.claude/skills/`).
-- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export | skill` (`npx pixspell ...`).
+- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export | hero | skill` (`npx pixspell ...`).

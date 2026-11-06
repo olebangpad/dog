@@ -11,6 +11,7 @@
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
+[**🧙 내 GitHub 영웅**](https://olebangpad.github.io/pixspell/hero.html) ·
 [플레이그라운드](https://olebangpad.github.io/pixspell/) ·
 [게임 만들기](#-pixspell로-게임-만들기) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
@@ -62,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 66개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -107,6 +108,37 @@ Claude(Claude Code)가 PixSpell 스킬로, 공개 API만 써서 만들었습니�
 
 (한국어로 요청해도 됩니다: *"PixSpell로 HTML 파일 하나짜리 서바이버 게임 만들어줘. 마법사가 방향키로 움직이고, 주문은 가장 가까운 적에게
 자동으로 날아가고, 적은 점점 많이 몰려오고, 보석을 떨어뜨리고, 레벨업마다 새 주문 세 개 중 하나를 고르게. 스프라이트·이펙트·효과음은 전부 PixSpell로, 이펙트가 빛나 보이게 밤 분위기로."*)
+
+### 🧙 내 GitHub 계정이 게임 영웅으로
+
+<a href="https://olebangpad.github.io/pixspell/hero.html"><img src="docs/img/hero.png" alt="영웅 카드 예시: 레벨 28 TypeScript 기사, 오늘은 전투 중" width="600"></a>
+
+[**영웅 페이지**](https://olebangpad.github.io/pixspell/hero.html)에 GitHub 아이디를 넣으면 그 계정의 영웅이 나옵니다. 아이디가 생김새를,
+가장 많이 쓴 언어가 직업과 색을(TypeScript는 기사, Go는 레인저, Rust는 대장장이, Python은 드루이드),
+레포와 스타가 레벨을(레벨 15, 35에서 무기가 좋아집니다), 최근 활동이 오늘 하는 일을 정합니다:
+전투 중, 모험 중, 또는 여관에서 휴식 중.
+
+**프로필 README에 붙이면** PixSpell GitHub Action이 매일 다시 그려 줍니다. 프로필 레포(`github.com/<아이디>/<아이디>`)에
+`.github/workflows/pixspell-hero.yml`을 추가하세요.
+
+```yaml
+name: PixSpell hero
+on:
+  schedule: [{ cron: '23 5 * * *' }]   # once a day
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  hero:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: olebangpad/pixspell@main
+```
+
+**Actions** 탭에서 한 번 실행한 뒤 README에 카드를 넣으면 됩니다:
+`[![my PixSpell hero](pixspell-hero.png)](https://github.com/olebangpad/pixspell)`.
+명령어로는 `npx pixspell hero <아이디>`입니다.
 
 ### 🎮 PixSpell로만 만든 게임 화면
 
@@ -356,10 +388,12 @@ node scripts/pixspell.js char heroine --hat cowboy --hand rod --walk left --anim
 node scripts/pixspell.js fx meteor --element ice --size 64 -o meteor.png      # 아무 이펙트, 색, 크기
 node scripts/pixspell.js fx burning --on slime --strip -o burning.png        # 캐릭터에 상태이상
 node scripts/pixspell.js fxpack meteor poof crit -o effects.zip              # 이펙트 게임 팩
-node scripts/pixspell.js sfx slash --element fire -o slash.wav              # 효과음 (spell.js sfx만 치면 목록)
+node scripts/pixspell.js sfx slash --element fire -o slash.wav              # 효과음 (pixspell.js sfx만 치면 목록)
 node scripts/pixspell.js sfxpack -o sounds.zip                              # 전체 효과음 WAV
 node scripts/pixspell.js export --grid 32                                   # 32x32 타일용 전체를 zip 하나로
 node scripts/pixspell.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid는 render, char, fx, pack에 다 됨
+node scripts/pixspell.js hero octocat -o hero.png                         # GitHub 계정을 게임 영웅 카드로
+node scripts/pixspell.js skill                                              # 코딩 에이전트에 스킬 설치
 ```
 
 TypeScript와 에디터 자동완성: 타입이 [`src/index.d.ts`](src/index.d.ts)에 들어 있습니다.

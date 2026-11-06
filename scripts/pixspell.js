@@ -36,6 +36,9 @@ usage:
   pixspell sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
   pixspell export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o pixspell-32px.zip
                                            everything for one tile size in one zip
+  pixspell hero <github-login> [-o pixspell-hero.png] [--scale 3]
+                                           your GitHub account as a game hero: an animated card for your
+                                           profile README (uses $GITHUB_TOKEN if set; --stats file.json: offline)
   pixspell skill [--claude] [--dir path]       install the PixSpell skill for your coding agent: into .agents/skills/
                                            (Codex, Cursor, Gemini CLI, Copilot, OpenCode...), --claude: .claude/skills/
   pixspell outline                              read text art on stdin, add # outlines
@@ -93,6 +96,7 @@ function parse(argv) {
     else if (a === '--all-colors') opts.allColors = true
     else if (a === '--volume') opts.volume = Number(next())
     else if (a === '--claude') opts.claude = true
+    else if (a === '--stats') opts.stats = next()
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -231,6 +235,21 @@ if (!cmd || o.help) {
   process.stderr.write('\r')
   save(o.out ?? `pixspell-${grid}px.zip`, zip(files))
   console.log(`${items.length} files for ${grid}x${grid} tiles`)
+} else if (cmd === 'hero') {
+  const { fetchStats, heroOf, heroCard, heroAlt } = await import('../src/profile.js')
+  try {
+    if (!args[0] && !o.stats) throw new Error('pixspell: which GitHub user? pixspell hero <login>')
+    const stats = o.stats ? JSON.parse(readFileSync(o.stats, 'utf8'))
+      : await fetchStats(args[0], { token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN || undefined })
+    const hero = heroOf(stats)
+    const { frames, fps } = heroCard(hero, { scale: o.scale ?? 3 })
+    save(o.out ?? 'pixspell-hero.png', encodeAPNG(frames, { fps, deflate }))
+    const doing = { battle: 'in battle today', quest: 'on a quest this week', rest: 'resting' }[hero.mood]
+    console.log(`${heroAlt(hero)}, ${doing}`)
+  } catch (e) {
+    console.error(e.message)
+    process.exitCode = 1
+  }
 } else if (cmd === 'skill') {
   // the skill ships in the package: copy it where agents look for skills (the Agent Skills convention)
   const from = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'pixspell')

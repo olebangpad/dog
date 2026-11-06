@@ -16,6 +16,7 @@ import { deflateSync } from 'node:zlib'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spell, looks, sprites, compose, sheet, Pixmap, text, encodeAPNG, MATERIAL_NAMES, MATERIALS as MATERIALS_FOR_DOCS } from '../src/index.js'
+import { heroOf, heroCard } from '../src/profile.js'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const deflate = (b) => deflateSync(b, { level: 9 })
@@ -407,8 +408,16 @@ function showTiles() {
   }
 }
 
+// The profile-card example in the README: a made-up account, so the image never changes
+function heroExample() {
+  const stats = { login: 'you', createdAt: '2019-03-01T00:00:00Z', repos: 42, followers: 120, stars: 860,
+    languages: { TypeScript: 12, JavaScript: 9 }, activity: { day: 3, week: 11 } }
+  return heroCard(heroOf(stats, { now: Date.parse('2026-11-06T12:00:00Z') }), { scale: 3 })
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
+  { const { frames, fps } = heroExample(); await write(join(dir, 'hero.png'), apng(frames, fps)) }
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {
     for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase, gridsShowcase })) {

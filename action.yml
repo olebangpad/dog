@@ -1,0 +1,69 @@
+name: PixSpell hero
+description: Your GitHub account as a pixel-art game hero for your profile README, redrawn from your activity every day
+author: olebangpad
+branding:
+  icon: user
+  color: green
+
+# In your profile repository (github.com/<you>/<you>), add .github/workflows/pixspell-hero.yml:
+#
+#   on:
+#     schedule: [{ cron: '23 5 * * *' }]   # once a day
+#     workflow_dispatch:
+#   permissions:
+#     contents: write
+#   jobs:
+#     hero:
+#       runs-on: ubuntu-latest
+#       steps:
+#         - uses: actions/checkout@v4
+#         - uses: olebangpad/pixspell@main
+#
+# and put the card in your README.md:  [![my PixSpell hero](pixspell-hero.png)](https://github.com/olebangpad/pixspell)
+
+inputs:
+  login:
+    description: The GitHub user to draw
+    default: ${{ github.repository_owner }}
+  path:
+    description: Where to write the animated PNG
+    default: pixspell-hero.png
+  scale:
+    description: Pixel size (3 = a 600x216 card)
+    default: '3'
+  commit:
+    description: Commit and push the card when it changed
+    default: 'true'
+  token:
+    description: Token for the GitHub API (only public data is read)
+    default: ${{ github.token }}
+
+outputs:
+  hero:
+    description: 'One line about the hero, e.g. "@octocat: LV 21 TypeScript knight, in battle today"'
+    value: ${{ steps.draw.outputs.hero }}
+
+runs:
+  using: composite
+  steps:
+    - id: draw
+      shell: bash
+      env:
+        LOGIN: ${{ inputs.login }}
+        OUT: ${{ inputs.path }}
+        SCALE: ${{ inputs.scale }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        line=$(node "$GITHUB_ACTION_PATH/scripts/pixspell.js" hero "$LOGIN" -o "$OUT" --scale "$SCALE" | tail -n 1)
+        echo "$line"
+        echo "hero=$line" >> "$GITHUB_OUTPUT"
+    - if: inputs.commit == 'true'
+      shell: bash
+      env:
+        OUT: ${{ inputs.path }}
+      run: |
+        git add -- "$OUT"
+        if git diff --cached --quiet; then echo "The hero hasn't changed"; exit 0; fi
+        git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+          commit -m "Update PixSpell hero"
+        git push

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PixSpell · your GitHub hero</title>
+  <meta name="description" content="Type a GitHub username and meet its pixel-art game hero: your top language picks the class, your repos and stars the level, today's activity what it's doing. Put it on your profile README, redrawn every day.">
+  <meta property="og:title" content="PixSpell · your GitHub account as a game hero">
+  <meta property="og:image" content="https://olebangpad.github.io/pixspell/docs/img/social.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="web/style.css">
+  <link rel="stylesheet" href="web/fx.css">
+  <link rel="icon" id="favicon">
+  <style>
+    .hero-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+    .hero-form input { font: 16px var(--pixel); background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; width: min(320px, 100%); }
+    .hero-form input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+    .hero-stage { margin-top: 18px; min-height: 120px; }
+    .hero-stage canvas { display: block; width: min(600px, 100%); height: auto; image-rendering: pixelated; border-radius: 6px; }
+    .hero-why { color: var(--muted); font-size: 14px; margin: 10px 0 0; max-width: 600px; }
+    .hero-why b { color: var(--ink); font-weight: 600; }
+    .hero-err { color: #ff9a7a; margin-top: 10px; }
+    .hero-steps { counter-reset: step; list-style: none; padding: 0; margin: 8px 0 0; max-width: 760px; }
+    .hero-steps > li { counter-increment: step; margin: 16px 0 0; color: var(--muted); }
+    .hero-steps > li::before { content: counter(step); font: 14px var(--pixel); color: var(--accent-ink); background: var(--accent); border-radius: 50%; display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; }
+    .hero-steps .code { margin-top: 8px; }
+    .hero-how { max-width: 760px; color: var(--muted); font-size: 14px; }
+    .hero-how h2, .hero-wrap h2 { font: 18px var(--pixel); color: var(--accent); margin: 28px 0 4px; }
+    .hero-how td, .hero-how th { text-align: left; padding: 4px 12px 4px 0; vertical-align: top; }
+    .hero-how th { color: var(--ink); font-weight: 600; }
+    .hero-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px 40px; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./" aria-label="PixSpell home"><span class="brand-name">PixSpell</span><span class="brand-sub">Your GitHub hero</span></a>
+    <nav class="top-nav">
+      <a href="./">Sprites</a>
+      <a href="fx.html">Effects</a>
+      <a href="sfx.html">Sounds</a>
+      <a href="game.html">▶ Demo</a>
+      <a class="star" href="https://github.com/olebangpad/pixspell">★ Star on GitHub</a>
+    </nav>
+  </header>
+
+  <section class="fx-hero">
+    <div class="fx-count"><small>YOUR GITHUB<br>ACCOUNT AS A<br>GAME HERO</small></div>
+    <p class="fx-tag">Your login picks the look. Your top language picks the class and colors, your repos and stars the level,
+      and today's activity what your hero is doing. Put it on your profile README and it's redrawn every day.</p>
+    <form class="hero-form" id="form">
+      <input id="login" name="login" placeholder="github username" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="GitHub username" maxlength="39" required>
+      <button class="btn primary" type="submit">Summon</button>
+      <button class="btn" type="button" id="dl" disabled>⬇ Download PNG</button>
+    </form>
+    <div class="hero-stage" id="stage" aria-live="polite"></div>
+  </section>
+
+  <main class="hero-wrap">
+    <h2>Put it on your profile</h2>
+    <ol class="hero-steps">
+      <li>In your profile repository (<code>github.com/<span class="who">you</span>/<span class="who">you</span></code>), add this file as
+        <code>.github/workflows/pixspell-hero.yml</code>. It draws your hero once a day and commits it.
+        <div class="code-head"><span>pixspell-hero.yml</span><button class="btn small" data-copy="workflow">Copy</button></div>
+        <pre class="code" id="workflow"></pre>
+      </li>
+      <li>Run it once from the <b>Actions</b> tab (<i>PixSpell hero → Run workflow</i>), then add the card to your <code>README.md</code>:
+        <div class="code-head"><span>README.md</span><button class="btn small" data-copy="markdown">Copy</button></div>
+        <pre class="code" id="markdown"></pre>
+      </li>
+    </ol>
+
+    <section class="hero-how">
+      <h2>How your hero is made</h2>
+      <table>
+        <tr><th>body, hat, off-hand</th><td>picked from your login, so your hero always looks like you</td></tr>
+        <tr><th>class, weapon, colors</th><td>your most used language across your own public repos: TypeScript makes a knight, Go a ranger,
+          Rust a blacksmith, Python a druid, JavaScript a wizard (<span id="lang-count"></span> languages have a class; the rest get one by name)</td></tr>
+        <tr><th>level</th><td>repos, stars, followers and account age; the weapon upgrades at level 15 and 35</td></tr>
+        <tr><th>today</th><td><b>in battle</b> if you were active in the last day, <b>on a quest</b> in the last week, otherwise <b>resting at the inn</b></td></tr>
+      </table>
+      <p>Only public data is read, from GitHub's API, in your browser. Everything you see is drawn by PixSpell, the same
+        <code>spell.char()</code>, <code>spell.action()</code> and <code>spell.walk()</code> calls you can use in your own game.
+        The card is CC0.</p>
+    </section>
+  </main>
+
+  <footer class="foot">Made with <a href="https://github.com/olebangpad/pixspell">PixSpell</a>: every asset for your 2D game, from code.</footer>
+  <script type="module" src="web/hero.js"></script>
+</body>
+</html>

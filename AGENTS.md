@@ -21,7 +21,8 @@ Plain ES modules, zero dependencies, Node 18+ and modern browsers.
 | `src/character.js`, `src/action.js`, `src/pack.js`, `src/bundle.js` | characters, actions, game packs, tile-size bundles |
 | `src/fx.js` + `src/fx/*.js` | effect engine + recipes |
 | `src/sfx.js` + `src/sfx/sounds.js` | sound engine + recipes |
-| `web/`, `*.html` | the GitHub Pages site (studio, maker, effects, sounds, demo game) |
+| `src/profile.js`, `action.yml` | the GitHub hero: stats from GitHub's API → a character card (`pixspell hero`), and the Action that redraws it daily |
+| `web/`, `*.html` | the GitHub Pages site (studio, maker, effects, sounds, demo game, GitHub hero) |
 | `scripts/` | `build.js` (assets, showcase images, catalog), `pixspell.js` (CLI), `validate.js`, `snapshots.js` |
 | `test/` | `node --test` suites, `snapshots.json` (hashes of every rendered look and sound), `types/usage.ts` |
 | `skills/pixspell/` | the AI skill (`SKILL.md`, generated `catalog.md`); also a Claude Code plugin via `.claude-plugin/` |
