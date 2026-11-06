@@ -36,6 +36,10 @@ const shore = spell.autotile('water', 'grass', { grid: 32 })
 const island: Pixmap = shore.draw([[false, true], [true, true]])
 const masks: number[][] = spell.autotile('dirt', null).layout([[1, 0]])
 const tsx = shore.pack().files['water-grass.tsx']
+const imported = spell.fromImage(spell('slime'), { id: 'my-slime', ramps: 2 })
+const mySlime = spell.define({ ...imported.def, id: 'my-slime-2' })
+const fromPng: Pixmap = spell.readPNG(spell('coin').toPNG(), (b) => b)
+console.log(imported.code.length, imported.warnings, mySlime.w, fromPng.w)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

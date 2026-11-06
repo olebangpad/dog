@@ -187,6 +187,20 @@ spell.palette(null)
 console.log(hero.length, hud.w, Object.keys(spell.palettes))
 ```
 
+Your own pixel art: `spell.fromImage(img, { id })` turns a picture (a Pixmap, or frames of one animation, up to 64x64)
+into a sprite definition: dark edge pixels become the outline, the other colors up to 3 ramps of 4 shades. `spell.define(def)`
+registers it, then it recolors, resizes and packs like a built-in. From a file: `npx pixspell import art.png --preview check.png`
+(`--size 16x16` splits a strip into frames; `-o art.js` writes the definition). In Node, `spell.readPNG(bytes, zlib.inflateSync)`;
+in a browser, `Pixmap.fromImageData(ctx.getImageData(0, 0, w, h))`.
+
+```js
+const picture = spell('slime', { A: '#3fa34d' })              // stands in for a PNG you drew
+const { def, code, ramps } = spell.fromImage(picture, { id: 'my-slime' })
+spell.define(def)
+const icy = spell('my-slime', { A: 'ice', grid: 32 })
+console.log(Object.keys(ramps), code.split('\n').length, icy.w)
+```
+
 UI kit: `panel` `slot` `button` `button-pressed` stretch to any size with `.nineSlice(w, h)`; `bar` is a 32x8 health bar
 (`bar-mana`, `bar-xp`, `bar-empty`...: draw `bar-empty`, then a cropped `bar` for the fill); icons `gear` `sound` `mute`
 `pause` `play` `home` `menu` `plus` `minus` `arrow` (`.flipX()` for left), plus `heart` `star` `check` `cross` `lock` `cursor`.

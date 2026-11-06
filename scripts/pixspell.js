@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readd
 import { homedir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { deflateSync } from 'node:zlib'
+import { deflateSync, inflateSync } from 'node:zlib'
 import { spell, looks, sprites, compose, sheet, text, Pixmap, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
 
 const HELP = `pixspell - game assets as code
@@ -34,6 +34,9 @@ usage:
   pixspell fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
   pixspell sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
                                            a sound effect as a WAV file (pixspell sfx alone lists them)
+  pixspell import <image.png> [--id name] [--size 16x16] [-o sprite.js] [--preview p.png]
+                                           your own pixel art as a PixSpell sprite (text art + color ramps);
+                                           --size splits a strip into frames; --preview shows it recolored
   pixspell autotile <inner> [outer] [--grid 32] [-o shore.zip | --dir out/]
                                            terrain transition: 16 corner tiles + Tiled .tsx + Godot .tres
                                            (no outer: an overlay to stack on another terrain)
@@ -98,7 +101,7 @@ function parse(argv) {
     else if (a === '--element') opts.element = next()
     else if (a === '--strip') opts.strip = true
     else if (a === '--dir') opts.dir = next()
-    else if (a === '--size') opts.size = Number(next())
+    else if (a === '--size') { const v = next(); if (/x/.test(v)) opts.cell = v; else opts.size = Number(v) } // 64, or 16x16 for import
     else if (a === '--seed') opts.seed = Number(next())
     else if (a === '--on') opts.on = next()
     else if (a === '--pitch') opts.pitch = Number(next())
@@ -111,6 +114,8 @@ function parse(argv) {
     else if (a === '--stats') opts.stats = next()
     else if (a === '--zoom') opts.zoom = Number(next())
     else if (a === '--key') opts.key = Number(next())
+    else if (a === '--id') opts.id = next()
+    else if (a === '--preview') opts.preview = next()
     else if (a === '--tempo') opts.tempo = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
@@ -228,6 +233,32 @@ if (!cmd || o.help) {
     const sound = spell.sfx(name, { element: o.element, pitch: o.pitch, seed: o.seed, volume: o.volume })
     save(o.out ?? `${sound.id}.wav`, sound.toWAV())
     console.log(`${sound.duration.toFixed(2)}s${sound.loop ? ', seamless loop' : ''}`)
+  }
+} else if (cmd === 'import') {
+  try {
+    if (!args[0]) throw new Error('pixspell: which image? pixspell import sprite.png')
+    const img = spell.readPNG(readFileSync(args[0]), (b) => inflateSync(b))
+    let frames = [img]
+    if (o.cell) {
+      const [cw, ch] = o.cell.split('x').map(Number)
+      frames = []
+      for (let y = 0; y + ch <= img.h; y += ch) for (let x = 0; x + cw <= img.w; x += cw) frames.push(img.crop(x, y, cw, ch))
+    }
+    const id = o.id ?? args[0].replace(/^.*[\\/]/, '').replace(/\.png$/i, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    const { def, code, warnings } = spell.fromImage(frames, { id })
+    if (o.out) save(o.out, `// paste into a file in src/sprites/ (or spell.define() it at runtime)\nexport default ${code}\n`)
+    else console.log(code)
+    if (spell.list().includes(id)) console.error(`note: a built-in sprite is already called "${id}"; spell.define() needs another id (--id)`)
+    if (o.preview) {
+      const pid = `${id}-import-preview` // its own id, so a name taken by a built-in sprite still previews
+      spell.define({ ...def, id: pid })
+      const looks = [{}, { A: 'red' }, { A: 'ice' }, { A: 'gold', B: 'purple' }, { A: '#ff4fd8' }].map((r) => spell(pid, r).scale(4))
+      save(o.preview, sheet(looks, { columns: looks.length, gap: 4, padding: 4, background: '#1a1f1c' }).image.toPNG({ deflate }))
+    }
+    console.error(`${frames.length} frame${frames.length > 1 ? 's' : ''} of ${frames[0].w}x${frames[0].h}, ramps ${Object.keys(def.ramps).join(', ')}${warnings.length ? ` (${warnings.join('; ')})` : ''}`)
+  } catch (e) {
+    console.error(e.message)
+    process.exitCode = 1
   }
 } else if (cmd === 'autotile') {
   if (!args[0]) { console.error('pixspell: which terrains? e.g. pixspell autotile water grass'); process.exitCode = 1 }

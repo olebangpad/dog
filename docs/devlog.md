@@ -1103,3 +1103,27 @@ characters had little world to stand in. The plan is world building, then monste
 - **`spell.toPalette(img, name)`** converts anything already drawn, such as text or a composed scene.
 - **Showcase:** `docs/img/palettes.png` shows the island in six palettes.
 - **Checks:** 9 snapshot hashes, plus a test that full color comes back exactly after `spell.palette(null)`.
+
+### (c) Shipped: bring your own art (PNG importer)
+
+- **Why:** everything so far was drawn in this repo's text format. People who already draw in Aseprite or Piskel had no
+  way in, and their art couldn't recolor or resize like ours.
+- **`spell.readPNG(bytes, inflate)`** (`src/import.js`) decodes PNGs: RGBA, RGB, gray, gray+alpha and palette images,
+  1/2/4/8-bit, `tRNS` transparency, all five row filters. Inflate comes from the caller (`zlib.inflateSync` in Node), so
+  the library stays dependency-free. Checked against PIL on Chromium screenshots and hand-made palette and 1-bit files.
+- **`spell.fromImage(img, { id })`** turns the picture into a sprite:
+  1. Dark colors touching the background become the outline `#`; near-white becomes `w`.
+  2. The rest is grouped by hue (greys apart) into at most 3 groups. A group with more than 4 colors is split at its
+     widest hue gap while a ramp is free (wood and gold sat in one group until this).
+  3. Each group becomes a ramp of 4 of its own colors, so the import looks like the original until you recolor it.
+- **Round trip:** drawing a built-in sprite, importing it and drawing the import gives the same pixels for sword, slime,
+  heart, door, coin, tree and baby dragon. Sprites with more than 12 colors (chest, mimic, bookshelf) lose a few shades.
+- **`spell.define(def)`** registers a sprite at runtime, with its variants.
+- **CLI `pixspell import`:** prints the definition as code (or writes it with `-o`), splits strips with `--size 16x16`,
+  and `--preview` draws 5 recolors. A preview of a file named like a built-in sprite (`frog.png`) failed on the name
+  clash, so the preview now uses its own id and the CLI says the name is taken.
+- **Showcase:** `docs/img/import.png`: `examples/import/my-frog.png`, drawn with plain hex colors, imported, then
+  recolored and resized to a 32 px grid.
+- **Skipped: hand-drawn 3/4 diagonal poses.** The procedural turn (head and shoulders shifted a pixel) already reads as
+  3/4 at 16 px, and drawing 3 poses for each of 37 bodies costs a lot for little gain.
+

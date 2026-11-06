@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -386,6 +386,24 @@ spell.palette(null)                                // 다시 풀 컬러
 spell.toPalette(sceneImage, 'pico-8')              // 직접 합성한 그림을 변환
 ```
 
+### 🖌️ 내 그림 가져오기
+
+<img src="docs/img/import.png" alt="평범한 색으로 그린 개구리를 PixSpell 스프라이트로 가져와 빨강, 얼음, 금, 분홍으로 바꾸고 32px 격자로 키운 모습" width="810">
+
+Aseprite나 Piskel로 그린 그림을 가져오면 내장 스프라이트처럼 쓸 수 있습니다: 색 바꾸기, 어떤 격자로든 크기 바꾸기, 팩과 팔레트까지.
+가장자리의 어두운 픽셀은 외곽선이 되고, 나머지 색은 4단계 명암의 램프 최대 3개로 나뉩니다.
+
+```bash
+npx pixspell import my-frog.png --preview check.png     # 스프라이트를 코드로 출력; -o my-frog.js로 파일 저장
+npx pixspell import walk-strip.png --size 16x16          # 프레임 띠는 움직이는 스프라이트가 됨
+```
+
+```js
+const { def } = spell.fromImage(spell.readPNG(bytes, zlib.inflateSync), { id: 'my-frog' })
+spell.define(def)                                       // 브라우저: Pixmap.fromImageData(ctx.getImageData(...))
+spell('my-frog', { A: 'ice', grid: 32 })
+```
+
 ### 🪟 UI 키트
 
 <img src="docs/img/ui.png" alt="PixSpell로 만든 게임 UI: 하트, 체력·마나·경험치 바, 버튼이 있는 대화 창, 아이템 칸 인벤토리, 아이콘 버튼" width="720">
@@ -519,6 +537,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.sfxPack(names)` | 효과음 WAV 묶음 zip |
 | `spell.palette(name)` · `spell.toPalette(img, name)` | 그 뒤에 그리는 모든 것에 레트로 팔레트 적용(`null`이면 끔), 또는 그림 하나만 변환. 목록은 `spell.palettes` |
 | `spell.autotile(inner, outer, { grid })` | 지형 전환: `.tiles`(16장), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()`(Tiled .tsx + Godot .tres). `outer`가 null이면 오버레이 |
+| `spell.fromImage(img, { id })` · `spell.define(def)` · `spell.readPNG(bytes, inflate)` | 직접 그린 픽셀 아트: 그림(또는 프레임)을 램프가 있는 스프라이트 정의로(`.def`, `.code`), 등록하면 `spell(id)`로 색과 크기를 바꿀 수 있음 |
 | `spell.music(name, { key, tempo, seed })` | 칩튠 음악: 끊김 없이 반복되는 루프나 짧은 징글(Sound). 목록은 `spell.music.list`, 정보는 `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | 위 모든 호출에 붙는 옵션: 그 타일 크기용 그림 (`smooth: false`면 단순 확대) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | 아무 PixSpell 이미지나 변환 · 한 타일 크기의 전체 파일 목록 |

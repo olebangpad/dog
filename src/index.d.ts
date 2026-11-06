@@ -149,6 +149,18 @@ export interface SpriteDef {
   pivot: [number, number] | null
 }
 
+/** A sprite as you write it: text art (or frames) and the ramps that color it. */
+export interface SpriteSource {
+  id: string
+  art?: string
+  frames?: (string | string[])[]
+  fps?: number
+  ramps?: Ramps
+  variants?: Record<string, Ramps>
+  tags?: string[]
+  [k: string]: unknown
+}
+
 export interface Look { id: string; def: SpriteDef; variant: string | null; ramps: Required<Ramps> }
 
 export interface FxOptions extends Ramps, GridOptions {
@@ -315,6 +327,15 @@ export interface PixSpell {
   palettes: Record<PaletteName, { colors: string[]; note: string }>
   /** Convert something already drawn (an image or frames) to a palette. */
   toPalette<T extends Pixmap | Pixmap[]>(img: T, name: PaletteName | Color[]): T
+  /** Add your own sprite (text art + ramps) at runtime; then spell(id), its variants and every option work. */
+  define(def: SpriteSource): SpriteDef
+  /**
+   * A picture (or frames of one animation, up to 64x64) -> a sprite: dark edge pixels become the outline, the other
+   * colors up to 3 ramps of 4 shades, near-white the highlight. code is the same definition as source text.
+   */
+  fromImage(img: Pixmap | Pixmap[], opts?: { id?: string; ramps?: 1 | 2 | 3; outline?: boolean; white?: boolean; tags?: string[] }): { def: SpriteSource; code: string; ramps: Ramps; warnings: string[] }
+  /** Decode PNG bytes (8-bit or palette, not interlaced). inflate: zlib inflate, e.g. (b) => zlib.inflateSync(b) in Node. */
+  readPNG(bytes: Uint8Array | ArrayBuffer, inflate: (b: Uint8Array) => Uint8Array): Pixmap
   /** Terrain transitions: spell.autotile('water', 'grass').draw(cells). outer null = an overlay on transparency. */
   autotile(inner: string, outer: string | null, opts?: GridOptions & { edge?: 'line' | 'soft' | 'none'; seed?: number; frame?: number }): Autotile
   /** Chiptune music made by code: seamless loops (spell.music('town').play()) and jingles ('victory'). */
@@ -352,6 +373,8 @@ export function compose(...layers: (Pixmap | Pixmap[] | null | false | undefined
 export function sheet(images: Pixmap[], opts?: { columns?: number; gap?: number; padding?: number; background?: string }): { image: Pixmap; frames: { x: number; y: number; w: number; h: number }[] }
 /** 3x5 pixel font. */
 export function text(str: string, opts?: { color?: string; spacing?: number; lineHeight?: number }): Pixmap
+/** Register your own sprite (same as spell.define). */
+export function define(def: SpriteSource): SpriteDef
 export function defineSprite(def: { id: string; art?: string; frames?: (string | string[])[]; ramps?: Ramps; [k: string]: unknown }): SpriteDef
 export function render(def: SpriteDef, opts?: Ramps & { frame?: number; outline?: string; white?: string }): Pixmap
 export function renderFrames(def: SpriteDef, opts?: Ramps): Pixmap[]

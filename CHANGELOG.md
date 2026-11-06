@@ -16,6 +16,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **Bring your own art:** `spell.fromImage(img, { id })` turns a picture (or frames, up to 64×64) into a sprite with an
+  outline and up to 3 recolorable ramps, `spell.define(def)` registers it, `spell.readPNG(bytes, inflate)` decodes PNGs
+  (8-bit, palette, gray). CLI `pixspell import art.png [--size 16x16] [-o art.js] [--preview p.png]`.
 - **Retro palettes:** `spell.palette('gameboy' | 'pico-8' | 'sweetie-16' | 'c64' | ...)` draws everything afterwards in
   a console's colors (brightness-mapped for single-hue palettes); `spell.toPalette(img, name)` converts one image.
 - **Terrain transitions:** `spell.autotile(inner, outer)` makes 16 corner tiles that blend two terrains, draws whole

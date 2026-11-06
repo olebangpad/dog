@@ -23,6 +23,7 @@ import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
 import { SONGS, renderSong } from './music.js'
 import { createAutotile } from './autotile.js'
 import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './palette.js'
+import { decodePNG, spriteFromImage } from './import.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -41,6 +42,19 @@ for (const group of groups) {
       looks[id] = { id, def, variant: name, ramps: { ...def.ramps, ...ramps } }
     }
   }
+}
+
+/**
+ * Add your own sprite at runtime: spell.define({ id: 'my-sword', ramps: { A: 'iron' }, art: `...` }), then
+ * spell('my-sword'), its variants and every option work. Use spell.fromImage(img) to make one from a picture.
+ */
+export function define(raw) {
+  const def = defineSprite({ category: 'custom', ...raw })
+  if (sprites[def.id]) throw new Error(`pixspell: a sprite called "${def.id}" already exists`)
+  sprites[def.id] = def
+  looks[def.id] = { id: def.id, def, variant: null, ramps: { ...def.ramps } }
+  for (const [name, ramps] of Object.entries(def.variants)) looks[`${def.id}-${name}`] = { id: `${def.id}-${name}`, def, variant: name, ramps: { ...def.ramps, ...ramps } }
+  return def
 }
 
 function lookup(id) {
@@ -358,6 +372,18 @@ spell.sfx.forEffect = (fx) => {
   const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
   return base ? EFFECT_SOUNDS[base] : null
 }
+
+// ------------------------------------------------------------------ your own art
+spell.define = define
+/**
+ * A picture -> a PixSpell sprite: outline, up to 3 color ramps of 4 shades, white highlights.
+ *   const { def, code } = spell.fromImage(img, { id: 'my-slime' }); spell.define(def)
+ * img: a Pixmap (Pixmap.fromImageData(ctx.getImageData(...)) in a browser, spell.readPNG(bytes, inflate) in Node),
+ * or frames of one animation. code is the definition as text, ready for src/sprites/.
+ */
+spell.fromImage = spriteFromImage
+/** Decode PNG bytes to a Pixmap. inflate: zlib inflate (Node: (b) => zlib.inflateSync(b)). */
+spell.readPNG = (bytes, inflate) => decodePNG(bytes, inflate)
 
 // ------------------------------------------------------------------ palettes
 /**

@@ -1068,3 +1068,74 @@ test('palettes: everything drawn afterwards uses the console colors, and null br
   assert.equal(coins.length, spell.frames('coin').length)
   assert.ok(coins.every((f) => f.colors().every((c) => spell.palettes['pico-8'].colors.includes(c.slice(0, 7)))))
 })
+
+test('import: readPNG decodes RGBA, palette and gray PNGs', async () => {
+  const { deflateSync } = await import('node:zlib')
+  const { crc32 } = await import('../src/png.js')
+  const img = spell('mimic').scale(2)
+  for (const bytes of [img.toPNG(), img.toPNG({ deflate: deflateSync })]) assert.deepEqual(spell.readPNG(bytes, inflateSync).data, img.data)
+  // a hand-made 2-bit palette PNG with a transparent entry, and a 1-bit gray one
+  const chunk = (name, data) => {
+    const b = Buffer.alloc(12 + data.length), body = Buffer.concat([Buffer.from(name), data])
+    b.writeUInt32BE(data.length, 0); body.copy(b, 4); b.writeUInt32BE(crc32(body) >>> 0, 8 + data.length)
+    return b
+  }
+  const png = (w, h, depth, type, rows, extra = []) => {
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = depth; ihdr[9] = type
+    const raw = Buffer.concat(rows.map((r) => Buffer.from([0, ...r])))
+    return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), ...extra, chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])
+  }
+  // 4x1 pixels, indexes 0 1 2 3 = 0b00011011
+  const pal = spell.readPNG(png(4, 1, 2, 3, [[0b00011011]], [chunk('PLTE', Buffer.from([0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255])), chunk('tRNS', Buffer.from([0]))]), inflateSync)
+  assert.deepEqual([0, 1, 2, 3].map((x) => pal.get(x, 0)), [[0, 0, 0, 0], [255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]])
+  const gray = spell.readPNG(png(3, 1, 1, 0, [[0b10100000]]), inflateSync)
+  assert.deepEqual([0, 1, 2].map((x) => gray.get(x, 0)[0]), [255, 0, 255])
+  assert.throws(() => spell.readPNG(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]), inflateSync), /not a PNG/)
+})
+
+test('import: a picture becomes a recolorable sprite that draws the same', () => {
+  // round trip: draw built-in sprites, read them back as new sprites, draw those
+  for (const id of ['sword', 'slime', 'heart', 'coin', 'tree', 'baby-dragon']) {
+    const { def, code, ramps, warnings } = spell.fromImage(spell(id), { id: `imported-${id}` })
+    assert.deepEqual(warnings, [])
+    assert.ok(Object.keys(ramps).length >= 1 && Object.keys(ramps).length <= 3)
+    assert.match(code, new RegExp(`id: "imported-${id}"`))
+    spell.define(def)
+    assert.deepEqual(spell(`imported-${id}`).data, spell(id).data, `${id} draws the same after importing`)
+  }
+  // the imported sprite recolors and resizes like any other
+  const red = spell('imported-slime', { A: 'red' })
+  assert.notDeepEqual(red.data, spell('imported-slime').data)
+  assert.equal(spell('imported-slime', { grid: 32 }).w, 32)
+  // frames of an animation become an animated sprite
+  const anim = spell.fromImage(spell.frames('coin'), { id: 'imported-coin-spin' })
+  spell.define(anim.def)
+  assert.equal(spell.frames('imported-coin-spin').length, spell.frames('coin').length)
+  assert.throws(() => spell.define(anim.def), /already exists/)
+  assert.throws(() => spell.fromImage(new Pixmap(80, 16)), /at most 64x64/)
+  assert.throws(() => spell.fromImage(new Pixmap(8, 8)), /empty/)
+})
+
+test('CLI imports a PNG as sprite source', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const { mkdtempSync, readFileSync, writeFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-import-'))
+  const cli = new URL('../scripts/pixspell.js', import.meta.url).pathname
+  try {
+    writeFileSync(join(dir, 'my-chest.png'), spell('chest').toPNG())
+    const code = execFileSync('node', [cli, 'import', join(dir, 'my-chest.png')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+    assert.match(code, /id: "my-chest"/)
+    assert.match(code, /art: `/)
+    execFileSync('node', [cli, 'import', join(dir, 'my-chest.png'), '--id', 'loot', '-o', join(dir, 'loot.js'), '--preview', join(dir, 'p.png')], { stdio: 'ignore' })
+    const mod = await import(join(dir, 'loot.js'))
+    assert.equal(mod.default.id, 'loot')
+    assert.ok(readFileSync(join(dir, 'p.png')).length > 100)
+    // a strip of frames
+    writeFileSync(join(dir, 'strip.png'), sheet(spell.frames('coin'), { columns: 8 }).image.toPNG())
+    assert.match(execFileSync('node', [cli, 'import', join(dir, 'strip.png'), '--size', '16x16'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }), /frames: \[/)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})

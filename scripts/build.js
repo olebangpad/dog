@@ -12,7 +12,8 @@
 // assets/sfx/<id>.wav        every sound effect (16-bit mono WAV)
 
 import { mkdir, rm, writeFile } from 'node:fs/promises'
-import { deflateSync } from 'node:zlib'
+import { deflateSync, inflateSync } from 'node:zlib'
+import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spell, looks, sprites, compose, sheet, Pixmap, text, encodeAPNG, MATERIAL_NAMES, MATERIALS as MATERIALS_FOR_DOCS } from '../src/index.js'
@@ -502,6 +503,21 @@ function palettesShowcase() {
   return sheet(panels, { columns: 3, gap: 6, padding: 6, background: BG }).image
 }
 
+// Your own PNG in: examples/import/my-frog.png (plain hex colors) -> a sprite that recolors and resizes like the built-ins
+function importShowcase() {
+  const src = spell.readPNG(readFileSync(join(root, 'examples', 'import', 'my-frog.png')), inflateSync)
+  if (!looks['my-frog']) spell.define(spell.fromImage(src, { id: 'my-frog' }).def)
+  const label = (s, img) => {
+    const t = text(s, { color: '#cfe8d4' }).scale(2)
+    return Pixmap.create(Math.max(img.w, t.w), img.h + t.h + 8).draw(img, (Math.max(img.w, t.w) - img.w) >> 1, 0).draw(t, (Math.max(img.w, t.w) - t.w) >> 1, img.h + 8)
+  }
+  const arrow = text('->', { color: '#7fbf8e' }).scale(4)
+  const looks5 = [[{}, 'as drawn'], [{ A: 'red' }, 'red'], [{ A: 'ice', B: 'gold' }, 'ice'], [{ A: 'gold', B: 'purple' }, 'gold'], [{ A: '#ff4fd8', C: 'blue' }, '#ff4fd8']]
+  const panels = [label('my-frog.png', src.scale(5)), Pixmap.create(arrow.w + 8, 80).draw(arrow, 4, 30),
+    ...looks5.map(([r, n]) => label(n, spell('my-frog', r).scale(5))), label('grid 32', spell('my-frog', { grid: 32, A: 'mint' }).scale(2))]
+  return sheet(panels, { columns: panels.length, gap: 14, padding: 12, background: BG }).image
+}
+
 // A village and a dungeon room built only from tiles and props, animated (lava, torches, cauldron, fountain, banners)
 function worldShowcase() {
   const T = 16, W = 14, H = 9
@@ -584,6 +600,7 @@ async function buildShowcase() {
   await write(join(dir, 'social.png'), png(social()))
   await write(join(dir, 'fx.png'), apng(fxShowcase(), 12))
   await write(join(dir, 'grids.png'), png(gridsShowcase()))
+  await write(join(dir, 'import.png'), png(importShowcase())) // last: it defines my-frog, which nothing above should list
 }
 
 // Packs used by templates/phaser, regenerated so they always match the library.

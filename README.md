@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -401,6 +401,24 @@ spell.palette(null)                                // full color again
 spell.toPalette(sceneImage, 'pico-8')              // convert something you composed yourself
 ```
 
+### 🖌️ Bring your own art
+
+<img src="docs/img/import.png" alt="A frog drawn in plain colors, imported as a PixSpell sprite, then recolored red, ice, gold and pink and resized to a 32 px grid" width="810">
+
+Drew something in Aseprite or Piskel? Import it and it works like the built-in sprites: recolor it, resize it to any grid,
+put it in packs and palettes. Dark edge pixels become the outline, the other colors up to three ramps of four shades.
+
+```bash
+npx pixspell import my-frog.png --preview check.png     # prints the sprite as code; -o my-frog.js writes it
+npx pixspell import walk-strip.png --size 16x16          # a strip of frames becomes an animated sprite
+```
+
+```js
+const { def } = spell.fromImage(spell.readPNG(bytes, zlib.inflateSync), { id: 'my-frog' })
+spell.define(def)                                       // browsers: Pixmap.fromImageData(ctx.getImageData(...))
+spell('my-frog', { A: 'ice', grid: 32 })
+```
+
 ### 🪟 A UI kit
 
 <img src="docs/img/ui.png" alt="A game screen's UI made from PixSpell: hearts, health, mana and XP bars, a dialog panel with buttons, an inventory of item slots and icon buttons" width="720">
@@ -561,6 +579,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.sfxPack(names)` | sounds as WAV files in one zip |
 | `spell.palette(name)` · `spell.toPalette(img, name)` | retro palettes for everything drawn afterwards (`null` = off), or for one image; `spell.palettes` lists them |
 | `spell.autotile(inner, outer, { grid })` | terrain transitions: `.tiles` (16), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()` (Tiled .tsx + Godot .tres); `outer` null = overlay |
+| `spell.fromImage(img, { id })` · `spell.define(def)` · `spell.readPNG(bytes, inflate)` | your own pixel art: a picture (or frames) → a sprite definition with ramps (`.def`, `.code`), registered so `spell(id)` recolors and resizes it |
 | `spell.music(name, { key, tempo, seed })` | chiptune music: a seamless loop or a jingle, as a Sound. Tracks: `spell.music.list`, `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | convert any PixSpell image · every file for one tile size, for your own exporter |
