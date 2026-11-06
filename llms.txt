@@ -10,6 +10,7 @@ Art is CC0 (public domain); code is MIT.
 - [Skill / quick reference](https://raw.githubusercontent.com/olebangpad/pixspell/main/skills/pixspell/SKILL.md): setup, rules for crisp pixel art, the whole API, recipes for a playable game and for engine exports
 - [Sprite catalog](https://raw.githubusercontent.com/olebangpad/pixspell/main/skills/pixspell/catalog.md): every sprite id, its size, frames and variants
 - [README](https://raw.githubusercontent.com/olebangpad/pixspell/main/README.md): overview and showcase
+- Check assets by eye before using them: `npx pixspell preview <names or calls> -o preview.png` renders every frame into one image; `npx -y pixspell mcp` is an MCP server whose `preview` tool returns that image
 
 ## Examples
 

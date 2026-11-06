@@ -869,3 +869,40 @@ user's profile shows it off. PixSpell has 2.7M characters, which suits that idea
   - The new 3×5 `@` read as an "e", so the card shows the bare login; the glyph stays in the font.
 - **Not checked live:** this session can't reach GitHub's user API, so the tests and the page check use responses with
   the API's shape. The first real run of the Action is the live test.
+
+### (c) Shipped: agents can look at what they pick
+
+The tools getting attention (aseprite-ai-artist, pixel-art-studio, spritekiln) all sell a loop where the agent sees
+its own output. A PixSpell agent picked assets by name and never saw them.
+
+- **`pixspell preview`** draws any mix of things into one contact sheet (`src/preview.js`). Each row shows the call,
+  the size, the frame count and fps, then every frame zoomed to about 96 px on a checkerboard. Sounds are drawn as
+  waveforms. It takes three kinds of input:
+  - names: `slime`, `meteor`, `coin` (sprite first, then effect, then sound);
+  - JavaScript calls;
+  - JSON items like `{ "char": "goblin", "action": "attack" }`.
+
+  It also prints one text line per item, so an agent that can't open images still learns the sizes.
+- **`pixspell mcp`** is an MCP server written straight on stdio JSON-RPC, with no SDK. It has four tools:
+  - `preview` returns the image together with each item's JavaScript call;
+  - `catalog` lists names;
+  - `save` writes a PNG, an animated PNG, a strip or a WAV;
+  - `pack` writes an engine zip.
+
+  Safety and protocol details:
+  - Tools take JSON items and never run code they are sent.
+  - Paths must stay inside the working directory.
+  - The protocol version is negotiated: the server echoes the client's version if it knows it, and otherwise
+    answers with its own newest version.
+- **`pixspell doctor`** checks the Node version and that rendering works. It also lists the skill copies an agent
+  would read (`.agents/`, `.claude/`, the plugin cache) and whether each matches this version.
+- **SKILL.md** has a new section, "Look at what you picked": what to check (contrast against the background, effects
+  clipped at the frame edge, which way characters face, one tile size everywhere), plus the MCP setup.
+- **Checks:**
+  - Tests: every item's printed call renders the same frames as the item itself; the CLI; and a full MCP session
+    (handshake, tools, image content, files written, an escaping path refused, error codes).
+  - Live: real Claude Code ran `claude mcp list` and reported the server as connected. A headless Claude Code agent
+    then called `preview` for an ice meteor and described the image correctly ("a glowing white-and-cyan ball ...
+    bursts into a bright cyan-white flash, then spreads into a widening light-blue arc").
+- **Not yet:** the Claude Code plugin could start this server by itself through a `.mcp.json`, but that needs
+  `npx pixspell` to exist, so it waits for the npm release.

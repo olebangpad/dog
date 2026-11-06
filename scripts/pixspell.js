@@ -7,11 +7,12 @@
 //   node scripts/pixspell.js combine hero crown@0,-7 --scale 6 -o king.png
 //   node scripts/pixspell.js outline < my-art.txt                              (auto-outline helper)
 
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deflateSync } from 'node:zlib'
-import { spell, looks, sprites, compose, sheet, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
+import { spell, looks, sprites, compose, sheet, text, Pixmap, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
 
 const HELP = `pixspell - game assets as code
 
@@ -39,6 +40,12 @@ usage:
   pixspell hero <github-login> [-o pixspell-hero.png] [--scale 3]
                                            your GitHub account as a game hero: an animated card for your
                                            profile README (uses $GITHUB_TOKEN if set; --stats file.json: offline)
+  pixspell preview <what> [<what> ...] [-o preview.png] [--zoom n]
+                                           one image to check assets by eye: every frame, zoomed, on a checkerboard,
+                                           sounds as waveforms. <what> is a name (slime, meteor, coin), a JS call
+                                           ("spell.fx('meteor', { element: 'ice' })") or JSON ('{"char":"hero","action":"attack"}')
+  pixspell doctor                               check Node, rendering, and the skill copies your agents read
+  pixspell mcp                                  run the MCP server (stdio): tools that return images to your agent
   pixspell skill [--claude] [--dir path]       install the PixSpell skill for your coding agent: into .agents/skills/
                                            (Codex, Cursor, Gemini CLI, Copilot, OpenCode...), --claude: .claude/skills/
   pixspell outline                              read text art on stdin, add # outlines
@@ -97,6 +104,7 @@ function parse(argv) {
     else if (a === '--volume') opts.volume = Number(next())
     else if (a === '--claude') opts.claude = true
     else if (a === '--stats') opts.stats = next()
+    else if (a === '--zoom') opts.zoom = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -250,6 +258,58 @@ if (!cmd || o.help) {
     console.error(e.message)
     process.exitCode = 1
   }
+} else if (cmd === 'preview') {
+  const { previewSheet, describe, resolveItem, itemCode } = await import('../src/preview.js')
+  try {
+    if (!args.length) throw new Error(`pixspell: what should I draw? e.g. pixspell preview slime "spell.fx('meteor', { element: 'ice' })"`)
+    const entries = args.map((arg) => {
+      if (arg.trim().startsWith('{')) { const item = JSON.parse(arg); return { label: itemCode(item), value: resolveItem(spell, item) } }
+      if (/^[a-z0-9-]+$/.test(arg)) { // a bare name: a sprite, then an effect, then a sound
+        if (looks[arg]) return { label: `spell.frames('${arg}')`, value: spell.frames(arg) }
+        if (spell.fx.list.includes(`fx-${arg}`)) return { label: `spell.fx('${arg}')`, value: spell.fx(arg) }
+        if (spell.sfx.list.includes(arg)) return { label: `spell.sfx('${arg}')`, value: spell.sfx(arg) }
+        throw new Error(`pixspell: no sprite, effect or sound named "${arg}" (pixspell list, spell.fx.list, pixspell sfx)`)
+      }
+      // a JavaScript expression, run like node -e with PixSpell in scope
+      const value = new Function('spell', 'compose', 'sheet', 'text', 'Pixmap', `return (${arg})`)(spell, compose, sheet, text, Pixmap)
+      return { label: arg, value }
+    })
+    save(o.out ?? 'pixspell-preview.png', previewSheet(entries, { zoom: o.zoom }).toPNG({ deflate }))
+    entries.forEach((e, i) => console.log(`${i + 1}. ${e.label}  ->  ${describe(e.value)}`))
+  } catch (e) {
+    console.error(e.message)
+    process.exitCode = 1
+  }
+} else if (cmd === 'doctor') {
+  const ok = (m) => console.log(`✓ ${m}`), warn = (m) => console.log(`! ${m}`)
+  const bad = (m) => { console.log(`✗ ${m}`); process.exitCode = 1 }
+  const pkgDir = join(dirname(fileURLToPath(import.meta.url)), '..')
+  const node = Number(process.versions.node.split('.')[0])
+  node >= 18 ? ok(`Node ${process.versions.node}`) : bad(`Node ${process.versions.node}: PixSpell needs Node 18 or newer`)
+  ok(`PixSpell ${JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).version} at ${pkgDir}`)
+  try {
+    const t = Date.now()
+    const png = spell.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')[3].toPNG({ deflate })
+    const wav = spell.sfx('slash', { element: 'fire' }).toWAV()
+    ok(`draws and plays: an attack frame (${png.length} B PNG) and its sound (${wav.length} B WAV) in ${Date.now() - t} ms`)
+  } catch (e) {
+    bad(`rendering failed: ${e.message}`)
+  }
+  existsSync(join(process.cwd(), 'node_modules', 'pixspell', 'package.json'))
+    ? ok(`this project can import { spell } from 'pixspell'`)
+    : warn(`pixspell isn't in this project's node_modules: npm i pixspell, or in a browser import it from\n  https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js`)
+  const bundled = readFileSync(join(pkgDir, 'skills', 'pixspell', 'SKILL.md'), 'utf8')
+  const copies = []
+  for (const base of [process.cwd(), homedir()]) for (const d of ['.agents', '.claude']) copies.push(join(base, d, 'skills', 'pixspell', 'SKILL.md'))
+  const plugins = join(homedir(), '.claude', 'plugins', 'cache', 'pixspell', 'pixspell')
+  if (existsSync(plugins)) for (const v of readdirSync(plugins)) copies.push(join(plugins, v, 'SKILL.md'))
+  const found = [...new Set(copies)].filter((f) => existsSync(f))
+  for (const f of found) readFileSync(f, 'utf8') === bundled ? ok(`skill up to date: ${f}`) : warn(`skill differs from this version: ${f} (pixspell skill, or update the plugin)`)
+  if (!found.length) warn('no PixSpell skill for your agent yet: run `npx pixspell skill` in your project, or install the Claude Code plugin')
+  console.log('\nTo let your agent look at assets, add the MCP server:  claude mcp add pixspell -- npx -y pixspell mcp')
+} else if (cmd === 'mcp') {
+  const { serve } = await import('./mcp.js')
+  serve()
 } else if (cmd === 'skill') {
   // the skill ships in the package: copy it where agents look for skills (the Agent Skills convention)
   const from = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'pixspell')

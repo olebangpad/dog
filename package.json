@@ -46,6 +46,7 @@
   "files": [
     "src",
     "scripts/pixspell.js",
+    "scripts/mcp.js",
     "skills",
     "templates",
     "llms.txt",

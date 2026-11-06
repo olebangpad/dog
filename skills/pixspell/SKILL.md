@@ -222,6 +222,23 @@ hero.play({ key: 'walk-down', repeat: -1 })
 Godot 4: copy `hero.png` + `hero.tres` to the project root, add an `AnimatedSprite2D`, set Sprite Frames to `hero.tres`
 (animations use underscores: `walk_down`), set the texture filter to Nearest. Working Phaser example: `templates/phaser/`.
 
+## Look at what you picked
+
+You can't hear a sound or see a sprite from its name, so look before you wire it in: render your choices into one
+image and read it. Each row shows the call, size, frame count and fps, then every frame zoomed on a checkerboard
+(sounds as waveforms). Check that the colors read against your game's background, effects aren't cut off at
+the frame edge, characters face the way you expect, and one tile size is used everywhere.
+
+```bash
+npx pixspell preview slime meteor "spell.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')" -o preview.png
+npx pixspell doctor    # Node, rendering, and which skill copies your agents read
+```
+
+With the MCP server (`claude mcp add pixspell -- npx -y pixspell mcp`, or `npx -y pixspell mcp` in any MCP client) the
+`preview` tool returns that image straight to you, `catalog` finds names, and `save` / `pack` write files into the project.
+Its items are JSON, e.g. `{ "char": "goblin", "action": "attack", "element": "poison" }` or `{ "fx": "meteor", "element": "ice" }`,
+and every result includes the JavaScript call to paste into the game.
+
 ## Assets without code
 
 Every sprite and variant is pre-exported in the repo: `assets/png/<id>.png` (16×16), `assets/png@4x/`, `assets/anim/` (animated PNG),

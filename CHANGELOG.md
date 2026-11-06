@@ -29,4 +29,8 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **For AI coding agents:** `SKILL.md` in the open Agent Skills format (also a Claude Code plugin), `llms.txt`, a generated
   sprite catalog, TypeScript types. `npx pixspell skill` installs the skill into `.agents/skills/` for Codex, Cursor,
   Gemini CLI, GitHub Copilot, OpenCode and other Agent Skills clients (`--claude`: `.claude/skills/`).
-- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export | hero | skill` (`npx pixspell ...`).
+- **Agents can look at what they pick:** `pixspell preview` draws any mix of names, JavaScript calls or JSON items into
+  one contact sheet (every frame, zoomed, with size, frames and fps; sounds as waveforms). `pixspell mcp` is an MCP
+  server with no dependencies: `preview` returns that image to the agent, `catalog` finds names, `save` and `pack` write
+  files inside the project. `pixspell doctor` checks the setup.
+- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export | hero | preview | doctor | mcp | skill` (`npx pixspell ...`).

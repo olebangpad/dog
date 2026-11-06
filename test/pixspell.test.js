@@ -826,3 +826,104 @@ test('CLI: pixspell hero draws a card from stats', async () => {
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+// ------------------------------------------------------------------ preview + MCP (agents looking at assets)
+import { previewSheet, describe as describeAsset, resolveItem, itemCode } from '../src/preview.js'
+
+test('preview: an item, the code it prints, and that code make the same frames', () => {
+  const items = [
+    { sprite: 'slime', A: '#ff4fd8' },
+    { char: { body: 'hero', hat: 'knight', hand: 'sword' } },
+    { char: 'goblin', action: 'attack', element: 'poison' },
+    { char: { body: 'heroine', hat: 'wizard' }, walk: 'left', grid: 32 },
+    { char: 'skeleton', status: 'burning' },
+    { fx: 'meteor', element: 'ice', size: 64 },
+    { sfx: 'slash', element: 'fire', pitch: 1.2 },
+  ]
+  for (const item of items) {
+    const code = itemCode(item)
+    const a = resolveItem(spell, item), b = new Function('spell', `return ${code}`)(spell)
+    if (a.samples) assert.deepEqual(a.samples, b.samples, code)
+    else assert.deepEqual(a.map((f) => f.data), b.map((f) => f.data), code)
+  }
+  assert.equal(describeAsset(spell.fx('meteor')), '32x32, 12 frames at 14 fps, plays once')
+  assert.equal(describeAsset(spell('sword')), '16x16 image')
+  assert.match(describeAsset(spell.sfx('coin')), /^sound, \d\.\d\ds$/)
+  assert.throws(() => resolveItem(spell, { nothing: 1 }), /needs one of/)
+  assert.throws(() => describeAsset(42), /image, frames or a sound/)
+  const img = previewSheet(items.map((item) => ({ label: itemCode(item), value: resolveItem(spell, item) })))
+  assert.ok(img.w <= 1200 && img.h > 300, `${img.w}x${img.h}`)
+})
+
+test('CLI: preview, doctor', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-look-'))
+  const cli = new URL('../scripts/pixspell.js', import.meta.url).pathname
+  try {
+    const log = execFileSync('node', [cli, 'preview', 'slime', 'meteor', "spell.action('hero', 'cast', 'holy')", '{"sfx":"coin"}', '-o', join(dir, 'p.png')], { encoding: 'utf8' })
+    assert.match(log, /1\. spell\.frames\('slime'\)/)
+    assert.match(log, /2\. spell\.fx\('meteor'\)  ->  32x32, 12 frames at 14 fps, plays once/)
+    assert.match(log, /3\. spell\.action\('hero', 'cast', 'holy'\)  ->  32x32, 8 frames/)
+    assert.match(log, /4\. spell\.sfx\('coin'\)  ->  sound/)
+    assert.equal(readFileSync(join(dir, 'p.png')).subarray(1, 4).toString(), 'PNG')
+    assert.throws(() => execFileSync('node', [cli, 'preview', 'no-such-thing'], { stdio: 'pipe' }), /no sprite, effect or sound/)
+    const doc = execFileSync('node', [cli, 'doctor'], { encoding: 'utf8', cwd: dir })
+    assert.match(doc, /✓ Node /)
+    assert.match(doc, /✓ draws and plays/)
+    assert.match(doc, /no PixSpell skill|skill up to date|skill differs/)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('MCP server: handshake, tools, images, files kept inside the project', async () => {
+  const { spawn } = await import('node:child_process')
+  const { mkdtempSync, existsSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-mcp-'))
+  const server = spawn('node', [new URL('../scripts/pixspell.js', import.meta.url).pathname, 'mcp'], { cwd: dir })
+  const pending = new Map()
+  let buf = '', id = 0
+  server.stdout.on('data', (d) => {
+    buf += d
+    for (let i; (i = buf.indexOf('\n')) >= 0; buf = buf.slice(i + 1)) { const m = JSON.parse(buf.slice(0, i)); pending.get(m.id)?.(m) }
+  })
+  const rpc = (method, params) => new Promise((done) => { const n = ++id; pending.set(n, done); server.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n') })
+  const tool = async (name, args) => (await rpc('tools/call', { name, arguments: args })).result
+  try {
+    const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } })
+    assert.equal(init.result.protocolVersion, '2025-06-18')
+    assert.equal(init.result.serverInfo.name, 'pixspell')
+    assert.ok(init.result.capabilities.tools)
+    assert.equal((await rpc('initialize', { protocolVersion: '1999-01-01' })).result.protocolVersion, '2025-11-25', 'unknown version: ours')
+    server.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n')
+    const { tools } = (await rpc('tools/list', {})).result
+    assert.deepEqual(tools.map((t) => t.name), ['preview', 'save', 'pack', 'catalog'])
+    for (const t of tools) assert.equal(t.inputSchema.type, 'object')
+
+    const look = await tool('preview', { items: [{ fx: 'meteor', element: 'ice' }, { sfx: 'coin' }] })
+    assert.equal(look.content[0].type, 'image'); assert.equal(look.content[0].mimeType, 'image/png')
+    assert.equal(Buffer.from(look.content[0].data, 'base64').subarray(1, 4).toString(), 'PNG')
+    assert.match(look.content[1].text, /spell\.fx\('meteor', \{ element: 'ice' \}\)/)
+
+    assert.match((await tool('save', { item: { char: 'hero', walk: 'down' }, path: 'art/walk.png' })).content[0].text, /wrote art\/walk\.png/)
+    assert.ok(existsSync(join(dir, 'art', 'walk.png')))
+    assert.match((await tool('save', { item: { sfx: 'jump' }, path: 'jump.wav' })).content[0].text, /wrote jump\.wav/)
+    const outside = await tool('save', { item: { sprite: 'slime' }, path: '../escape.png' })
+    assert.equal(outside.isError, true); assert.match(outside.content[0].text, /inside/)
+    assert.ok(!existsSync(join(dir, '..', 'escape.png')))
+    assert.match((await tool('pack', { char: 'goblin', path: 'goblin.zip' })).content[0].text, /goblin\.zip/)
+    assert.match((await tool('catalog', { kind: 'held', query: 'sword' })).content[0].text, /sword-gold/)
+    assert.equal((await tool('preview', { items: [{ fx: 'not-an-effect' }] })).isError, true)
+    assert.equal((await rpc('tools/call', { name: 'nope', arguments: {} })).error.code, -32602)
+    assert.equal((await rpc('resources/list', {})).error.code, -32601)
+    assert.deepEqual((await rpc('ping', {})).result, {})
+  } finally {
+    server.kill()
+    rmSync(dir, { recursive: true, force: true })
+  }
+})

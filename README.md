@@ -199,6 +199,15 @@ a full game recipe, engine exports, sounds, tile sizes) and [`catalog.md`](skill
 Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, with sounds, using PixSpell"*.
 Agents can also read [`llms.txt`](llms.txt).
 
+**Let the agent see what it picks.** Names don't show what a sprite looks like, so PixSpell gives agents eyes:
+
+- `npx pixspell preview slime meteor "spell.action('hero', 'attack', 'fire')"` draws one image with every frame, zoomed,
+  plus the size, frames and fps of each. The skill tells agents to check their picks with it.
+- **MCP server** (no dependencies): `claude mcp add pixspell -- npx -y pixspell mcp`, or `npx -y pixspell mcp` in any MCP
+  client. Its `preview` tool hands the image straight to the agent with the JavaScript call for each item; `catalog`
+  finds names, `save` and `pack` write PNGs, WAVs and engine packs into the project.
+- `npx pixspell doctor` checks Node, rendering, and which skill copies your agents will read.
+
 ### 🧙 Character maker
 
 Put gear on a body **by name**. Bodies know where their head and hands are, gear knows where it's held,

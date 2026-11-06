@@ -194,6 +194,15 @@ hero.play({ key: 'walk-left', repeat: -1 })
 그리고 *"PixSpell로 단검 든 고블린이 슬라임이랑 싸우는 탑다운 게임 만들어줘. 효과음도 넣어줘"*처럼 요청하면 됩니다.
 [`llms.txt`](llms.txt)를 읽게 해도 됩니다.
 
+**에이전트가 고른 걸 직접 보게 하기.** 이름만으로는 스프라이트가 어떻게 생겼는지 알 수 없으니, PixSpell은 에이전트에게 눈을 줍니다.
+
+- `npx pixspell preview slime meteor "spell.action('hero', 'attack', 'fire')"`는 모든 프레임을 확대해 이미지 한 장에 그리고,
+  각각의 크기·프레임 수·fps를 알려 줍니다. 스킬이 에이전트에게 이걸로 고른 에셋을 확인하라고 안내합니다.
+- **MCP 서버**(의존성 없음): `claude mcp add pixspell -- npx -y pixspell mcp`, 다른 MCP 클라이언트에서는 `npx -y pixspell mcp`.
+  `preview` 도구가 그 이미지를 각 항목의 자바스크립트 호출과 함께 에이전트에게 바로 돌려주고, `catalog`는 이름을 찾고,
+  `save`와 `pack`은 PNG·WAV·엔진용 팩을 프로젝트에 저장합니다.
+- `npx pixspell doctor`는 Node, 렌더링, 에이전트가 읽을 스킬 사본을 점검합니다.
+
 ### 🧙 캐릭터 메이커
 
 몸에 장비를 **이름만으로** 입힙니다. 몸은 머리와 손 위치를, 장비는 잡히는 지점을 알고 있어서
