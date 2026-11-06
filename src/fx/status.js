@@ -95,4 +95,52 @@ export const STATUS = [
       }
     },
   },
+  {
+    id: 'fx-bleeding', color: 'red', frames: 8, fps: 10, loop: true, tags: ['status', 'loop'], variants: ['poison', 'dark', 'arcane'],
+    draw(p, t) {
+      const { s } = p
+      for (let k = 0; k < 4; k++) {
+        const u = (t + k / 4) % 1, x = (BODY.x + [-4, 3, -1, 5][k]) * s, y = (BODY.top + 1 + u * 12) * s
+        p.line(x, y - 2 * s * (1 - u), x, y, p.px, 0.8)
+        p.disc(x, y, (1.3 - 0.3 * u) * s, 1.1 - 0.4 * u, 0.1)
+      }
+    },
+  },
+  {
+    id: 'fx-shocked', color: 'gold', frames: 6, fps: 14, loop: true, tags: ['status', 'loop'], variants: ['ice', 'arcane', 'poison'],
+    draw(p, t, i) {
+      const { s } = p
+      const r = (n) => (((Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1) + 1) % 1
+      for (let k = 0; k < 3; k++) {
+        let x = (BODY.x + (r(k) * 16 - 8)) * s, y = (BODY.head + r(k + 5) * 13) * s
+        for (let j = 0; j < 4; j++) {
+          const nx = x + (r(k * 7 + j) * 6 - 3) * s, ny = y + 2.5 * s
+          p.line(x, y, nx, ny, p.px, 1.2)
+          x = nx; y = ny
+        }
+      }
+    },
+  },
+  {
+    id: 'fx-wet', color: 'blue', frames: 8, fps: 8, loop: true, tags: ['status', 'loop'], variants: ['ice', 'poison', 'arcane'],
+    draw(p, t) {
+      const { s } = p
+      for (let k = 0; k < 3; k++) {
+        const u = (t + k / 3) % 1
+        p.disc((BODY.x + (k - 1) * 6) * s, (BODY.head + 2 + u * 16) * s, 1.1 * s, 1.0 - 0.5 * u, 0.1)
+      }
+      p.disc(BODY.x * s, (BODY.head - 2) * s, 1.4 * s, 0.95, 0.1)
+    },
+  },
+  {
+    id: 'fx-regen', color: 'lime', frames: 8, fps: 10, loop: true, tags: ['status', 'heal', 'loop'], variants: ['holy', 'ice', 'arcane'],
+    draw(p, t) {
+      const { s } = p
+      for (let k = 0; k < 3; k++) {
+        const u = (t + k / 3) % 1, x = (BODY.x + [-6, 6, 0][k]) * s, y = (BODY.bottom - 4 - u * 16) * s, v = 1.2 * bell(u)
+        p.line(x - 2 * s, y, x + 2 * s, y, 1.4 * s, v)
+        p.line(x, y - 2 * s, x, y + 2 * s, 1.4 * s, v)
+      }
+    },
+  },
 ]

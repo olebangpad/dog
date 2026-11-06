@@ -84,4 +84,71 @@ export const AMBIENT = [
       }
     },
   },
+  {
+    id: 'fx-petals', color: 'pink', frames: 16, fps: 10, loop: true, wrap: true, tags: ['weather', 'seamless', 'loop'],
+    variants: ['steel', 'holy', 'fire', 'nature'],
+    setup(p) { return scatter(p, 7) },
+    draw(p, t) {
+      const { s, size } = p
+      for (const f of p.state) {
+        const y = f.y + t * size, x = f.x + t * size + Math.sin((t * 2 + f.k) * TAU) * 2.5 * s
+        const tilt = Math.cos((t * 2 + f.k) * TAU)
+        p.line(x - tilt * s, y - 0.6 * s, x + tilt * s, y + 0.6 * s, 1.8 * s, 1.0, 0.75)
+      }
+    },
+  },
+  {
+    id: 'fx-ash', color: 'stone', frames: 16, fps: 8, loop: true, wrap: true, outline: 'none', tags: ['weather', 'seamless', 'loop'],
+    variants: ['fire', 'dark', 'steel'],
+    setup(p) { return scatter(p, 12) },
+    draw(p, t) {
+      const { s, size } = p
+      for (const f of p.state) {
+        const y = f.y + t * size, x = f.x + Math.sin((t + f.k) * TAU) * 2 * s
+        if (f.k > 0.6) p.disc(x, y, 1.1 * s, 1.0, 0.1)
+        else p.pt(x, y, 0.9 + 0.3 * f.k)
+      }
+    },
+  },
+  {
+    id: 'fx-stars', color: 'bone', frames: 16, fps: 6, loop: true, wrap: true, outline: 'none', tags: ['ambient', 'seamless', 'loop'],
+    variants: ['holy', 'ice', 'arcane'],
+    setup(p) { return scatter(p, 9) },
+    draw(p, t) {
+      const { s } = p
+      for (const f of p.state) {
+        const b = 0.5 + 0.5 * Math.sin((t * 2 + f.k * 7) * TAU)
+        if (f.k > 0.55) p.star(f.x, f.y, (1.5 + 1.5 * b) * s, 4, 0.95 + 0.35 * b, 0.2)
+        else p.pt(f.x, f.y, 0.85 + 0.4 * b)
+      }
+    },
+  },
+  {
+    id: 'fx-clouds', color: 'bone', frames: 16, fps: 6, loop: true, wrap: true, tags: ['weather', 'seamless', 'loop'],
+    variants: ['ice', 'dark', 'fire', 'arcane'],
+    setup(p) { return [0, 1].map((k) => ({ x: p.rng() * p.size, y: (8 + k * 14) * p.s, w: 0.8 + p.rng() * 0.4 })) },
+    draw(p, t) {
+      const { s, size } = p
+      for (const cl of p.state) {
+        const x = cl.x + t * size
+        for (const [dx, dy, r] of [[-4, 1, 3.5], [0, -1, 4.5], [4, 1, 3.5], [7, 2, 2.5], [-7, 2, 2.5]]) p.disc(x + dx * s * cl.w, cl.y + dy * s, r * s, 0.95, 0.35)
+      }
+    },
+  },
+  {
+    id: 'fx-waterfall', color: 'blue', frames: 8, fps: 12, loop: true, wrap: true, outline: 'none', tags: ['environment', 'seamless', 'loop'],
+    variants: ['ice', 'poison', 'fire', 'blood'],
+    setup(p) { return Array.from({ length: 16 }, () => p.rng()) }, // one phase per band of columns
+    draw(p, t) {
+      const { size } = p
+      const band = Math.max(2, Math.round(2 * p.s))
+      for (let x = 0; x < size; x++) {
+        const ph = p.state[Math.floor(x / band) % 16]
+        for (let y = 0; y < size; y++) {
+          const u = ((y / size - t + ph) % 1 + 1) % 1, w = Math.sin(u * TAU * 2)
+          p.dot(x, y, 0.5 + 0.18 * w + (w > 0.7 ? 0.45 : 0)) // long bright streaks falling one tile per loop
+        }
+      }
+    },
+  },
 ]

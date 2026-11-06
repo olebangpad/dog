@@ -9,7 +9,7 @@
     {
       "name": "pixspell",
       "source": "./skills/pixspell",
-      "description": "Every asset for your 2D game, from code: 2.7M characters that walk and fight, sprites, 500+ glowing effects, 66 sounds and Phaser/Godot packs, in one line of JavaScript",
+      "description": "Every asset for your 2D game, from code: 2.7M characters that walk and fight, sprites, 600+ glowing effects, 66 sounds and Phaser/Godot packs, in one line of JavaScript",
       "version": "0.1.0",
       "license": "MIT",
       "homepage": "https://olebangpad.github.io/pixspell/",

@@ -126,4 +126,8 @@ export const EFFECT_SOUNDS = {
   lava: 'campfire', fog: 'wind', wind: 'wind', geyser: 'splash', ripple: 'splash', meteor: 'meteor', tornado: 'wind', quake: 'quake',
   'black-hole': 'portal', summon: 'summon', revive: 'revive', thorns: 'smash', 'electric-field': 'zap', confetti: 'fanfare',
   poof: 'poof', drip: 'splash', notes: 'win',
+  bite: 'hit', 'triple-slash': 'slash', shuriken: 'shoot', 'rock-throw': 'smash', 'muzzle-flash': 'boom', 'shield-break': 'block',
+  ko: 'crit', barrier: 'shield', drain: 'dark', soul: 'holy', curse: 'debuff', haste: 'buff', slow: 'debuff', 'holy-cross': 'holy',
+  'ice-spike': 'ice', vine: 'smash', checkmark: 'confirm', exclaim: 'select', countdown: 'select', 'star-fall': 'gem',
+  'dragon-breath': 'fire', bleeding: 'hurt', shocked: 'zap', wet: 'splash', regen: 'heal', waterfall: 'rain',
 }

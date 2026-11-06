@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **845** sprites · **545** effects · **66** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **845** sprites · **665** effects · **66** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -15,7 +15,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Open the playground](https://olebangpad.github.io/pixspell/) ·
 [Make a game](#-make-a-game-with-pixspell) ·
 [Character maker](#-character-maker) ·
-[Effects](#-545-game-effects) ·
+[Effects](#-665-game-effects) ·
 [Sounds](#-66-game-sounds-made-by-code) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
@@ -25,7 +25,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [한국어](README.ko.md)
 
 ![sprites](https://img.shields.io/badge/sprites-224_base_·_845_looks-a8e05a?style=flat-square)
-![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
+![effects](https://img.shields.io/badge/effects-110_designs_·_665_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
 ![music](https://img.shields.io/badge/music-17_tracks-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C761%2C072-a8e05a?style=flat-square)
@@ -54,7 +54,7 @@ document.body.append(knight.scale(8).toCanvas())
   <tr>
     <td align="center"><img src="docs/img/show/characters.png" width="240" alt="Random characters with different bodies, hats and weapons"><br><sub><code>spell.char.random(seed)</code><br>2.7 million characters</sub></td>
     <td align="center"><img src="docs/img/show/attack.png" width="240" alt="A knight swinging a fire sword"><br><sub><code>spell.action(knight, 'attack', 'fire')</code><br>6 actions × 5 elements</sub></td>
-    <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="A glowing ice meteor falling and bursting"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>545 effects that glow</sub></td>
+    <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="A glowing ice meteor falling and bursting"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>665 effects that glow</sub></td>
   </tr>
   <tr>
     <td align="center"><img src="docs/img/show/walk.png" width="240" alt="A wizard walking right over grass"><br><sub><code>spell.walk(mage, 'right')</code><br>4-way walk cycles</sub></td>
@@ -253,11 +253,14 @@ spell.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works a
 Attacks follow the weapon: swords slash, daggers stab, spears thrust, hammers and axes smash, bows shoot, staffs cast,
 whips crack, torches burn, flowers bonk, empty hands punch. `spell.action.styleOf(spec)` tells you which; `{ style: 'whip' }` overrides it.
 
-### ✨ 545 game effects
+### ✨ 665 game effects
 
-**80 effect designs drawn entirely by code**, each in up to 11 colors and at any size, plus the hand-drawn explosions, sparkles and slashes.
+**110 effect designs drawn entirely by code**, each in up to 11 colors and at any size, plus the hand-drawn explosions, sparkles and slashes.
 Bursts, magic, elements, projectiles and beams, seamless weather, environment (lava, fog, sunrays, ripples), status overlays,
-weapon slashes and hit feedback (POW, CRIT!, MISS, block, parry), rewards, and big moments (meteor, tornado, black hole, summon, revive, confetti).
+weapon slashes and hit feedback (POW, CRIT!, MISS, KO!, block, parry, shield break), rewards and UI moments (check, alert, a 3-2-1-GO countdown),
+and big moments (meteor, tornado, black hole, summon, revive, falling stars, dragon breath, confetti). New: bite, triple slash,
+shuriken, thrown rocks, muzzle flash, a hex barrier, life drain, a rising soul, curse, haste, slow, holy cross, ice spikes,
+vines, bleeding, shocked, wet, regen, and seamless petals, ash, starry sky, clouds and a waterfall.
 Browse, recolor and download them on the [**effects page**](https://olebangpad.github.io/pixspell/fx.html).
 
 <a href="https://olebangpad.github.io/pixspell/fx.html"><img src="docs/img/fx.png" alt="Every procedural effect, animated" width="100%"></a>
@@ -351,7 +354,7 @@ flowing lava. Each comes in several materials (`door-iron`, `roof-slate`, `lava-
 224 base sprites in 7 categories, **845 looks** with variants, 54 of them animated.
 Characters, wearable gear, weapons (dagger, spear, hammer, wand...), armor, boots, amulets, potions, gems, food (bread, cheese, cake, carrot, egg, grapes...),
 treasure and quest items (gold bars, trophy, map, compass, hourglass, letter, runes...), monsters, seamless tiles, props, furniture, UI icons,
-emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [80 procedural effects](#-545-game-effects)
+emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [110 procedural effects](#-665-game-effects)
 add 525 more animated looks; all of them are exported in `assets/` too.
 
 <img src="docs/img/gallery.png" alt="Every base sprite in PixSpell" width="100%">

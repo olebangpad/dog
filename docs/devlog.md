@@ -994,3 +994,24 @@ characters had little world to stand in. The plan is world building, then monste
   [name]` lists or renders tracks, and MCP items take `{ "music": "town" }`.
 - **Not checked:** I can't listen to the tracks. Every check above is numeric, so whether they sound good is for a
   person to judge.
+
+## Round 12: more of everything
+
+### (a) Shipped: 30 more effect designs
+
+- **The new designs:** 110 designs and 665 looks in all.
+  - Combat: bite, triple slash, shuriken, thrown rock, muzzle flash, shield break, KO!.
+  - Magic: hex barrier, life drain, rising soul, curse, haste, slow, holy cross, ice spikes, vines.
+  - Rewards and UI: checkmark, alert "!", a 3-2-1-GO countdown.
+  - Spectacle: falling stars, dragon breath.
+  - Status: bleeding, shocked, wet, regen.
+  - Seamless: petals, ash, a starry sky, clouds, a waterfall.
+- **Each new effect has a sound,** chosen from the existing ones for now (`spell.sfx.forEffect`).
+- **What looking at it changed:**
+  - The starry sky and ash were nearly invisible on dark backgrounds, because the pale ramp's darker shades disappear.
+    Their dots are brighter now.
+  - The waterfall read as noise, because every column had its own phase. Columns now share a phase in bands, so it
+    reads as streaks.
+  - The thrown rock got bigger.
+- **Checks:** 170 new looks; no existing snapshot changed. The effects page loads all 110 in under 2 s, and the new
+  status overlays show up under its status filter.

@@ -214,4 +214,37 @@ export const SPECTACLE = [
       }
     },
   },
+  {
+    id: 'fx-star-fall', color: 'gold', frames: 12, fps: 12, tags: ['spectacle', 'magic'], variants: ['arcane', 'ice', 'fire', 'nature'],
+    setup(p) { return Array.from({ length: 5 }, (_, k) => ({ x: (2 + k * 5 + p.rng() * 3) * p.s, d: k * 0.1 + p.rng() * 0.05 })) },
+    draw(p, t) {
+      const { s, size } = p
+      const ground = size - 5 * s
+      for (const st of p.state) {
+        const u = clamp((t - st.d) / 0.45)
+        if (u <= 0) continue
+        if (u < 1) {
+          const x = st.x + 8 * s * u, y = -2 * s + (ground + 2 * s) * u
+          p.spark(x, y, Math.atan2(ground + 2 * s, 8 * s), 7 * s, 0.9)
+          p.star(x, y, 2.5 * s, 4, 1.25, 0.2)
+        } else {
+          const v = 1 - clamp((t - st.d - 0.45) / 0.25)
+          if (v > 0) p.star(st.x + 8 * s, ground, 4 * s * v, 4, 1.2 * v + 0.1, 0.15)
+        }
+      }
+    },
+  },
+  {
+    id: 'fx-dragon-breath', color: 'orange', frames: 10, fps: 14, tags: ['spectacle', 'element', 'attack'], variants: ['ice', 'poison', 'dark', 'holy'],
+    draw(p, t) {
+      const { c, s } = p
+      const on = t < 0.75 ? 1 : 1 - (t - 0.75) / 0.25
+      for (let k = 0; k < 9; k++) {
+        const u = (t * 2 + k / 9) % 1
+        const x = (3 + u * 26) * s, y = c + Math.sin(k * 2.3 + t * 9) * u * 5.5 * s
+        p.blob(x, y, (1.5 + 3.5 * u) * s, (1.3 - 0.7 * u) * on, 0.3, k)
+      }
+      p.glow(3 * s, c, 4 * s, 1.2 * on)
+    },
+  },
 ]

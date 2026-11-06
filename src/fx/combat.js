@@ -142,4 +142,97 @@ export const COMBAT = [
       }
     },
   },
+  {
+    id: 'fx-bite', color: 'bone', frames: 6, fps: 16, tags: ['combat', 'attack'], variants: ['blood', 'poison', 'ice', 'dark'],
+    draw(p, t) {
+      const { c, s } = p
+      const gap = (1 - out(clamp(t * 1.8))) * 8 * s + 1.5 * s // the jaws close
+      const fade = 1 - clamp((t - 0.7) / 0.3)
+      for (const dir of [-1, 1]) {
+        const y = c + dir * gap
+        const [a0, a1] = dir < 0 ? [Math.PI * 1.15, Math.PI * 1.85] : [Math.PI * 0.15, Math.PI * 0.85]
+        p.arc(c, y - dir * 6 * s, 9 * s, 2.2 * s, a0, a1, 1.1 * fade)
+        for (let k = -2; k <= 2; k++) p.line(c + k * 3.2 * s, y, c + k * 3.2 * s, y - dir * 3 * s, 1.4 * s, 1.15 * fade, 0.65 * fade)
+      }
+      if (t > 0.45 && t < 0.8) p.star(c, c, 6 * s * bell((t - 0.45) / 0.35), 4, 1.25, 0.2)
+    },
+  },
+  {
+    id: 'fx-triple-slash', color: 'bone', frames: 8, fps: 18, tags: ['combat', 'attack'], variants: ['fire', 'ice', 'blood', 'arcane', 'holy'],
+    draw(p, t) {
+      const { c, s } = p
+      for (let k = 0; k < 3; k++) {
+        const u = clamp((t - k * 0.18) / 0.45)
+        if (u <= 0 || u >= 1) continue
+        const y = c + (k - 1) * 6 * s
+        const at = (q) => [4 * s + q * 24 * s, y + 5 * s - q * 10 * s]
+        const [x1, y1] = at(clamp(u * 1.6 - 0.6)), [x2, y2] = at(out(clamp(u * 1.6)))
+        p.line(x1, y1, x2, y2, 2 * s * (1 - u * 0.5), 0.7, 1.25)
+      }
+    },
+  },
+  {
+    id: 'fx-shuriken', color: 'bone', frames: 4, fps: 16, loop: true, tags: ['projectile', 'loop'], variants: ['fire', 'poison', 'arcane', 'ice'],
+    draw(p, t, i) {
+      const { c, s } = p
+      const spin = (i / 4) * (TAU / 4) // a quarter turn per loop: the star looks the same again
+      for (let k = 0; k < 4; k++) {
+        const a = spin + (k * TAU) / 4
+        p.line(c, c, c + Math.cos(a) * 8 * s, c + Math.sin(a) * 8 * s, 2.6 * s, 1.15, 0.85)
+      }
+      p.disc(c, c, 2 * s, 1.25, 0.1)
+      for (const dy of [-3, 0, 3]) p.line(c - 15 * s, c + dy * s, c - 9 * s, c + dy * s, p.px, 0.35, 0.8)
+    },
+  },
+  {
+    id: 'fx-rock-throw', color: 'stone', B: 'sand', frames: 8, fps: 14, tags: ['projectile', 'combat'], variants: ['fire', 'ice', 'nature', 'dark'],
+    setup(p) { return p.emit({ count: 7, x: 26 * p.s, y: 26 * p.s, speed: [6, 12], angle: [-Math.PI * 0.95, -Math.PI * 0.05], gravity: 30, life: [0.25, 0.35], size: [1, 1.8], delay: [0.62, 0.66] }) },
+    draw(p, t) {
+      const { s } = p
+      const u = clamp(t / 0.65)
+      if (t < 0.66) {
+        const at = (q) => [(4 + 22 * q) * s, (24 - 16 * Math.sin(Math.PI * q) + 2 * q) * s]
+        for (let k = 1; k <= 3; k++) { const [tx, ty] = at(Math.max(0, u - k * 0.06)); p.use('B').pt(tx, ty, 0.9 - k * 0.15) }
+        const [x, y] = at(u)
+        p.use('A').blob(x, y, 4 * s, 1.2, 0.2, 3)
+      }
+      p.use('B').particles(p.state, t, { shape: 'disc', v: 0.95 })
+    },
+  },
+  {
+    id: 'fx-muzzle-flash', color: 'gold', B: 'stone', frames: 5, fps: 18, tags: ['combat', 'attack', 'burst'], variants: ['fire', 'ice', 'arcane', 'poison'],
+    draw(p, t) {
+      const { c, s } = p
+      if (t < 0.5) {
+        const g = 1 - t * 2
+        p.use('A').star(8 * s, c, (5 + 6 * g) * s, 6, 0.3 + 1.1 * g, 0.25)
+        p.use('A').line(8 * s, c, (8 + 16 * g) * s, c, Math.max(p.px, 2.4 * s * g), 1.3, 0.45)
+      }
+      p.use('B').blob((10 + 8 * t) * s, c - 2 * s * t, (2 + 4 * t) * s, 0.9 * (1 - t), 0.3, 2)
+    },
+  },
+  {
+    id: 'fx-shield-break', color: 'ice', frames: 8, fps: 14, tags: ['combat', 'feedback'], variants: ['holy', 'steel', 'arcane', 'fire'],
+    setup(p) { return p.emit({ count: 10, x: p.c, y: p.c, speed: [10, 18], angle: [0, TAU], gravity: 25, life: [0.5, 0.65], size: [1.2, 2], delay: [0.3, 0.34] }) },
+    draw(p, t) {
+      const { c, s } = p
+      if (t < 0.32) {
+        p.ring(c, c, 10 * s, 2.2 * s, 1.05)
+        const crack = clamp(t / 0.28)
+        p.line(c, c - 10 * s, c + 2 * s, c - 10 * s + 8 * s * crack, p.px, 1.3)
+        p.line(c + 2 * s, c - 2 * s, c - 3 * s, c - 2 * s + 9 * s * crack, p.px, 1.3)
+      }
+      p.particles(p.state, t, { shape: 'spark', v: 1.15 })
+    },
+  },
+  {
+    id: 'fx-ko', color: 'red', clean: false, frames: 8, fps: 12, tags: ['combat', 'feedback'], variants: ['fire', 'arcane', 'holy', 'dark'],
+    draw(p, t) {
+      const { c, s } = p
+      if (t < 0.4) p.star(c, c, (6 + 16 * t) * s, 10, 1.1 - t, 0.35)
+      const k = 2 * p.px, text = 'KO!', x0 = c - ((text.length * 5 - 2) * k) / 2
+      const y = c - (5 * k) / 2 - out(clamp(t * 2)) * 2 * s
+      for (let n = 0; n < text.length; n++) p.glyph(text[n], x0 + n * 5 * k, y, t > 0.85 ? 0.75 : 1.2, k)
+    },
+  },
 ]
