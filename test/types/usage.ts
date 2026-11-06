@@ -21,6 +21,9 @@ const combined: Pixmap = compose(spell('hero'), spell('crown').at(0, -7))
 const { image, frames } = sheet(spell.frames('coin'), { columns: 4 })
 const label: Pixmap = text('SCORE 9', { color: '#ffd06a' })
 const dialog: Pixmap = spell('panel').nineSlice(160, 64)
+const theme: Sound = spell.music('town', { key: 2, tempo: 1.1, seed: 1 })
+const looping: boolean | undefined = spell.music.info('battle')?.loop
+const tracks: string[] = spell.music.list
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

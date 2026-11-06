@@ -965,3 +965,32 @@ characters had little world to stand in. The plan is world building, then monste
   and a test.
 - **Showcase:** `docs/img/ui.png` is a game screen made from the kit: hearts, three bars, a dialog with a portrait and
   buttons, an inventory of slots filled with the new items, and an icon panel.
+
+### (e) Shipped: music made by code
+
+- **`spell.music(name, { key, tempo, seed })`** (`src/music.js`) adds 17 tracks:
+  - 14 seamless loops for scenes: title, town, field, forest, dungeon, cave, battle, boss, shop, night, castle,
+    desert, snow, ocean;
+  - 3 jingles: victory, level-clear, game-over.
+- **A song is a few lines of data:** tempo, key and scale, chords (one per bar), and a style for each channel. The
+  engine writes the parts:
+  - the melody puts chord tones on strong beats and moves by scale steps between them. A 4-bar phrase repeats with its
+    first two bars as a hook, and the second ending lands on the tonic;
+  - the bass plays root, root-fifth, walking or pulse patterns on a triangle wave;
+  - harmony is pulse-wave arpeggios or held pads;
+  - drums come from pattern strings, with a fill every 8 bars.
+- **How it plays:** everything goes through `renderSound` as one recipe of timed layers, so tracks use the effects'
+  voices and their seamless-loop crossfade. The jingles are written out note by note. The melody's seed is the
+  song's id, so a track never changes; `seed` writes another melody, `key` transposes and `tempo` scales.
+- **Fixed during the work:** the first draft built the melody's pitch pool by transposing an already-transposed
+  scale. Only keys on C came out right, and the dungeon track crashed. Pitch classes are now compared directly.
+- **Checks:**
+  - every track renders under 0.4 s in Node, loops between 16 and 42 s, and doesn't clip;
+  - loop seams are under 0.006;
+  - every melody note is in its key and scale;
+  - a seed gives a new melody, tempo scales the length, and key transposes;
+  - 18 new snapshot hashes, with no existing one changed.
+- **Where it shows up:** the sounds page has a Music section (click to loop, click again to stop), `pixspell music
+  [name]` lists or renders tracks, and MCP items take `{ "music": "town" }`.
+- **Not checked:** I can't listen to the tracks. Every check above is numeric, so whether they sound good is for a
+  person to judge.

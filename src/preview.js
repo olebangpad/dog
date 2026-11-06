@@ -106,6 +106,7 @@ export function previewSheet(entries, { zoom, maxFrames = 16, width = 1200 } = {
 // { char, status: 'burning', element? }                  -> spell.status(spec, effect, opts)
 // { fx: 'meteor', element?, size?, seed?, A? }           -> spell.fx(name, opts)
 // { sfx: 'slash', element?, pitch?, seed? }              -> spell.sfx(name, opts)
+// { music: 'town', key?, tempo?, seed? }                 -> spell.music(name, opts)
 
 const pickOpts = (item, keys) => Object.fromEntries(keys.filter((k) => item[k] != null).map((k) => [k, item[k]]))
 const RAMPS = ['A', 'B', 'C']
@@ -118,6 +119,7 @@ const charSpec = (item) => {
 /** Run the PixSpell call an item names. */
 export function resolveItem(spell, item) {
   if (!item || typeof item !== 'object') throw new Error('pixspell: an item is an object like { "fx": "meteor" }')
+  if (item.music) return spell.music(item.music, pickOpts(item, ['key', 'tempo', 'seed']))
   if (item.sfx) return spell.sfx(item.sfx, pickOpts(item, ['element', 'pitch', 'seed']))
   if (item.fx) return spell.fx(item.fx, pickOpts(item, ['element', 'size', 'seed', 'grid', 'light', ...RAMPS]))
   if (item.char && item.action) return spell.action(charSpec(item), item.action, pickOpts(item, ['element', 'grid', 'amount', 'text', 'style']))
@@ -125,7 +127,7 @@ export function resolveItem(spell, item) {
   if (item.char && item.status) return spell.status(charSpec(item), item.status, pickOpts(item, ['element', 'grid', 'size']))
   if (item.char) return spell.char.frames({ ...charSpec(item), ...pickOpts(item, ['grid', ...RAMPS]) })
   if (item.sprite) return spell.frames(item.sprite, pickOpts(item, ['grid', ...RAMPS]))
-  throw new Error('pixspell: an item needs one of sprite, char, fx or sfx')
+  throw new Error('pixspell: an item needs one of sprite, char, fx, sfx or music')
 }
 
 const lit = (v) => (typeof v === 'string' ? `'${v}'` : typeof v === 'object' ? obj(v) : String(v))
@@ -139,6 +141,7 @@ const args = (...xs) => xs.filter((x) => x !== '' && x != null).join(', ')
 export function itemCode(item) {
   const spec = item.char && (typeof item.char === 'string' && !item.grid && !RAMPS.some((k) => item[k]) ? lit(item.char) : null)
   const charArg = () => spec ?? obj({ ...charSpec(item), ...(item.action || item.status ? {} : pickOpts(item, ['grid', ...RAMPS])) })
+  if (item.music) return `spell.music(${args(lit(item.music), obj(pickOpts(item, ['key', 'tempo', 'seed'])))})`
   if (item.sfx) return `spell.sfx(${args(lit(item.sfx), obj(pickOpts(item, ['element', 'pitch', 'seed'])))})`
   if (item.fx) return `spell.fx(${args(lit(item.fx), obj(pickOpts(item, ['element', 'size', 'seed', 'grid', 'light', ...RAMPS])))})`
   if (item.char && item.action) return `spell.action(${args(charArg(), lit(item.action), obj(pickOpts(item, ['element', 'grid', 'amount', 'text', 'style'])))})`

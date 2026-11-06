@@ -34,6 +34,8 @@ usage:
   pixspell fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
   pixspell sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
                                            a sound effect as a WAV file (pixspell sfx alone lists them)
+  pixspell music [name] [--key 2] [--tempo 1.1] [--seed n] -o out.wav
+                                           chiptune music: a seamless loop or a jingle (pixspell music alone lists them)
   pixspell sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
   pixspell export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o pixspell-32px.zip
                                            everything for one tile size in one zip
@@ -105,6 +107,8 @@ function parse(argv) {
     else if (a === '--claude') opts.claude = true
     else if (a === '--stats') opts.stats = next()
     else if (a === '--zoom') opts.zoom = Number(next())
+    else if (a === '--key') opts.key = Number(next())
+    else if (a === '--tempo') opts.tempo = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -221,6 +225,17 @@ if (!cmd || o.help) {
     const sound = spell.sfx(name, { element: o.element, pitch: o.pitch, seed: o.seed, volume: o.volume })
     save(o.out ?? `${sound.id}.wav`, sound.toWAV())
     console.log(`${sound.duration.toFixed(2)}s${sound.loop ? ', seamless loop' : ''}`)
+  }
+} else if (cmd === 'music') {
+  if (!args[0]) {
+    for (const id of spell.music.list) {
+      const i = spell.music.info(id)
+      console.log(`${id.padEnd(12)} ${i.loop ? `${i.tempo} bpm, ${i.key} ${i.scale}, ${i.bars} bars, loops` : 'jingle'}  [${i.tags.join(', ')}]`)
+    }
+  } else {
+    const song = spell.music(args[0], { seed: o.seed, key: o.key, tempo: o.tempo, volume: o.volume })
+    save(o.out ?? `${args[0]}.wav`, song.toWAV())
+    console.log(`${song.duration.toFixed(1)}s, ${song.loop ? 'seamless loop' : 'plays once'}`)
   }
 } else if (cmd === 'sfxpack') {
   const pack = spell.sfxPack(args.length ? args : undefined, { element: o.element, pitch: o.pitch })

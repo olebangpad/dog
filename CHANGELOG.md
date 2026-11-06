@@ -13,6 +13,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **World building:** 42 more tiles and props (614 sprite looks in all): doors, windows, roofs, fences, furniture, dungeon
   pieces (pillars, spike traps, stairs, cobwebs, bones), a cauldron, anvil, well, fountain, banners, tent, mine cart and
   rails, more nature, and seamless cobblestone, roof, carpet, checkered floor, bridge and animated lava.
+- **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
+  town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
+  lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
 - **UI kit:** `panel`, `slot`, `button`, `button-pressed`, a 32×8 `bar` (health, mana, XP, stamina, shield, empty) and
   icons (settings, sound, mute, pause, play, home, menu, plus, minus, arrow). New `Pixmap.nineSlice(w, h, edge)`
   stretches framed images to any size with their corners intact.

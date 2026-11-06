@@ -55,3 +55,6 @@
 .sfx-pitch output { font: 12px var(--pixel); color: var(--ink); min-width: 48px; }
 #vary[aria-pressed='true'] { border-color: var(--accent); color: var(--ink); }
 .fx-wrap > .code-head { margin-top: 18px; }
+.music-head { font: 20px var(--pixel); color: var(--accent); margin: 26px 0 10px; }
+.music-head small { display: block; font: 13px system-ui, sans-serif; color: var(--muted); margin-top: 4px; }
+.music-grid .fx-card .note-icon { font-size: 26px; line-height: 48px; height: 48px; color: var(--accent); }

@@ -942,3 +942,47 @@ test('nineSlice keeps the corners and repeats the middle', () => {
   assert.deepEqual(p.nineSlice(16, 16).data, p.data, 'same size, same image')
   assert.equal(p.nineSlice(2, 2).w, 9, 'never smaller than the two corners and one middle pixel')
 })
+
+// ------------------------------------------------------------------ music
+import { SONGS, songRecipe } from '../src/music.js'
+
+test('music: every track renders, loops seamlessly or plays once, and stays in its key', () => {
+  assert.ok(spell.music.list.length >= 15)
+  const SCALE = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], harmonic: [0, 2, 3, 5, 7, 8, 11], phrygian: [0, 1, 4, 5, 7, 8, 10] }
+  const PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
+  for (const id of spell.music.list) {
+    const s = spell.music(id), info = spell.music.info(id)
+    assert.equal(s.loop, info.loop, id)
+    if (s.loop) {
+      assert.ok(s.duration > 10 && s.duration < 60, `${id} ${s.duration}s`)
+      assert.ok(Math.abs(s.samples.at(-1) - s.samples[0]) < 0.05, `${id} loop seam`)
+    } else assert.ok(s.duration < 6, `${id} jingle ${s.duration}s`)
+    let peak = 0, energy = 0
+    for (const v of s.samples) { peak = Math.max(peak, Math.abs(v)); energy += v * v }
+    assert.ok(peak <= 0.951, `${id} clips`)
+    assert.ok(Math.sqrt(energy / s.samples.length) > 0.05, `${id} too quiet`)
+    const song = SONGS.find((x) => x.id === id)
+    if (song.jingle) continue
+    const tonic = (PC[song.key[0]] + (song.key[1] === 'b' ? -1 : song.key[1] === '#' ? 1 : 0) + 12) % 12
+    const inKey = SCALE[song.scale].map((x) => (x + tonic) % 12)
+    const lead = songRecipe(song).layers.filter((l) => l.vibrato).map((l) => Math.round(69 + 12 * Math.log2(l.freq / 440)) % 12)
+    assert.ok(lead.length >= 8, `${id} has a melody`)
+    for (const pc of lead) assert.ok(inKey.includes(pc), `${id}: melody note ${pc} outside ${song.key} ${song.scale}`)
+  }
+  assert.throws(() => spell.music('nope'), /no music/)
+  assert.equal(spell.music.info('nope'), null)
+  assert.deepEqual(spell.music.tags('boss'), ['battle', 'boss', 'intense'])
+})
+
+test('music: same call, same samples; key, tempo and seed change it', () => {
+  const a = spell.music('shop', { volume: 0.999 }), b = spell.music('shop', { volume: 0.998 })
+  assert.ok(Math.abs(a.samples[20000] / 0.999 - b.samples[20000] / 0.998) < 1e-6, 'deterministic')
+  const base = spell.music('shop')
+  const fast = spell.music('shop', { tempo: 1.25 })
+  assert.ok(Math.abs(fast.duration - base.duration / 1.25) < 0.05, 'tempo scales the length')
+  const up = spell.music('shop', { key: 3 }), other = spell.music('shop', { seed: 2 })
+  assert.equal(up.samples.length, base.samples.length)
+  assert.notDeepEqual(up.samples.slice(0, 5000), base.samples.slice(0, 5000), 'key transposes')
+  assert.equal(other.samples.length, base.samples.length)
+  assert.notDeepEqual(other.samples, base.samples, 'seed writes another melody')
+})

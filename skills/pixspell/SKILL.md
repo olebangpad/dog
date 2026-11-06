@@ -117,6 +117,22 @@ console.log(swing.duration, wav.length, Object.keys(sounds.files))
   `this.sound.decodeAudio('coin', spell.sfx('coin').toWAV().buffer)` and play after the `decoded` event.
   Godot: drop the WAVs in and use an `AudioStreamPlayer`. Every sound is also in `assets/sfx/<name>.wav`.
 
+## Music
+
+17 chiptune tracks made by code (`spell.music.list`): seamless loops `title` `town` `field` `forest` `dungeon` `cave`
+`battle` `boss` `shop` `night` `castle` `desert` `snow` `ocean` and jingles `victory` `level-clear` `game-over`.
+A track is a Sound like the effects: `.play()` (loops by itself; keep what it returns to `.stop()` it), `.toWAV()`, `.save()`.
+
+```js
+const theme = spell.music('town')                          // 16 bars, a seamless loop (~37 s)
+const faster = spell.music('battle', { tempo: 1.1, key: 2 }) // 10% faster, two semitones up
+const another = spell.music('dungeon', { seed: 1 })          // same style, a different melody
+console.log(theme.loop, faster.duration, spell.music.info('battle'), spell.music('victory').loop)
+```
+
+- Switch tracks on scene changes: `music?.stop(); music = spell.music('battle').play()`. Play the first one from a key
+  press or click (autoplay rules). Each track takes a fraction of a second to render the first time, then it's cached.
+
 ## Everything else
 
 ```js

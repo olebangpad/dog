@@ -20,6 +20,7 @@ import { zip } from './zip.js'
 import { createBundle } from './bundle.js'
 import { renderSound, Sound, note, SAMPLE_RATE } from './sfx.js'
 import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
+import { SONGS, renderSong } from './music.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -351,6 +352,41 @@ spell.sfx.forEffect = (fx) => {
   if (EFFECT_SOUNDS[id] !== undefined) return EFFECT_SOUNDS[id]
   const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
   return base ? EFFECT_SOUNDS[base] : null
+}
+
+// ------------------------------------------------------------------ music
+const songById = Object.fromEntries(SONGS.map((s) => [s.id, s]))
+const musicMemo = new Map()
+
+/**
+ * Chiptune music made by code: seamless loops for each kind of scene, and short jingles.
+ *   spell.music('town').play()                        loops until you call .stop() on what play() returns
+ *   spell.music('battle', { tempo: 1.1, key: 2 })      faster, two semitones up
+ *   spell.music('dungeon', { seed: 1 })                the same style with a different melody
+ *   spell.music('victory').play()                      jingles play once
+ *   await spell.music('title').save('title.wav')       Node
+ */
+spell.music = (name, opts = {}) => {
+  const song = songById[name]
+  if (!song) throw new Error(`pixspell: no music called "${name}". Try spell.music.list`)
+  const { seed = 0, key = 0, tempo = 1, volume = 1 } = opts
+  const memoKey = `${name}|${seed}|${key}|${tempo}|${volume}`
+  let sound = musicMemo.get(memoKey)
+  if (!sound) {
+    sound = renderSong(song, { seed, key, tempo })
+    if (volume !== 1) for (let i = 0; i < sound.samples.length; i++) sound.samples[i] *= volume
+    if (musicMemo.size >= 20) musicMemo.delete(musicMemo.keys().next().value)
+    musicMemo.set(memoKey, sound)
+  }
+  return sound
+}
+spell.music.list = SONGS.map((s) => s.id)
+spell.music.tags = (name) => [...(songById[name]?.tags ?? [])]
+/** Tempo, key, bars and whether it loops, e.g. { tempo: 104, key: 'F', bars: 16, loop: true }. */
+spell.music.info = (name) => {
+  const s = songById[name]
+  if (!s) return null
+  return { tempo: s.tempo, key: s.key ?? null, scale: s.scale ?? null, bars: s.bars ?? null, loop: !s.jingle, tags: [...s.tags] }
 }
 
 /**

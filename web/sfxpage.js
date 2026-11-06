@@ -8,7 +8,7 @@ const ids = spell.sfx.list
 const state = { kind: 'all', element: null, pitch: 1, vary: false, last: 'coin' }
 
 $('#sfx-count').textContent = ids.length
-$('#sfx-designs').textContent = `${ids.length} sounds × ${spell.sfx.elements.length + 1} element flavors × any pitch · every attack style and action has one`
+$('#sfx-designs').textContent = `${ids.length} sounds × ${spell.sfx.elements.length + 1} element flavors × any pitch · every attack style and action has one · plus ${spell.music.list.length} music tracks`
 
 const kindOf = (id) => KINDS.find((k) => k !== 'all' && spell.sfx.tags(id).includes(k)) ?? 'element'
 const opts = (seed = 0) => ({ element: state.element ?? undefined, pitch: state.pitch, seed })
@@ -39,7 +39,7 @@ function buildGrid() {
     const canvas = h('canvas', { width: 48, height: 24, 'aria-hidden': 'true' })
     const card = h('div', { class: 'fx-card', 'data-id': id },
       h('button', { class: 'play', title: `Play ${id}`, onclick: () => play(id) },
-        canvas, h('span', {}, id), h('span', { class: 'kind' }, `${kindOf(id)}${spell.sfx(id).loop ? ' · loop' : ''}`)),
+        canvas, h('span', {}, id), h('span', { class: 'kind' }, `${kindOf(id)}${spell.sfx(id).loop && kindOf(id) !== 'loop' ? ' · loop' : ''}`)),
       h('button', { class: 'dl', title: `Download ${id}.wav`, 'aria-label': `Download ${id}.wav`, onclick: () => saveOne(id) }, '⬇'))
     cards.set(id, { card, canvas })
     grid.append(card)
@@ -126,6 +126,36 @@ $('#vary').addEventListener('click', (e) => {
   state.vary = !state.vary
   e.currentTarget.setAttribute('aria-pressed', String(state.vary))
 })
+
+// ---------------------------------------------------------------- music
+let song = null // { id, handle, card }
+function playMusic(id, card) {
+  const same = song?.id === id
+  if (song) { song.handle.stop(); song.card.classList.remove('playing'); song = null }
+  if (same) return
+  const s = spell.music(id) // written and rendered the first time, a fraction of a second
+  card.classList.add('playing')
+  song = { id, handle: s.play(), card }
+  if (!s.loop) setTimeout(() => { if (song?.id === id) { card.classList.remove('playing'); song = null } }, s.duration * 1000)
+  $('#code').textContent = [
+    `import { spell } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'`,
+    '',
+    s.loop ? `const music = spell.music('${id}').play()      // a seamless loop; music.stop() ends it` : `spell.music('${id}').play()                    // a jingle: plays once`,
+    `spell.music('${id}', { key: 2, tempo: 1.1 })   // two semitones up, 10% faster`,
+    `spell.music('${id}', { seed: 1 })              // the same style, a different melody`,
+    `await spell.music('${id}').save('${id}.wav')   // Node`,
+  ].join('\n')
+}
+for (const id of spell.music.list) {
+  const info = spell.music.info(id)
+  const card = h('div', { class: 'fx-card', 'data-music': id })
+  card.append(
+    h('button', { class: 'play', title: `Play ${id}`, onclick: () => playMusic(id, card) },
+      h('span', { class: 'note-icon', 'aria-hidden': 'true' }, info.loop ? '♫' : '♪'), h('span', {}, id),
+      h('span', { class: 'kind' }, info.loop ? `${info.tempo} bpm · loop` : 'jingle')),
+    h('button', { class: 'dl', title: `Download ${id}.wav`, 'aria-label': `Download ${id}.wav`, onclick: () => download(`${id}.wav`, spell.music(id).toWAV(), 'audio/wav') }, '⬇'))
+  $('#music-grid').append(card)
+}
 
 $('#favicon').href = spell('fx-notes', { frame: 4 }).toDataURL()
 buildGrid()

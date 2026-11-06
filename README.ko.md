@@ -7,7 +7,7 @@
 **2D 게임에 필요한 에셋 전부를 코드로.** 걷고 싸우는 캐릭터, 아이템과 타일, 빛나는 이펙트, 효과음까지
 자바스크립트 한 줄로 만들고, 색과 크기를 바꿉니다. AI 코딩 에이전트에게 시켜도 됩니다. 그림은 CC0, 의존성 0개.
 
-걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **845**개 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
+걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **845**개 · 이펙트 **545**종 · 효과음 **66**개 · 음악 **17**곡 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 15종](#-캐릭터-메이커) · 새 아이템 26종 · [UI 키트](#-ui-키트) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 15종](#-캐릭터-메이커) · 새 아이템 26종 · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 66개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -287,6 +287,19 @@ spell.sfxPack(['slash', 'hit', 'coin']).zip()             // WAV 묶음 zip
 UI 효과음, 점프·발소리, 코인·보석·상자, 무기별 공격음, 타격·크리티컬·막기·패링, 마법, 폭발·운석·지진, 속성 소리,
 승리·패배·팡파르 징글, 끊김 없이 반복되는 비·바람·모닥불 소리까지 있습니다. 전부 `assets/sfx/`에 16비트 WAV로 들어 있고 CC0입니다.
 
+### 🎵 코드로 만든 음악
+
+칩튠 17곡: 타이틀, 마을, 필드, 숲, 던전, 동굴, 전투, 보스, 상점, 밤, 성, 사막, 설원, 바다용 루프와 `victory`, `level-clear`, `game-over`
+징글입니다. 엔진이 곡 데이터 몇 줄(템포, 조성, 코드, 스타일)로 각 파트를 씁니다. 다시 돌아오는 훅과 으뜸음으로 끝나는 마무리가 있는
+멜로디, 베이스, 아르페지오나 패드, 드럼을 효과음과 같은 소리로 연주합니다. [**소리 페이지**](https://olebangpad.github.io/pixspell/sfx.html#music-grid)에서 들어 보세요.
+
+```js
+const music = spell.music('town').play()             // music.stop() 할 때까지 반복
+spell.music('battle', { tempo: 1.1, key: 2 })        // 더 빠르게, 두 반음 높게
+spell.music('dungeon', { seed: 1 })                  // 같은 분위기, 다른 멜로디
+await spell.music('boss').save('boss.wav')           // Node, 또는: npx pixspell music boss
+```
+
 ### 🚶 4방향 걷기
 
 사람형 캐릭터는 앞·뒤·옆 모습이 따로 그려져 있고, 장비도 방향에 맞게 바뀝니다
@@ -465,6 +478,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.pack(spec)` · `spell.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
 | `spell.sfx(name, { element, pitch, seed })` | 효과음: `.play()`, `.toWAV()`, `.save(path)`. 목록은 `spell.sfx.list`, 이펙트 소리는 `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | 효과음 WAV 묶음 zip |
+| `spell.music(name, { key, tempo, seed })` | 칩튠 음악: 끊김 없이 반복되는 루프나 짧은 징글(Sound). 목록은 `spell.music.list`, 정보는 `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | 위 모든 호출에 붙는 옵션: 그 타일 크기용 그림 (`smooth: false`면 단순 확대) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | 아무 PixSpell 이미지나 변환 · 한 타일 크기의 전체 파일 목록 |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |

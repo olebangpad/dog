@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **845** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **845** sprites · **545** effects · **66** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -70,7 +70,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [15 new monsters](#-character-maker) · 26 new items · [a UI kit](#-a-ui-kit) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [15 new monsters](#-character-maker) · 26 new items · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -292,6 +292,20 @@ UI blips, jumps and steps, coins, gems and chests, every weapon swing, hits, cri
 meteors and quakes, element sounds, win / lose / fanfare jingles, and seamless rain, wind and campfire loops.
 All of them are pre-exported in `assets/sfx/` as 16-bit WAV, CC0.
 
+### 🎵 Music, made by code
+
+17 chiptune tracks: seamless loops for the title screen, town, field, forest, dungeon, cave, battle, boss, shop, night,
+castle, desert, snow and ocean, plus `victory`, `level-clear` and `game-over` jingles. The engine writes each part from a
+few lines of song data (tempo, key, chords, style): a melody with a hook that comes back and a cadence home, a bass line,
+arpeggios or pads, and drums, with the same voices as the sound effects. Listen on the [**sounds page**](https://olebangpad.github.io/pixspell/sfx.html#music-grid).
+
+```js
+const music = spell.music('town').play()             // loops until music.stop()
+spell.music('battle', { tempo: 1.1, key: 2 })        // faster, two semitones up
+spell.music('dungeon', { seed: 1 })                  // the same style, a new melody
+await spell.music('boss').save('boss.wav')           // Node; or: npx pixspell music boss
+```
+
 ### 🚶 Walk in 4 directions
 
 Humanoids have drawn front, back and side poses; gear follows the view (the weapon swaps hands from behind,
@@ -499,6 +513,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
 | `spell.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `spell.sfx.list`, `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | sounds as WAV files in one zip |
+| `spell.music(name, { key, tempo, seed })` | chiptune music: a seamless loop or a jingle, as a Sound. Tracks: `spell.music.list`, `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | convert any PixSpell image · every file for one tile size, for your own exporter |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |

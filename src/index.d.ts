@@ -176,6 +176,25 @@ export interface SequenceStep {
   with?: boolean
 }
 
+export interface MusicOptions {
+  /** 0 (default) is the track as written; other seeds write a different melody in the same style. */
+  seed?: number
+  /** Transpose by semitones, e.g. 2 or -3. */
+  key?: number
+  /** Speed multiplier: 1.1 = 10% faster. */
+  tempo?: number
+  volume?: number
+}
+
+export interface MusicInfo {
+  tempo: number
+  key: string | null
+  scale: string | null
+  bars: number | null
+  loop: boolean
+  tags: string[]
+}
+
 export interface SfxOptions {
   /** 0 (default) is the canonical sound; other seeds vary pitch and timing a little. */
   seed?: number
@@ -267,6 +286,14 @@ export interface PixSpell {
     sampleRate: number
     /** The sound for an effect ('fx-meteor' -> 'meteor'), or null for silent ambience. */
     forEffect(effect: string): string | null
+  }
+  /** Chiptune music made by code: seamless loops (spell.music('town').play()) and jingles ('victory'). */
+  music: {
+    (name: string, opts?: MusicOptions): Sound
+    /** Every track: title, town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean, and jingles. */
+    list: string[]
+    tags(name: string): string[]
+    info(name: string): MusicInfo | null
   }
   /** Sounds (all, or the names given) as WAV files in one zip. */
   sfxPack(names?: string[], opts?: SfxOptions & { name?: string }): SoundPack

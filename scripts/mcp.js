@@ -22,7 +22,7 @@ const b64 = (bytes) => Buffer.from(bytes).toString('base64')
 
 const ITEM = {
   type: 'object',
-  description: 'One PixSpell asset. Give exactly one of sprite, char, fx or sfx; with char, optionally one of action, walk or status.',
+  description: 'One PixSpell asset. Give exactly one of sprite, char, fx, sfx or music; with char, optionally one of action, walk or status.',
   properties: {
     sprite: { type: 'string', description: 'Sprite id, e.g. "slime-pink", "sword-gold", "grass", "chest". See the catalog tool.' },
     char: {
@@ -38,6 +38,9 @@ const ITEM = {
     status: { type: 'string', description: 'With char: a status effect on it, e.g. "burning", "frozen", "poisoned", "sleep"' },
     fx: { type: 'string', description: 'Effect name, e.g. "meteor", "slash", "explosion", "heal", "rain". See the catalog tool.' },
     sfx: { type: 'string', description: 'Sound name, e.g. "slash", "coin", "jump", "levelup". See the catalog tool.' },
+    music: { type: 'string', description: 'Music track: "title", "town", "field", "dungeon", "battle", "boss", "victory"... See the catalog tool.' },
+    key: { type: 'number', description: 'Music: transpose by semitones' },
+    tempo: { type: 'number', description: 'Music: speed multiplier, e.g. 1.1' },
     element: { type: 'string', description: 'fire, ice, poison, holy, dark, water, nature, blood, arcane, steel, or a #hex color' },
     size: { type: 'number', description: 'Effect frame size in px (default 32)' },
     grid: { type: 'number', enum: [8, 16, 32, 64], description: 'Tile size the art is made for (default 16)' },
@@ -92,11 +95,11 @@ const TOOLS = [
   {
     name: 'catalog',
     title: 'Find asset names',
-    description: 'List PixSpell names: sprites, bodies, hats, held, offhand, fx, sfx, actions, elements or materials, optionally filtered by a word.',
+    description: 'List PixSpell names: sprites, bodies, hats, held, offhand, fx, sfx, music, actions, elements or materials, optionally filtered by a word.',
     inputSchema: {
       type: 'object',
       properties: {
-        kind: { type: 'string', enum: ['sprites', 'bodies', 'hats', 'held', 'offhand', 'fx', 'sfx', 'actions', 'elements', 'materials'] },
+        kind: { type: 'string', enum: ['sprites', 'bodies', 'hats', 'held', 'offhand', 'fx', 'sfx', 'music', 'actions', 'elements', 'materials'] },
         query: { type: 'string', description: 'Substring filter, e.g. "sword" or "slime"' },
       },
       required: ['kind'],
@@ -121,6 +124,7 @@ const LISTS = {
   offhand: () => spell.char.parts.offhand.map((h) => h.replace(/^held-/, '')),
   fx: () => spell.fx.list.map((id) => id.replace(/^fx-/, '')),
   sfx: () => spell.sfx.list,
+  music: () => spell.music.list,
   actions: () => spell.action.list,
   elements: () => Object.keys(spell.fx.colors),
   materials: () => MATERIAL_NAMES,
