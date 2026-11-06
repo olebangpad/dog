@@ -13,6 +13,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **World building:** 42 more tiles and props (614 sprite looks in all): doors, windows, roofs, fences, furniture, dungeon
   pieces (pillars, spike traps, stairs, cobwebs, bones), a cauldron, anvil, well, fountain, banners, tent, mine cart and
   rails, more nature, and seamless cobblestone, roof, carpet, checkered floor, bridge and animated lava.
+- **UI kit:** `panel`, `slot`, `button`, `button-pressed`, a 32×8 `bar` (health, mana, XP, stamina, shield, empty) and
+  icons (settings, sound, mute, pause, play, home, menu, plus, minus, arrow). New `Pixmap.nineSlice(w, h, edge)`
+  stretches framed images to any size with their corners intact.
 - **Items:** 26 more (48 in all): dagger, spear, hammer, wand, armor, boots, amulet, candle, bread, cheese, cake, carrot,
   egg, grapes, bottle, gold bar, trophy, map, compass, hourglass, feather, bone, backpack, letter, dice and runes.
 - **Monsters:** 15 new ones (spider, snake, rat, wolf, mushroom monster, crab, beetle, golem, imp, will-o-wisp,

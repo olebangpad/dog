@@ -954,3 +954,14 @@ characters had little world to stand in. The plan is world building, then monste
 - **Counts:** 48 items, 790 sprite looks.
 - **Art fix:** the dice pips were drawn in the body's dark shade, which on white bone is pale grey and invisible, so
   they use the outline color now.
+
+### (d) Shipped: a UI kit and `nineSlice`
+
+- **New sprites:** `panel`, `slot` and two button states, all drawn with a 4 px frame and a uniform middle so they
+  can be 9-sliced. Plus a 32×8 `bar` whose variants (`mana`, `xp`, `stamina`, `shield`, `empty`) make a fill by
+  cropping, and ten icons: settings, sound, mute, pause, play, home, menu, plus, minus, arrow.
+- **New method `Pixmap.nineSlice(w, h, edge = 4)`:** the corners stay as drawn, while the edges and the middle repeat
+  rather than stretch, so the pixels stay crisp. Added to the types, README tables, SKILL.md (with a runnable example)
+  and a test.
+- **Showcase:** `docs/img/ui.png` is a game screen made from the kit: hearts, three bars, a dialog with a portrait and
+  buttons, an inventory of slots filled with the new items, and an icon panel.

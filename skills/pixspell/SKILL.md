@@ -134,7 +134,7 @@ text('SCORE 120', { color: '#ffd06a' }) // 3x5 pixel font, uppercase
 
 Pixmap methods return new images and chain: `.scale(4)` (`0.5` halves) `.smooth()` `.resize(w, h)` `.flipX()` `.flipY()` `.rotate(90)`
 `.outline('#fff')` `.shadow()` `.silhouette('#fff')` `.hue(90)` `.adjust({ hue, saturation, lightness })` `.tint(color, 0.5)`
-`.opacity(0.5)` `.pad(n)` `.crop(x, y, w, h)` `.trim()` `.draw(img, x, y)`; output: `.toCanvas()` `.toDataURL()` `.toPNG()` `.save(path)` (Node).
+`.opacity(0.5)` `.pad(n)` `.crop(x, y, w, h)` `.trim()` `.nineSlice(w, h)` `.draw(img, x, y)`; output: `.toCanvas()` `.toDataURL()` `.toPNG()` `.save(path)` (Node).
 
 Materials: `red orange gold lime green mint ice blue purple pink wood leather skin sand iron stone bone shadow`.
 
@@ -144,6 +144,17 @@ Maps: seamless ground tiles (`grass` `dirt` `stone` `brick` `planks` `water` `co
 `cauldron` `anvil` `well` `fountain` `tent` `minecart` `tombstone` `bones` `cobweb` `tree` `pine-tree` `cactus` `bush` `rock`
 `stump` `giant-mushroom` `crystals` `lily-pad` `hay-bale` `pumpkin` `flower` `sign` `campfire`. Most have material
 variants (`door-iron`, `checker-floor-dungeon`, `lava-toxic`); every id and variant is in catalog.md.
+
+UI kit: `panel` `slot` `button` `button-pressed` stretch to any size with `.nineSlice(w, h)`; `bar` is a 32x8 health bar
+(`bar-mana`, `bar-xp`, `bar-empty`...: draw `bar-empty`, then a cropped `bar` for the fill); icons `gear` `sound` `mute`
+`pause` `play` `home` `menu` `plus` `minus` `arrow` (`.flipX()` for left), plus `heart` `star` `check` `cross` `lock` `cursor`.
+
+```js
+const dialog = spell('panel').nineSlice(160, 64)                    // corners stay crisp at any size
+const hp = 0.6                                                        // 60% health
+const hpBar = spell('bar-empty').draw(spell('bar').crop(0, 0, 1 + Math.round(30 * hp), 8), 0, 0)
+const ok = spell('button').nineSlice(48, 16).draw(text('OK'), 18, 5)
+```
 
 ## Recipe: a playable top-down game in one HTML file
 

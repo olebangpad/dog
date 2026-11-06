@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **790** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **845** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -24,7 +24,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-209_base_·_790_looks-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-224_base_·_845_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C761%2C072-a8e05a?style=flat-square)
@@ -70,7 +70,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [15 new monsters](#-character-maker) · 26 new items · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [15 new monsters](#-character-maker) · 26 new items · [a UI kit](#-a-ui-kit) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -333,13 +333,27 @@ torches, pillars, spike traps, stairs, cobwebs, bones, tombstones, mine carts an
 mushrooms, crystals and lily pads, plus seamless cobblestone, roof tiles, carpet, checkered floors, bridges and
 flowing lava. Each comes in several materials (`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-209 base sprites in 7 categories, **790 looks** with variants, 54 of them animated.
+224 base sprites in 7 categories, **845 looks** with variants, 54 of them animated.
 Characters, wearable gear, weapons (dagger, spear, hammer, wand...), armor, boots, amulets, potions, gems, food (bread, cheese, cake, carrot, egg, grapes...),
 treasure and quest items (gold bars, trophy, map, compass, hourglass, letter, runes...), monsters, seamless tiles, props, furniture, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [80 procedural effects](#-545-game-effects)
 add 525 more animated looks; all of them are exported in `assets/` too.
 
 <img src="docs/img/gallery.png" alt="Every base sprite in PixSpell" width="100%">
+
+### 🪟 A UI kit
+
+<img src="docs/img/ui.png" alt="A game screen's UI made from PixSpell: hearts, health, mana and XP bars, a dialog panel with buttons, an inventory of item slots and icon buttons" width="720">
+
+Panels, inventory slots and buttons stretch to any size with their frames intact: `spell('panel').nineSlice(160, 64)`.
+A 32×8 `bar` comes as health, mana, XP, stamina, shield and empty, and there are icons for settings, sound on and off,
+pause, play, home, menu, plus, minus and arrows next to the hearts, stars, checks and locks. Everything above is
+[about 30 lines in `scripts/build.js`](scripts/build.js).
+
+```js
+const dialog = spell('panel').nineSlice(160, 64)                                   // corners stay crisp
+const hpBar = spell('bar-empty').draw(spell('bar').crop(0, 0, 1 + Math.round(30 * hp), 8), 0, 0)
+```
 
 ## 📦 Just want the PNGs?
 
@@ -499,7 +513,7 @@ Every `Pixmap` method returns a new image, so calls chain:
 | `.smooth()` (Scale2x) | `.adjust({ hue, saturation, lightness })` | `.shadow(color, dx, dy)` |
 | `.resize(w, h)` | `.swap(from, to)` | `.silhouette(color)` |
 | `.downscale(k)` | `.quantize(palette)` | `.flipX()` `.flipY()` `.rotate(90)` |
-| `.pad(n)` `.crop()` `.trim()` | `.tint(color, amount)` `.grayscale()` | `.toPNG()` `.toCanvas()` `.save(path)` |
+| `.pad(n)` `.crop()` `.trim()` `.nineSlice(w, h)` | `.tint(color, amount)` `.grayscale()` | `.toPNG()` `.toCanvas()` `.save(path)` |
 
 Materials: `red orange gold lime green mint ice blue purple pink wood leather skin sand iron stone bone shadow`
 

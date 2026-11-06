@@ -7,7 +7,7 @@
 **2D 게임에 필요한 에셋 전부를 코드로.** 걷고 싸우는 캐릭터, 아이템과 타일, 빛나는 이펙트, 효과음까지
 자바스크립트 한 줄로 만들고, 색과 크기를 바꿉니다. AI 코딩 에이전트에게 시켜도 됩니다. 그림은 CC0, 의존성 0개.
 
-걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **790**개 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
+걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **845**개 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 15종](#-캐릭터-메이커) · 새 아이템 26종 · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 15종](#-캐릭터-메이커) · 새 아이템 26종 · [UI 키트](#-ui-키트) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 66개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -327,12 +327,25 @@ spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×2
 광차와 레일, 선인장, 전나무, 큰 버섯, 수정, 연잎, 그리고 이어 붙일 수 있는 자갈길, 지붕 기와, 카펫, 체크 바닥, 다리,
 흐르는 용암까지. 모두 재질 변형이 있습니다(`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-7개 카테고리, 기본 209종, 변형 포함 **790가지**, 이 중 54종은 애니메이션입니다. 아이템도 단검, 창, 망치, 지팡이, 갑옷, 장화, 목걸이, 빵, 치즈, 케이크, 당근, 달걀, 포도, 금괴, 트로피, 지도, 나침반, 모래시계, 편지, 룬 등 26종이 늘었습니다.
+7개 카테고리, 기본 224종, 변형 포함 **845가지**, 이 중 54종은 애니메이션입니다. 아이템도 단검, 창, 망치, 지팡이, 갑옷, 장화, 목걸이, 빵, 치즈, 케이크, 당근, 달걀, 포도, 금괴, 트로피, 지도, 나침반, 모래시계, 편지, 룬 등 26종이 늘었습니다.
 캐릭터, 착용 장비, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
 이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다. 여기에 [코드로 만든 이펙트 80종](#-이펙트-545종)이
 애니메이션 525가지를 더하고, 이것도 전부 `assets/`에 PNG로 들어 있습니다.
 
 <img src="docs/img/gallery.png" alt="PixSpell의 모든 기본 스프라이트" width="100%">
+
+### 🪟 UI 키트
+
+<img src="docs/img/ui.png" alt="PixSpell로 만든 게임 UI: 하트, 체력·마나·경험치 바, 버튼이 있는 대화 창, 아이템 칸 인벤토리, 아이콘 버튼" width="720">
+
+패널, 인벤토리 칸, 버튼은 테두리를 그대로 둔 채 원하는 크기로 늘어납니다: `spell('panel').nineSlice(160, 64)`.
+32×8 `bar`는 체력, 마나, 경험치, 기력, 보호막, 빈 바가 있고, 하트·별·체크·자물쇠 옆에 설정, 소리 켜기·끄기, 일시정지, 재생,
+홈, 메뉴, 더하기, 빼기, 화살표 아이콘이 있습니다. 위 화면 전체가 [`scripts/build.js`의 30줄 정도](scripts/build.js)입니다.
+
+```js
+const dialog = spell('panel').nineSlice(160, 64)                                   // 모서리는 그대로 선명하게
+const hpBar = spell('bar-empty').draw(spell('bar').crop(0, 0, 1 + Math.round(30 * hp), 8), 0, 0)
+```
 
 ## 📦 PNG만 필요하다면
 
@@ -458,7 +471,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `sheet(images, { columns, gap })` | 스프라이트 시트로 묶기 |
 | `text('SCORE 9', { color })` | 내장 3×5 도트 폰트 |
 
-크기: `.scale(n)` `.smooth()` `.resize(w, h)` `.downscale(k)` `.pad()` `.crop()` `.trim()`<br>
+크기: `.scale(n)` `.smooth()` `.resize(w, h)` `.downscale(k)` `.pad()` `.crop()` `.trim()` `.nineSlice(w, h)`(패널을 테두리 그대로 늘리기)<br>
 색: `.hue()` `.adjust()` `.swap()` `.quantize()` `.tint()` `.grayscale()`<br>
 효과/출력: `.outline()` `.shadow()` `.silhouette()` `.flipX()` `.flipY()` `.rotate()` `.toPNG()` `.toCanvas()` `.save()`
 

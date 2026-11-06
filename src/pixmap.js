@@ -194,6 +194,25 @@ export class Pixmap {
     return this.crop(x0, y0, x1 - x0 + 1, y1 - y0 + 1)
   }
 
+  /**
+   * Stretch a framed image (a UI panel, button or slot) to any size without stretching its frame: the corners stay
+   * as drawn, the edges and the middle repeat. `edge` is the frame width in pixels on every side.
+   */
+  nineSlice(w, h, edge = 4) {
+    const e = Math.max(0, Math.min(edge, Math.floor((this.w - 1) / 2), Math.floor((this.h - 1) / 2)))
+    w = Math.max(w | 0, 2 * e + 1); h = Math.max(h | 0, 2 * e + 1)
+    const out = this._blank(w, h), src = this._u32(), dst = out._u32()
+    const midW = this.w - 2 * e, midH = this.h - 2 * e
+    // source column / row for a target position: corners map 1:1, the middle repeats the source's middle
+    const sx = (x) => (x < e ? x : x >= w - e ? this.w - (w - x) : e + ((x - e) % midW))
+    const sy = (y) => (y < e ? y : y >= h - e ? this.h - (h - y) : e + ((y - e) % midH))
+    for (let y = 0; y < h; y++) {
+      const row = sy(y) * this.w
+      for (let x = 0; x < w; x++) dst[y * w + x] = src[row + sx(x)]
+    }
+    return out
+  }
+
   // ------------------------------------------------------------ transform
 
   flipX() {

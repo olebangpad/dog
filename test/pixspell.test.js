@@ -927,3 +927,18 @@ test('MCP server: handshake, tools, images, files kept inside the project', asyn
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('nineSlice keeps the corners and repeats the middle', () => {
+  const p = spell('panel')
+  const big = p.nineSlice(64, 40)
+  assert.equal(big.w, 64); assert.equal(big.h, 40)
+  const px = (img, x, y) => [...img.data.subarray((y * img.w + x) * 4, (y * img.w + x) * 4 + 4)].join()
+  for (const [x, y] of [[0, 0], [3, 3], [1, 2]]) {
+    assert.equal(px(big, x, y), px(p, x, y), 'top-left corner')
+    assert.equal(px(big, 63 - x, 39 - y), px(p, 15 - x, 15 - y), 'bottom-right corner')
+  }
+  assert.equal(px(big, 30, 20), px(p, 4 + ((30 - 4) % 8), 4 + ((20 - 4) % 8)), 'middle repeats')
+  assert.equal(px(big, 0, 20), px(p, 0, 4 + ((20 - 4) % 8)), 'left edge repeats down')
+  assert.deepEqual(p.nineSlice(16, 16).data, p.data, 'same size, same image')
+  assert.equal(p.nineSlice(2, 2).w, 9, 'never smaller than the two corners and one middle pixel')
+})

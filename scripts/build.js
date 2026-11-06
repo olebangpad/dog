@@ -428,6 +428,38 @@ function monstersShowcase() {
   })
 }
 
+// The UI kit put together: panels stretched with nineSlice, an inventory, bars, buttons and icons
+function uiShowcase() {
+  let img = Pixmap.create(240, 128, '#2f5a3a')
+  for (let y = 0; y < 128; y += 16) for (let x = 0; x < 240; x += 16) img = img.draw(spell('grass'), x, y)
+  const put = (p, x, y) => { img = img.draw(p, x, y) }
+  // HUD: hearts, bars
+  ;['heart', 'heart', 'heart-half', 'heart-empty'].forEach((h, i) => put(spell(h), 4 + i * 14, 2))
+  const bar = (kind, fill) => spell('bar-empty').draw(spell(kind).crop(0, 0, 1 + Math.round(30 * fill), 8), 0, 0)
+  put(bar('bar', 0.7), 64, 6); put(bar('bar-mana', 0.45), 100, 6); put(bar('bar-xp', 0.85), 136, 6)
+  ;['gear', 'sound', 'pause', 'menu'].forEach((h, i) => put(spell(h), 172 + i * 16, 2))
+  // dialog
+  put(spell('panel').nineSlice(120, 52), 6, 24)
+  put(spell.char({ body: 'heroine', hat: 'wizard', hand: 'staff' }), 12, 34)
+  put(text('WELCOME, HERO!', { color: '#3a2a1a' }), 40, 34)
+  put(text('THE CAVE IS NORTH.', { color: '#5a4630' }), 40, 44)
+  put(spell('button').nineSlice(40, 16).draw(text('ACCEPT', { color: '#ffffff' }), 9, 5), 40, 56)
+  put(spell('button-red').nineSlice(32, 16).draw(text('NO', { color: '#ffffff' }), 12, 5), 84, 56)
+  // inventory
+  put(spell('panel-stone').nineSlice(100, 76), 134, 24)
+  put(text('BAG', { color: '#e8f3e4' }), 142, 30)
+  const items = ['sword-gold', 'potion', 'armor', 'boots', 'amulet', 'bread', 'map', 'key', 'gem', 'bomb', 'rune', null]
+  items.forEach((id, i) => {
+    const x = 140 + (i % 4) * 22, y = 38 + Math.floor(i / 4) * 20
+    put(spell(i === 0 ? 'slot-gold' : 'slot'), x, y)
+    if (id) put(spell(id), x, y)
+  })
+  // bottom: a menu panel with icon buttons
+  put(spell('panel-dark').nineSlice(120, 40), 6, 82)
+  ;['play', 'home', 'plus', 'minus', 'arrow', 'mute'].forEach((h, i) => put(spell(h), 14 + i * 18, 94))
+  return img.scale(3)
+}
+
 // A village and a dungeon room built only from tiles and props, animated (lava, torches, cauldron, fountain, banners)
 function worldShowcase() {
   const T = 16, W = 14, H = 9
@@ -482,6 +514,7 @@ async function buildShowcase() {
   { const { frames, fps } = heroExample(); await write(join(dir, 'hero.png'), apng(frames, fps)) }
   await write(join(dir, 'world.png'), apng(worldShowcase(), 6))
   await write(join(dir, 'monsters.png'), apng(monstersShowcase(), 6))
+  await write(join(dir, 'ui.png'), png(uiShowcase()))
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {
     for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase, gridsShowcase })) {

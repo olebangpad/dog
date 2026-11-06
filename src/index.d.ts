@@ -48,6 +48,8 @@ export class Pixmap {
   pad(top?: number, right?: number, bottom?: number, left?: number): Pixmap
   crop(x: number, y: number, w: number, h: number): Pixmap
   trim(): Pixmap
+  /** Stretch a framed image (panel, button, slot) to w x h: corners stay, edges and middle repeat. edge: frame width (default 4). */
+  nineSlice(w: number, h: number, edge?: number): Pixmap
   // transform
   flipX(): Pixmap
   flipY(): Pixmap
