@@ -34,7 +34,7 @@ const ITEM = {
       }],
     },
     action: { type: 'string', enum: spell.action.list, description: 'With char: an 8-frame 32x32 action' },
-    walk: { type: 'string', enum: spell.walk.dirs, description: 'With char: a walk cycle in this direction' },
+    walk: { type: 'string', enum: [...spell.walk.dirs, ...spell.walk.diagonals], description: 'With char: a walk cycle in this direction (8 directions)' },
     status: { type: 'string', description: 'With char: a status effect on it, e.g. "burning", "frozen", "poisoned", "sleep"' },
     fx: { type: 'string', description: 'Effect name, e.g. "meteor", "slash", "explosion", "heal", "rain". See the catalog tool.' },
     sfx: { type: 'string', description: 'Sound name, e.g. "slash", "coin", "jump", "levelup". See the catalog tool.' },

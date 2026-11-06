@@ -25,7 +25,7 @@ usage:
   pixspell char --random [seed] -o out.png      a random character (same seed, same character)
   pixspell char <body> ... --action attack [--element fire] --anim -o hit.png
                                            actions: attack hit heal levelup cast death
-  pixspell char <body> ... --walk left --anim -o walk.png   directions: down up left right
+  pixspell char <body> ... --walk left --anim -o walk.png   directions: down up left right down-right down-left up-right up-left
   pixspell pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
                                            game pack: sprite sheet + Phaser/Aseprite JSON + Godot .tres
   pixspell fx <name> [--element ice] [--size 64] [--seed n] [--on <body>] -o out.png

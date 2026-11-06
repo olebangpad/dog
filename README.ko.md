@@ -18,7 +18,7 @@
 [이펙트 665종](#-이펙트-665종) ·
 [효과음](#-코드로-만든-효과음-103개) ·
 [상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
-[걷기](#-4방향-걷기) ·
+[걷기](#-8방향-걷기) ·
 [비트별 다운로드 (8/16/32/64)](#-png만-필요하다면) ·
 [코드에서 쓰기](#-코드에서-쓰기) ·
 [스프라이트 추가하기](CONTRIBUTING.md) ·
@@ -49,7 +49,7 @@ document.body.append(knight.scale(8).toCanvas())
     <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="빛나는 얼음 운석이 떨어져 터지는 모습"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>빛나는 이펙트 665종</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/img/show/walk.png" width="240" alt="풀밭 위를 오른쪽으로 걷는 마법사"><br><sub><code>spell.walk(mage, 'right')</code><br>4방향 걷기</sub></td>
+    <td align="center"><img src="docs/img/show/walk.png" width="240" alt="풀밭 위를 오른쪽으로 걷는 마법사"><br><sub><code>spell.walk(mage, 'right')</code><br>8방향 걷기</sub></td>
     <td align="center"><img src="docs/img/show/recolor.png" width="240" alt="여덟 가지 색으로 바뀌는 슬라임"><br><sub><code>spell('slime', { A: '#ff4fd8' })</code><br>어떤 스프라이트든 어떤 색이든</sub></td>
     <td align="center"><img src="docs/img/show/tornado.png" width="240" alt="불꽃 회오리"><br><sub><code>spell.fx('tornado', { element: 'fire', size: 64 })</code><br>크기를 키워도 선명하게</sub></td>
   </tr>
@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · 새 아이템 26종 · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -304,16 +304,19 @@ spell.music('dungeon', { seed: 1 })                  // 같은 분위기, 다른
 await spell.music('boss').save('boss.wav')           // Node, 또는: npx pixspell music boss
 ```
 
-### 🚶 4방향 걷기
+### 🚶 8방향 걷기
 
 사람형 캐릭터는 앞·뒤·옆 모습이 따로 그려져 있고, 장비도 방향에 맞게 바뀝니다
-(뒤에서 보면 무기가 반대 손에, 옆에서 보면 방패가 몸 뒤로). 동물과 몬스터는 통통 뛰거나 떠다닙니다. `left`는 `right`의 좌우 반전입니다.
+(뒤에서 보면 무기가 반대 손에, 옆에서 보면 방패가 몸 뒤로). 대각선은 앞·뒤 모습의 머리와 어깨를 옆으로 돌린 3/4 모습이고,
+모자도 같이 돌아갑니다. 동물과 몬스터는 통통 뛰거나 떠다닙니다. 왼쪽 방향은 오른쪽 방향의 좌우 반전입니다.
 
 ```js
 spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 프레임, .fps
+spell.walk(knight, 'down-right')                                       // down-left, up-right, up-left도 있음
+spell.pack(knight, { diagonals: true })                                // 8방향 걷기가 모두 들어간 게임 팩
 ```
 
-<img src="docs/img/walk.png" alt="캐릭터 6명이 4방향으로 걷는 모습" width="630">
+<img src="docs/img/walk.png" alt="캐릭터 6명이 8방향으로 걷는 모습" width="630">
 
 ### 🎨 그림 하나로 모든 색을
 
@@ -389,7 +392,7 @@ const hpBar = spell('bar-empty').draw(spell('bar').crop(0, 0, 1 + Math.round(30 
 | `assets/png@4x/` | 같은 이미지 64×64 |
 | `assets/anim/` | 애니메이션 PNG (4배) |
 | `assets/strips/` | 게임 엔진용 가로 프레임 스트립 (1배) |
-| `assets/walk/` | 모든 몸의 4방향 걷기 스트립 |
+| `assets/walk/` | 모든 몸의 8방향 걷기 스트립 |
 | `assets/sfx/` | 모든 효과음 (16비트 모노 WAV) |
 | `assets/atlas.png` + `atlas.json` | 모든 프레임이 들어간 텍스처 아틀라스 (TexturePacker JSON 형식: `this.load.atlas('pixspell', 'atlas.png', 'atlas.json')`) |
 

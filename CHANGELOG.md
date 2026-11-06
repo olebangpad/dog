@@ -28,7 +28,8 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
   before this change.
 - **Characters:**
   - 12 bodies and 2.7 million combinations of hats, held items and off-hand items, snapped on by name.
-  - 4-direction walk cycles.
+  - 8-direction walk cycles: drawn front, back and side poses, and 3/4 diagonals turned from them (`spell.walk.diagonals`,
+    `spell.pack(spec, { diagonals: true })`).
   - 6 actions (attack, hit, heal, level up, cast, death) in 5 elements, with attacks that follow the weapon.
 - **Effects that glow:** 110 procedural designs (665 looks), with a translucent light layer (`light: false` for flat pixels): bursts, magic, projectiles, beams, seamless weather, environment,
   status overlays, combat feedback and big moments. Any color, any size; sequences; effects on characters.

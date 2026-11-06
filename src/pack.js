@@ -19,7 +19,7 @@ export function createPack(spell, looks) {
   const slug = (s) => [s.body, s.hat, s.hand, s.offhand].filter(Boolean)
     .map((p) => p.replace(/^(hat|held)-/, '')).join('-').replace(/[^a-z0-9-]/g, '').slice(0, 60)
 
-  function pack(spec, { name, element, actions = spell.action.list, deflate, grid = 16, smooth } = {}) {
+  function pack(spec, { name, element, actions = spell.action.list, deflate, grid = 16, smooth, diagonals = false } = {}) {
     const s = typeof spec === 'string' ? { body: spec } : { ...spec }
     for (const k of ['action', 'element', 'frame', 'dir']) delete s[k]
     const id = name ?? slug(s)
@@ -28,7 +28,7 @@ export function createPack(spell, looks) {
     const idle = spell.char.frames(s)
     const bodyFps = looks[s.body].def.frames.length > 1 ? looks[s.body].def.fps : 4
     const rows = [{ tag: 'idle', frames: idle.map(pad), fps: bodyFps, loop: true }]
-    for (const dir of spell.walk.dirs) {
+    for (const dir of diagonals ? [...spell.walk.dirs, ...spell.walk.diagonals] : spell.walk.dirs) {
       const w = spell.walk(s, dir)
       rows.push({ tag: `walk-${dir}`, frames: w.map(pad), fps: w.fps, loop: true })
     }

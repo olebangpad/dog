@@ -1,6 +1,6 @@
 ---
 name: pixspell
-description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 600+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 100+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 8-direction walk cycles, attack/hit/heal/level-up/death animations, 600+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 100+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # PixSpell: pixel art as code
@@ -55,6 +55,7 @@ const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', 
 
 spell.char(knight)                         // 24x24 Pixmap, standing
 spell.walk(knight, 'left')                 // walk cycle frames (24x24) + .fps   dirs: down up left right
+spell.walk(knight, 'down-right')           // diagonals too: down-right down-left up-right up-left (a 3/4 view)
 spell.action(knight, 'attack', 'fire')     // 8 frames (32x32) + .fps
 spell.action(knight, 'hit', { element: 'ice', amount: '-12' })
 spell.char.random(42)                      // a reproducible random spec, great for NPCs

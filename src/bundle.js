@@ -28,7 +28,7 @@ export function createBundle(spell, looks, recipeIds) {
     if (characters) {
       for (const body of spell.char.parts.body) {
         items.push({ path: `characters/${body}.png`, make: () => spell.char(body, { grid }) })
-        for (const dir of spell.walk.dirs) items.push({ path: `characters/walk/${body}-${dir}.png`, make: () => strip(spell.walk(body, dir, { grid })) })
+        for (const dir of [...spell.walk.dirs, ...spell.walk.diagonals]) items.push({ path: `characters/walk/${body}-${dir}.png`, make: () => strip(spell.walk(body, dir, { grid })) })
       }
     }
     if (effects) {
@@ -52,7 +52,7 @@ ${k < 1 ? '  shrunk to half by vote, with the 1px outline drawn again (details l
 
 sprites/          ${16 * k}x${16 * k} items, tiles, monsters, icons (still frame); strips/ = every animation frame, left to right
 sprites/gear/     hats and held items on their own
-characters/       every body (${24 * k}x${24 * k}); walk/ = 4-direction walk strips
+characters/       every body (${24 * k}x${24 * k}); walk/ = 8-direction walk strips
 effects/          ${32 * k}x${32 * k} effect strips, frames left to right${effectColors ? ' (every color)' : ' (original colors; more colors on the effects page)'}
 sounds/           sound effects, 16-bit mono WAV (the same at every grid)
 

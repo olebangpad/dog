@@ -53,7 +53,7 @@ async function buildAssets() {
   }
   // walk strips for every base body in every direction (variants: use spell.walk with that body)
   for (const body of spell.char.parts.body.filter((b) => !looks[b].variant)) {
-    for (const dir of spell.walk.dirs) {
+    for (const dir of [...spell.walk.dirs, ...spell.walk.diagonals]) {
       await write(join(out, 'walk', `${body}-${dir}.png`), png(sheet(spell.walk(body, dir)).image))
       files++
     }
@@ -281,12 +281,14 @@ function walks() {
     { body: 'hero-orc', hat: 'horns', hand: 'hammer', offhand: 'buckler' },
     { body: 'dog-shiba', hat: 'party' },
   ]
-  const grid = spell.walk.dirs.map((dir) => cast.map((c) => spell.walk(c, dir)))
+  const dirs = [...spell.walk.dirs, ...spell.walk.diagonals]
+  const label = (d) => d.replace('down-', 'DN-').replace('up-', 'UP-').replace(/-(right|left)$/, (_, x) => `-${x[0]}`).toUpperCase()
+  const grid = dirs.map((dir) => cast.map((c) => spell.walk(c, dir)))
   const cell = 24, gap = 4, labelW = 26
   return Array.from({ length: 8 }, (_, t) => {
     let img = new Pixmap(labelW + cast.length * (cell + gap), grid.length * (cell + gap))
     grid.forEach((row, r) => {
-      img = img.draw(text(spell.walk.dirs[r].toUpperCase(), { color: ACCENT }), 0, r * (cell + gap) + 10)
+      img = img.draw(text(label(dirs[r]), { color: ACCENT }), 0, r * (cell + gap) + 10)
       row.forEach((frames, c) => { img = img.draw(frames[t % frames.length], labelW + c * (cell + gap), r * (cell + gap)) })
     })
     return framed(img, 8).scale(3)
@@ -591,7 +593,7 @@ ${table(gear('offhand'))}
 ## Actions and elements: \`spell.action(spec, action, element)\`
 
 Actions: ${spell.action.list.map((a) => `\`${a}\``).join(' ')}. Elements: ${spell.action.elements.map((e) => `\`${e}\``).join(' ')}, or any material / hex.
-Walk directions: ${spell.walk.dirs.map((d) => `\`${d}\``).join(' ')}.
+Walk directions: ${[...spell.walk.dirs, ...spell.walk.diagonals].map((d) => `\`${d}\``).join(' ')}.
 
 ${['tiles', 'items', 'monsters', 'icons', 'effects'].map((cat) => `## ${cat[0].toUpperCase() + cat.slice(1)}\n\n${table(byCat(cat))}`).join('\n\n')}
 

@@ -32,7 +32,7 @@ export async function computeSnapshots() {
   ]
   specs.forEach((s, i) => {
     out[`char:${i}`] = fnv(spell.char.frames(s))
-    for (const d of spell.walk.dirs) out[`walk:${i}:${d}`] = fnv(spell.walk(s, d))
+    for (const d of [...spell.walk.dirs, ...spell.walk.diagonals]) out[`walk:${i}:${d}`] = fnv(spell.walk(s, d))
   })
   for (const s of specs.slice(0, 6)) {
     for (const a of spell.action.list) out[`action:${s.body}:${a}`] = fnv(spell.action(s, a))

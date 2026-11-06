@@ -12,7 +12,7 @@ const KINDS = [
 const GRIDS = [8, 16, 32, 64] // tile size of your game: downloads are converted to it (spell.toGrid)
 const ACTION_LABELS = { attack: 'Attack', hit: 'Hit', heal: 'Heal', levelup: 'Level up', cast: 'Cast', death: 'Death' }
 const ELEMENT_ICONS = { fire: '🔥', ice: '❄', poison: '☠', holy: '✦', dark: '☾' }
-const WALK_ARROWS = { down: '↓', up: '↑', left: '←', right: '→' }
+const WALK_ARROWS = { down: '↓', up: '↑', left: '←', right: '→', 'down-right': '↘', 'down-left': '↙', 'up-right': '↗', 'up-left': '↖' }
 const walkDir = () => (action?.startsWith('walk-') ? action.slice(5) : null)
 
 let spec = { body: 'hero', hat: 'hat-crown', hand: 'held-sword', offhand: 'held-shield' }
@@ -139,7 +139,7 @@ function actionPicker() {
     h('div', { class: 'picker-head' }, h('b', {}, 'Action'), h('span', { class: 'muted' }, action ? `${action}${element && !walkDir() ? ' · ' + element : ''}` : 'idle')),
     h('div', { class: 'seg wrap moves' },
       btn('Idle', !action, () => { action = null; refresh() }),
-      spell.walk.dirs.map((d) => btn(`Walk ${WALK_ARROWS[d]}`, action === `walk-${d}`, () => { action = `walk-${d}`; refresh() }, `Walk ${d}`))),
+      [...spell.walk.dirs, ...spell.walk.diagonals].map((d) => btn(`Walk ${WALK_ARROWS[d]}`, action === `walk-${d}`, () => { action = `walk-${d}`; refresh() }, `Walk ${d}`))),
     h('div', { class: 'seg wrap actions' },
       spell.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() }))),
     h('div', { class: 'seg wrap elements' + (action && !walkDir() ? '' : ' muted-seg') },

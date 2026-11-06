@@ -106,7 +106,7 @@ Others wear hats only: `dog`, `cat`, `chick`, `slime`, `ghost`, `skull`, `frog`,
 ## Actions and elements: `spell.action(spec, action, element)`
 
 Actions: `attack` `hit` `heal` `levelup` `cast` `death`. Elements: `fire` `ice` `poison` `holy` `dark`, or any material / hex.
-Walk directions: `down` `up` `left` `right`.
+Walk directions: `down` `up` `left` `right` `down-right` `down-left` `up-right` `up-left`.
 
 ## Tiles
 

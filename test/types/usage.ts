@@ -24,6 +24,9 @@ const dialog: Pixmap = spell('panel').nineSlice(160, 64)
 const theme: Sound = spell.music('town', { key: 2, tempo: 1.1, seed: 1 })
 const looping: boolean | undefined = spell.music.info('battle')?.loop
 const tracks: string[] = spell.music.list
+const diag: Frames = spell.walk(knight, 'down-right')
+const eight: string[] = [...spell.walk.dirs, ...spell.walk.diagonals]
+const pack8: Pack = spell.pack(knight, { diagonals: true })
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

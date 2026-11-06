@@ -1043,3 +1043,20 @@ characters had little world to stand in. The plan is world building, then monste
   - The gear test passed for every hat on every new body without changes.
   - Snapshots: 42 new looks. As in round 11, the only changed ones are the random-seed characters, because
     `spell.char.random` picks from more bodies.
+
+### (d) Shipped: walking in 8 directions
+
+- **`spell.walk` takes `down-right`, `down-left`, `up-right` and `up-left`.**
+  - For humanoids, a diagonal is the front or back pose with its first 12 rows (head and torso) turned one pixel
+    toward the side, a 3/4 view. The legs keep their stride, and the head anchor moves with the head so the hat turns
+    too.
+  - The turned poses are made once per pose and cached.
+  - The left diagonals mirror the right ones.
+  - A body with only a side pose (the dog) walks diagonally in side view; bodies without poses hop.
+- **Try-outs:** turning only the head was too subtle to read as 3/4. Turning the shoulders too made it clear.
+- **Kept compatible:** `spell.walk.dirs` stays the 4 straight directions, because packs, the demo game and older code
+  loop over it. `spell.walk.diagonals` lists the other 4.
+- **Where diagonals show up:** `spell.pack(spec, { diagonals: true })` adds the 4 diagonal walk rows. Downloads,
+  `assets/walk/`, the character maker (↘ ↙ ↗ ↖ buttons), the MCP `walk` enum and the walk showcase now cover all 8.
+- **Checks:** a test covers left mirroring right, a diagonal differing from the front view, the side-pose and hop
+  fallbacks, grids and pack tags. 72 new snapshots, none changed. Types are updated.

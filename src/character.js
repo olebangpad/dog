@@ -7,7 +7,7 @@
 // Bodies declare anchors (head / hand / offhand). Gear declares which anchor
 // it equips to and its own pivot pixel; the pivot is placed on the anchor.
 
-import { render } from './sprite.js'
+import { render, defineSprite } from './sprite.js'
 import { Pixmap } from './pixmap.js'
 import { MATERIAL_NAMES } from './materials.js'
 
@@ -16,6 +16,31 @@ export const BODY_AT = [4, 8] // where the 16x16 body sits inside the 24x24 char
 const KINDS = ['hand', 'offhand', 'head'] // draw order: hats end up on top
 const PREFIX = { head: 'hat', hand: 'held', offhand: 'held' }
 export const WALK_DIRS = ['down', 'up', 'left', 'right']
+export const WALK_DIAGONALS = ['down-right', 'down-left', 'up-right', 'up-left']
+
+// A 3/4 pose from a front or back pose: the head turns one pixel toward the right (the far side of the head shows
+// more hair, the face slides over). Rows below the head stay as drawn. Mirrored, it faces left.
+const HEAD_ROWS = 12 // head and torso turn; the legs keep their stride
+function turnRows(rows) {
+  return rows.map((r, y) => {
+    if (y >= HEAD_ROWS) return r
+    const a = r.indexOf('#'), b = r.lastIndexOf('#')
+    if (a < 0 || b - a < 3) return r
+    const inner = r.slice(a + 1, b)
+    return r.slice(0, a + 1) + inner[0] + inner.slice(0, -1) + r.slice(b)
+  })
+}
+const turnedPoses = new Map()
+function turnedPose(def) {
+  let t = turnedPoses.get(def.id)
+  if (!t) {
+    const anchors = Object.fromEntries(Object.entries(def.anchors).map(([kind, list]) =>
+      [kind, list.map(([x, y, layer]) => [kind === 'head' ? x + 1 : x, y, ...(layer ? [layer] : [])])]))
+    t = defineSprite({ id: `${def.id}-turned`, ramps: def.ramps, fps: def.fps, sequence: def.sequence, tags: def.tags, frames: def.frames.map(turnRows), anchors })
+    turnedPoses.set(def.id, t)
+  }
+  return t
+}
 
 function rng(seed) {
   if (seed == null) return Math.random
@@ -104,17 +129,20 @@ export function createCharacters(looks) {
   }
 
   /**
-   * Walk cycle in a direction: 'down' (default), 'up', 'left' or 'right'.
-   * Humanoids have drawn front / back / side poses; 'left' mirrors the side pose.
-   * Bodies without walk poses hop (or float) in place, mirrored for 'left'.
+   * Walk cycle in a direction: 'down' (default), 'up', 'left', 'right', or a diagonal: 'down-right', 'down-left',
+   * 'up-right', 'up-left'. Humanoids have drawn front / back / side poses; 'left' mirrors the side pose, and a
+   * diagonal turns the front or back pose's head toward the side (a 3/4 view). Bodies with only a side pose use it
+   * for every direction. Bodies without walk poses hop (or float) in place, mirrored for the left directions.
    */
   char.walk = (body, dir = 'down', opts = {}) => {
     if (typeof dir === 'object') [dir, opts] = [dir.dir ?? 'down', dir]
-    if (!WALK_DIRS.includes(dir)) throw new Error(`pixspell: walk direction must be one of ${WALK_DIRS.join(', ')}`)
+    if (!WALK_DIRS.includes(dir) && !WALK_DIAGONALS.includes(dir)) throw new Error(`pixspell: walk direction must be one of ${[...WALK_DIRS, ...WALK_DIAGONALS].join(', ')}`)
     const spec = normalize(body, opts)
     const base = looks[spec.body].def.id
-    const view = dir === 'left' || dir === 'right' ? 'side' : dir
-    const pose = looks[`${base}-walk-${view}`] ?? looks[`${base}-walk-side`] // e.g. a dog walks "up" in side view
+    const diagonal = dir.includes('-')
+    const view = diagonal ? dir.split('-')[0] : dir === 'left' || dir === 'right' ? 'side' : dir
+    const drawn = looks[`${base}-walk-${view}`]
+    const pose = diagonal && drawn ? { def: turnedPose(drawn.def) } : drawn ?? looks[`${base}-walk-side`] // e.g. a dog walks "up" in side view
     let frames
     if (pose) {
       frames = pose.def.sequence.map((_, i) => build(spec, i, pose.def))
@@ -123,11 +151,12 @@ export function createCharacters(looks) {
       const hop = [0, -1, -2, -1]
       frames = hop.map((dy, i) => new Pixmap(CHAR_SIZE, CHAR_SIZE).draw(build(spec, i, undefined, 0), 0, dy))
     }
-    if (dir === 'left') frames = frames.map((f) => f.flipX())
+    if (dir === 'left' || dir.endsWith('-left')) frames = frames.map((f) => f.flipX())
     frames.fps = pose ? pose.def.fps : 6
     return frames
   }
   char.walk.dirs = WALK_DIRS
+  char.walk.diagonals = WALK_DIAGONALS
 
   /** A random character spec. Pass a seed (number or string) to get the same one every time. */
   char.random = (seed, { outfit = 0.5 } = {}) => {

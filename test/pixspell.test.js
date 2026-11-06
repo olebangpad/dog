@@ -986,3 +986,23 @@ test('music: same call, same samples; key, tempo and seed change it', () => {
   assert.equal(other.samples.length, base.samples.length)
   assert.notDeepEqual(other.samples, base.samples, 'seed writes another melody')
 })
+
+test('walks: 8 directions; diagonals turn humanoids, mirror for the left, and fall back for other bodies', () => {
+  assert.deepEqual(spell.walk.diagonals, ['down-right', 'down-left', 'up-right', 'up-left'])
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
+  const dr = spell.walk(knight, 'down-right'), dl = spell.walk(knight, 'down-left'), down = spell.walk(knight, 'down')
+  assert.equal(dr.length, down.length)
+  assert.notDeepEqual(dr[0].data, down[0].data, 'a 3/4 view, not the front view')
+  dr.forEach((f, i) => assert.deepEqual(dl[i].data, f.flipX().data, 'left mirrors right'))
+  assert.notDeepEqual(spell.walk(knight, 'up-right')[0].data, spell.walk(knight, 'up')[0].data)
+  // a body with only a side pose walks diagonally in side view; a body without poses hops
+  assert.deepEqual(spell.walk('dog', 'down-right')[0].data, spell.walk('dog', 'right')[0].data)
+  assert.deepEqual(spell.walk('slime', 'up-left')[0].data, spell.walk('slime', 'left')[0].data)
+  // grids and packs take them too
+  assert.equal(spell.walk(knight, 'down-right', { grid: 32 })[0].w, 48)
+  const pack = spell.pack(knight, { diagonals: true })
+  const raw = Object.entries(pack.files).find(([n]) => n.endsWith('.json'))[1]
+  const json = JSON.parse(typeof raw === 'string' ? raw : new TextDecoder().decode(raw))
+  for (const d of spell.walk.diagonals) assert.ok(json.meta.frameTags.some((t) => t.name === `walk-${d}`), d)
+  assert.throws(() => spell.walk(knight, 'sideways'), /walk direction/)
+})

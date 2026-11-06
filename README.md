@@ -18,7 +18,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Effects](#-665-game-effects) ·
 [Sounds](#-103-game-sounds-made-by-code) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
-[Walking](#-walk-in-4-directions) ·
+[Walking](#-walk-in-8-directions) ·
 [Download (8/16/32/64 px)](#-just-want-the-pngs) ·
 [Use in code](#-use-it-in-code) ·
 [Add a sprite](CONTRIBUTING.md) ·
@@ -57,7 +57,7 @@ document.body.append(knight.scale(8).toCanvas())
     <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="A glowing ice meteor falling and bursting"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>665 effects that glow</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/img/show/walk.png" width="240" alt="A wizard walking right over grass"><br><sub><code>spell.walk(mage, 'right')</code><br>4-way walk cycles</sub></td>
+    <td align="center"><img src="docs/img/show/walk.png" width="240" alt="A wizard walking right over grass"><br><sub><code>spell.walk(mage, 'right')</code><br>8-way walk cycles</sub></td>
     <td align="center"><img src="docs/img/show/recolor.png" width="240" alt="A slime changing through eight colors"><br><sub><code>spell('slime', { A: '#ff4fd8' })</code><br>any sprite, any color</sub></td>
     <td align="center"><img src="docs/img/show/tornado.png" width="240" alt="A fire tornado"><br><sub><code>spell.fx('tornado', { element: 'fire', size: 64 })</code><br>any size, still crisp</sub></td>
   </tr>
@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · 26 new items · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -314,16 +314,20 @@ spell.music('dungeon', { seed: 1 })                  // the same style, a new me
 await spell.music('boss').save('boss.wav')           // Node; or: npx pixspell music boss
 ```
 
-### 🚶 Walk in 4 directions
+### 🚶 Walk in 8 directions
 
 Humanoids have drawn front, back and side poses; gear follows the view (the weapon swaps hands from behind,
-the shield tucks behind the body from the side). Animals and monsters hop or float. `left` mirrors `right`.
+the shield tucks behind the body from the side). The diagonals turn the head and shoulders of the front or back pose
+toward the side, a 3/4 view, and the hat turns with them. Animals and monsters hop or float. The left directions
+mirror the right ones.
 
 ```js
-spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // frames (24×24), .fps
+spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')       // frames (24×24), .fps
+spell.walk(knight, 'down-right')                                           // also down-left, up-right, up-left
+spell.pack(knight, { diagonals: true })                                    // a game pack with all 8 walk rows
 ```
 
-<img src="docs/img/walk.png" alt="Six characters walking down, up, left and right" width="630">
+<img src="docs/img/walk.png" alt="Six characters walking in all eight directions" width="630">
 
 ### 🎨 One drawing, any color
 
@@ -554,7 +558,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 
 - [x] Character maker with automatic gear placement
 - [x] Character actions: attack / hit / heal / level-up / cast / death, in 5 elements
-- [x] Walk cycles in 4 directions
+- [x] Walk cycles in 8 directions
 - [x] Playable demo game screen
 - [x] Game packs for Phaser / Godot, starter templates, AI skill
 - [x] 500+ procedural effects in any color and size, an effects gallery, weapon-aware attacks
@@ -567,7 +571,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)
 - [ ] 32×32 characters with walk cycles
 - [ ] Normal maps, so sprites react to 2D lights
-- [ ] 8-direction walks
 - [ ] npm package
 
 ## 🙏 Credits

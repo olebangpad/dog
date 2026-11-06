@@ -99,7 +99,7 @@ export interface CharacterSpec extends Ramps, GridOptions {
   frame?: number
 }
 
-export type WalkDir = 'down' | 'up' | 'left' | 'right'
+export type WalkDir = 'down' | 'up' | 'left' | 'right' | 'down-right' | 'down-left' | 'up-right' | 'up-left'
 export type ActionName = 'attack' | 'hit' | 'heal' | 'levelup' | 'cast' | 'death'
 export type AttackStyle = 'slash' | 'stab' | 'thrust' | 'whip' | 'smash' | 'burn' | 'bonk' | 'punch' | 'shoot' | 'magic'
 export type ElementName = 'fire' | 'ice' | 'poison' | 'holy' | 'dark'
@@ -259,7 +259,8 @@ export interface PixSpell {
     size: number
   }
   /** Walk cycle: 24x24 frames with .fps. 'left' mirrors 'right'. */
-  walk: PixSpell['char']['walk'] & { dirs: WalkDir[] }
+  /** dirs: the 4 straight directions; diagonals: the other 4 (a 3/4 view of humanoids). spell.walk takes all 8. */
+  walk: PixSpell['char']['walk'] & { dirs: WalkDir[]; diagonals: WalkDir[] }
   /** 8 frames of 32x32 (feet at 16,31) with .fps. */
   action: {
     (spec: string | CharacterSpec, name: ActionName, opts?: ElementName | Color | ActionOptions): Frames
@@ -273,7 +274,7 @@ export interface PixSpell {
   /** Character + status effect, 32x32 frames, idle or walking. */
   status(spec: string | CharacterSpec, effect: string, opts?: GridOptions & { walk?: WalkDir; element?: FxColorName | Color; size?: number }): Frames
   /** Game pack: sheet + Aseprite/Phaser JSON + Godot .tres + README. */
-  pack(spec: string | CharacterSpec, opts?: GridOptions & { name?: string; element?: ElementName | Color; actions?: ActionName[]; deflate?: (b: Uint8Array) => Uint8Array }): Pack
+  pack(spec: string | CharacterSpec, opts?: GridOptions & { name?: string; element?: ElementName | Color; actions?: ActionName[]; diagonals?: boolean; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Every effect (or the ids given) as one pack. */
   fxPack(ids?: string[], opts?: { name?: string; grid?: Grid; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Sound effects made by code: spell.sfx('coin').play(), spell.sfx('slash', { element: 'fire' }). */
