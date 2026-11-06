@@ -4,12 +4,13 @@
 
 # PixSpell
 
-**Game assets as code.** Pixel-art sprites, characters, animations, effects and sounds you generate, recolor and resize
-in one line of JavaScript. CC0 art, zero dependencies, made for game developers and their AI coding agents.
+**Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
+generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**441** sprites · **2.7 million** characters that walk and fight · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **441** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
+[**🤖 A game an AI agent made**](examples/spell-survivors) ·
 [Open the playground](https://olebangpad.github.io/pixspell/) ·
 [Make a game](#-make-a-game-with-pixspell) ·
 [Character maker](#-character-maker) ·
@@ -56,7 +57,19 @@ can become any color, size or combination in a single call:
 spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
 
+Other libraries give you one piece, usually effects. PixSpell gives a game **all** of its pieces from one import, so a
+person or an AI agent can go from an empty file to a game that looks and sounds finished.
+
 <img src="docs/img/scene.png" alt="An animated scene built only from PixSpell sprites" width="576">
+
+### 🤖 A whole game, made by an AI agent with PixSpell
+
+[**Spell Survivors**](examples/spell-survivors) is a survivor-style arena game: waves of monsters, spells that fire by
+themselves, a new spell every level, sound on every hit. Claude (in Claude Code) wrote it with the PixSpell skill, in one
+HTML file. **Every sprite, walk cycle, glowing effect and sound is a PixSpell call; there's no image or audio file.**
+[Play it](https://olebangpad.github.io/pixspell/examples/spell-survivors/), or [see how each part was made and try the prompt yourself](examples/spell-survivors/README.md).
+
+<a href="https://olebangpad.github.io/pixspell/examples/spell-survivors/"><img src="docs/promo/survivors.gif" alt="Spell Survivors: a wizard surrounded by slimes, goblins and skeletons, with fire aura, ice blades, lightning and meteors" width="640"></a>
 
 ### 🎮 A game screen made only from PixSpell
 

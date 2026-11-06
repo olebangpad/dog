@@ -1,6 +1,6 @@
 ---
 name: game-assets
-description: Build 2D pixel-art games and game assets with PixSpell, a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # PixSpell: pixel art as code
@@ -191,7 +191,8 @@ requestAnimationFrame(function loop(now) {
 Grow it from there: enemies are more specs (`{ body: 'slime' }`, `{ body: 'goblin', hand: 'dagger' }`) using `spell.walk` +
 `spell.action(enemy, 'hit')` / `'death'`; pickups are `spell('coin', { frame })` and `spell('heart')` (`.downscale(2)` gives 8×8);
 HUD numbers use `text()`; hit sparks, crits, coin pops and poofs are `spell.fx()` (see Effects), and every one of those
-moments has a `spell.sfx()` sound (see Sounds). A complete example with collisions, enemies, coins, crits, effects and a HUD is `web/quest.js` in the repo;
+moments has a `spell.sfx()` sound (see Sounds). A complete game in one HTML file (waves, auto-firing spells, level-up picks, statuses, glow, sounds) is
+`examples/spell-survivors/index.html` in the repo, and `web/quest.js` is a top-down action example with collisions, coins and a HUD;
 a commented starter is `templates/canvas/index.html`.
 
 ## Recipe: export for Phaser, Godot or any engine

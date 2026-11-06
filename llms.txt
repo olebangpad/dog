@@ -1,6 +1,6 @@
 # PixSpell
 
-> Zero-dependency JavaScript library and CC0 collection of pixel-art game sprites. Sprites are text art painted with color ramps, so every sprite can be recolored to any material or hex color, combined, resized and exported in one call. Includes a character maker (2.7 million combinations of bodies, hats and held items), 4-direction walk cycles, attack/hit/heal/level-up/cast/death animations in 5 elements, 500+ procedural game effects (80 designs: explosions, magic, weapon slashes, projectiles, seamless weather, status overlays, crits, meteors; any color, any size), 66 sound effects made by code (attack sounds per weapon, hits, coins, magic, jingles, seamless loops; WAV export and browser playback), and game packs (sprite sheet + Aseprite/Phaser JSON + Godot SpriteFrames). Everything can be delivered for an 8, 16, 32 or 64 px tile grid (`{ grid: 32 }`; effects are redrawn natively, sprites converted with outline-preserving halving or Scale2x).
+> Every asset for a 2D game, from code: a zero-dependency JavaScript library and CC0 collection that generates characters (2.7 million combinations of bodies, hats and held items, with 4-direction walk cycles and attack/hit/heal/level-up/cast/death animations in 5 elements), pixel-art sprites (items, tiles, monsters, icons), 500+ procedural effects that glow (80 designs, any color, any size) and 66 sound effects, with exports for Phaser/Aseprite and Godot at an 8, 16, 32 or 64 px tile grid. Sprites are text art painted with color ramps, so everything can be recolored, combined and resized in one call. An AI coding agent can build a complete-looking game with it alone (see the Spell Survivors example).
 
 Import in a browser with no install: `import { spell } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'`.
 Art is CC0 (public domain); code is MIT.
@@ -15,6 +15,7 @@ Art is CC0 (public domain); code is MIT.
 
 - [Canvas starter](https://raw.githubusercontent.com/olebangpad/pixspell/main/templates/canvas/index.html): a one-file top-down game, no build step
 - [Phaser starter](https://raw.githubusercontent.com/olebangpad/pixspell/main/templates/phaser/index.html): PixSpell game packs loaded with load.aseprite
+- [Spell Survivors](https://raw.githubusercontent.com/olebangpad/pixspell/main/examples/spell-survivors/index.html): a complete survivor-style game in one HTML file, every asset from PixSpell, written by an AI agent
 - [Demo game source](https://raw.githubusercontent.com/olebangpad/pixspell/main/web/quest.js): collisions, enemies, pickups, HUD
 - [Playable demo](https://olebangpad.github.io/pixspell/game.html), [character maker](https://olebangpad.github.io/pixspell/#maker), [effects gallery](https://olebangpad.github.io/pixspell/fx.html) and [sounds](https://olebangpad.github.io/pixspell/sfx.html)
 

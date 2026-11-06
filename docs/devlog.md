@@ -793,3 +793,22 @@ need to look as good as the rest.
   - Firefly swarms showed cut-off dots in columns where the seamless tile ended. Swarms are now the tile repeated
     2×2 with a soft round fade.
   - The first GIF was 4.1 MB; at 7 s and 10 fps it's 2.8 MB.
+
+### (c) Shipped: "every asset for your 2D game, from code"
+
+- **README (EN/KO) opens with the new pitch.**
+  - The facts line now starts with characters.
+  - The nav has a "🤖 A game an AI agent made" link.
+  - A paragraph says plainly what's different: other libraries give one piece, usually effects; this gives all of
+    them.
+  - A new section shows Spell Survivors with its GIF.
+- **New hero GIF** (`docs/promo/code.gif`, 136 KB, 19 s): eight lines of code build one game scene. Ground, then a
+  wizard who walks in, a pink slime, a cast, a glowing fire meteor that takes the slime out, the meteor's sound, and
+  the coin it leaves. Each line's label names the asset kind (tiles, characters, walk cycles, monsters, actions,
+  effects, sounds, items).
+- **Same story everywhere else:** page titles and meta descriptions, the main and demo page navs ("🤖 AI-made game"),
+  `package.json`, `llms.txt` (which now links the example), the skill's description and its pointer to the example,
+  the plugin description, and the CHANGELOG.
+- The promo reels and the gameplay GIF were re-recorded, so every video shows the glowing effects.
+- **Checks:** 57 tests, types, plugin validation, the browser suite (main, demo, effects, sounds, templates, mascot),
+  and GIF frames reviewed around the meteor moment.

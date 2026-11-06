@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* 960x420: code typed on the left, the art it makes on the right. Recorded to docs/promo/code.gif. */
+    /* 960x420: code typed on the left, the game scene it builds on the right. Recorded to docs/promo/code.gif. */
     :root { --bg: #101712; --panel: #172019; --line: #2b3b30; --ink: #e8f3e4; --muted: #8aa592; --accent: #a8e05a; --gold: #ffd06a; --str: #f0a868; }
     * { box-sizing: border-box; }
     html, body { margin: 0; background: var(--bg); color: var(--ink); overflow: hidden; }
@@ -25,7 +25,7 @@
     .c { color: var(--muted); }
     .cur { display: inline-block; width: 9px; height: 19px; background: var(--accent); vertical-align: -3px; }
     .stage { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    canvas { width: 320px; height: 320px; image-rendering: pixelated; border-radius: 12px; border: 2px solid var(--line);
+    canvas { width: 320px; height: 220px; margin-top: 30px; image-rendering: pixelated; border-radius: 12px; border: 2px solid var(--line);
       background: repeating-conic-gradient(#1d2a21 0 25%, #18231b 0 50%) 0 0 / 40px 40px; }
     .label { font-size: 13px; color: var(--muted); height: 16px; }
     footer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-top: -4px; font-size: 15px; color: var(--muted); }
@@ -39,10 +39,10 @@
     <pre id="code"></pre>
   </div>
   <div class="stage">
-    <canvas id="out" width="160" height="160"></canvas>
+    <canvas id="out" width="160" height="110"></canvas>
     <div class="label" id="label"></div>
   </div>
-  <footer><span><b>PixSpell</b> game assets as code · CC0 · zero dependencies</span><code>npm i pixspell</code></footer>
+  <footer><span><b>PixSpell</b> every asset for your 2D game, from code</span><code>npm i pixspell</code></footer>
   <script type="module" src="web/codereel.js"></script>
 </body>
 </html>

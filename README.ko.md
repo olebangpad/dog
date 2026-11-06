@@ -4,12 +4,13 @@
 
 # PixSpell
 
-**코드로 만드는 게임 에셋.** 도트 스프라이트, 캐릭터, 애니메이션, 이펙트, 효과음을 자바스크립트 한 줄로 만들고, 색을 바꾸고, 크기를 바꿉니다.
-그림은 CC0, 의존성 0개. 게임 개발자와 그들의 AI 코딩 에이전트를 위해 만들었습니다.
+**2D 게임에 필요한 에셋 전부를 코드로.** 걷고 싸우는 캐릭터, 아이템과 타일, 빛나는 이펙트, 효과음까지
+자바스크립트 한 줄로 만들고, 색과 크기를 바꿉니다. AI 코딩 에이전트에게 시켜도 됩니다. 그림은 CC0, 의존성 0개.
 
-스프라이트 **441**개 · 걷고 싸우는 캐릭터 **275만** 가지 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
+걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **441**개 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
+[**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
 [플레이그라운드](https://olebangpad.github.io/pixspell/) ·
 [게임 만들기](#-pixspell로-게임-만들기) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
@@ -50,6 +51,19 @@ spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
 
 <img src="docs/img/scene.png" alt="PixSpell 스프라이트로만 만든 애니메이션 장면" width="576">
+
+다른 라이브러리는 보통 한 조각(주로 이펙트)만 줍니다. PixSpell은 게임에 필요한 **모든** 조각을 import 하나로 줘서,
+사람이든 AI 에이전트든 빈 파일에서 시작해 보기에도 듣기에도 완성된 게임까지 갈 수 있습니다.
+
+### 🤖 AI 에이전트가 PixSpell로 만든 게임 하나
+
+[**Spell Survivors**](examples/spell-survivors)는 서바이버 장르의 아레나 게임입니다. 몰려오는 몬스터, 알아서 날아가는 주문,
+레벨마다 새 주문 고르기, 타격마다 효과음. Claude(Claude Code)가 PixSpell 스킬로 HTML 파일 하나에 만들었습니다.
+**모든 스프라이트, 걷기 애니메이션, 빛나는 이펙트, 효과음이 PixSpell 호출이고, 이미지·오디오 파일은 하나도 없습니다.**
+[직접 해보기](https://olebangpad.github.io/pixspell/examples/spell-survivors/) ·
+[어떤 호출로 만들었는지 보고 같은 프롬프트로 직접 만들어 보기](examples/spell-survivors/README.md)
+
+<a href="https://olebangpad.github.io/pixspell/examples/spell-survivors/"><img src="docs/promo/survivors.gif" alt="Spell Survivors: 슬라임·고블린·해골에 둘러싸인 마법사가 불꽃 오라, 얼음 칼날, 번개, 운석을 쓰는 장면" width="640"></a>
 
 ### 🎮 PixSpell로만 만든 게임 화면
 
