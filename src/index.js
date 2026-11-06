@@ -17,6 +17,8 @@ import { createPack, createFxPack, PACK_CELL } from './pack.js'
 import { runRecipe, FX_COLORS } from './fx.js'
 import { RECIPES } from './fx/index.js'
 import { zip } from './zip.js'
+import { renderSound, Sound, note, SAMPLE_RATE } from './sfx.js'
+import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -193,9 +195,65 @@ dog.fx.sequence = (steps, { size = 32, fps } = {}) => {
 }
 dog.fx.colors = FX_COLORS
 
+// ------------------------------------------------------------------ sound
+const soundById = Object.fromEntries(SOUNDS.map((r) => [r.id, r]))
+const sfxMemo = new Map()
+
+/**
+ * Game sound effects made by code, as a Sound you can play or export.
+ *   dog.sfx('coin').play()                          browser (call it from a click or key handler first)
+ *   dog.sfx('slash', { element: 'fire' })            an element adds its flavor, like an effect's color
+ *   dog.sfx('hit', { seed: 3, pitch: 1.2 })          variations: seed changes it a little, pitch a lot
+ *   await dog.sfx('boom').save('boom.wav')           Node
+ * Names match the rest of DOG: every attack style (dog.action.styleOf(spec)), every action, the effects.
+ */
+dog.sfx = (name, opts = {}) => {
+  const recipe = soundById[name]
+  if (!recipe) throw new Error(`dog: no sound called "${name}". Try dog.sfx.list`)
+  const { seed = 0, pitch = 1, volume = 1, element } = opts
+  if (element != null && !FLAVORS[element]) throw new Error(`dog.sfx: element must be one of ${Object.keys(FLAVORS).join(', ')}`)
+  const key = `${name}|${seed}|${pitch}|${volume}|${element ?? ''}`
+  let sound = sfxMemo.get(key)
+  if (!sound) {
+    const samples = renderSound(recipe, { seed, pitch, flavor: element ? FLAVORS[element] : null })
+    if (volume !== 1) for (let i = 0; i < samples.length; i++) samples[i] *= volume
+    sound = new Sound(samples, { id: element ? `${name}-${element}` : name, loop: Boolean(recipe.loop) })
+    if (sfxMemo.size >= 200) sfxMemo.delete(sfxMemo.keys().next().value)
+    sfxMemo.set(key, sound)
+  }
+  return sound
+}
+dog.sfx.list = SOUNDS.map((r) => r.id)
+dog.sfx.elements = Object.keys(FLAVORS)
+dog.sfx.tags = (name) => [...(soundById[name]?.tags ?? [])]
+dog.sfx.sampleRate = SAMPLE_RATE
+/** The sound that goes with an effect: 'fx-meteor', 'meteor-ice' or 'explosion' -> 'meteor' / 'boom'. null for silent ones. */
+dog.sfx.forEffect = (fx) => {
+  const id = String(fx).replace(/^fx-/, '')
+  if (EFFECT_SOUNDS[id] !== undefined) return EFFECT_SOUNDS[id]
+  const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
+  return base ? EFFECT_SOUNDS[base] : null
+}
+
+/** Sounds (all, or the names you pass) as WAV files in one zip. Same options as dog.sfx apply to every sound. */
+dog.sfxPack = (names = dog.sfx.list, { name = 'sounds', ...opts } = {}) => {
+  const files = {}
+  for (const n of names) files[`${n}.wav`] = dog.sfx(n, opts).toWAV()
+  files['README.txt'] = [
+    `${name}: ${names.length} sound effects from DOG (Dots Of Games), https://github.com/olebangpad/dog`,
+    `16-bit mono WAV, ${SAMPLE_RATE} Hz. Made by code; CC0, use them anywhere.`,
+    'Loops (seamless): ' + (names.filter((n) => soundById[n]?.loop).join(', ') || 'none'),
+    '',
+    'Phaser 3:  this.load.audio(\'coin\', \'coin.wav\')  then  this.sound.play(\'coin\')',
+    'Godot 4:   drop the .wav files into the project, use an AudioStreamPlayer',
+  ].join('\n')
+  return { id: name, files, sounds: [...names], zip: () => zip(files) }
+}
+
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,
   parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip, FX_COLORS, RECIPES,
+  Sound, renderSound, note, SAMPLE_RATE, SOUNDS,
 }
 export default dog

@@ -30,6 +30,9 @@ usage:
                                            procedural effect as an animated PNG (--strip: frame strip,
                                            --frame n: one frame, --on slime: on a character as a status)
   dog fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
+  dog sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
+                                           a sound effect as a WAV file (dog sfx alone lists them)
+  dog sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
@@ -77,6 +80,8 @@ function parse(argv) {
     else if (a === '--size') opts.size = Number(next())
     else if (a === '--seed') opts.seed = Number(next())
     else if (a === '--on') opts.on = next()
+    else if (a === '--pitch') opts.pitch = Number(next())
+    else if (a === '--volume') opts.volume = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
   }
@@ -183,6 +188,25 @@ if (!cmd || o.help) {
     save(o.out ?? `${pack.id}.zip`, pack.zip())
   }
   console.log(`${pack.animations.length} effects`)
+} else if (cmd === 'sfx') {
+  const name = args[0]
+  if (!name) {
+    console.log(dog.sfx.list.map((id) => `${id.padEnd(10)} ${dog.sfx.tags(id).join(', ')}`).join('\n'))
+    console.error(`\n${dog.sfx.list.length} sounds · elements: ${dog.sfx.elements.join(' ')}`)
+  } else {
+    const sound = dog.sfx(name, { element: o.element, pitch: o.pitch, seed: o.seed, volume: o.volume })
+    save(o.out ?? `${sound.id}.wav`, sound.toWAV())
+    console.log(`${sound.duration.toFixed(2)}s${sound.loop ? ', seamless loop' : ''}`)
+  }
+} else if (cmd === 'sfxpack') {
+  const pack = dog.sfxPack(args.length ? args : undefined, { element: o.element, pitch: o.pitch })
+  if (o.dir) {
+    mkdirSync(o.dir, { recursive: true })
+    for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
+  } else {
+    save(o.out ?? `${pack.id}.zip`, pack.zip())
+  }
+  console.log(`${pack.sounds.length} sounds`)
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {

@@ -547,3 +547,65 @@ test('CLI renders effects and effect packs', async () => {
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('dog.sfx: every sound renders clean, loud enough, deterministic', () => {
+  assert.ok(dog.sfx.list.length >= 60)
+  for (const id of dog.sfx.list) {
+    const s = dog.sfx(id)
+    assert.ok(s.duration > 0.03 && s.duration < 5, `${id} length ${s.duration}`)
+    let peak = 0, energy = 0
+    for (const v of s.samples) { assert.ok(Number.isFinite(v), `${id} NaN`); peak = Math.max(peak, Math.abs(v)); energy += v * v }
+    assert.ok(peak <= 0.951, `${id} clips (${peak})`)
+    assert.ok(Math.sqrt(energy / s.samples.length) > 0.03, `${id} is nearly silent`)
+  }
+  // same call, same samples (memo off: different volume key forces a fresh render)
+  const a = dog.sfx('meteor', { volume: 0.999 }), b = dog.sfx('meteor', { volume: 0.998 })
+  assert.ok(Math.abs(a.samples[5000] / 0.999 - b.samples[5000] / 0.998) < 1e-6)
+})
+
+test('dog.sfx: names line up with attack styles, actions and effects', () => {
+  for (const st of dog.action.styles) assert.ok(dog.sfx.list.includes(st), `style ${st}`)
+  for (const a of dog.action.list.filter((x) => x !== 'attack')) assert.ok(dog.sfx.list.includes(a), `action ${a}`)
+  for (const fx of dog.fx.list) {
+    const s = dog.sfx.forEffect(fx)
+    if (s !== null) assert.ok(dog.sfx.list.includes(s), `${fx} -> ${s}`)
+  }
+  assert.equal(dog.sfx.forEffect('fx-meteor-ice'), 'meteor')
+  assert.equal(dog.sfx.forEffect('explosion-plasma'), 'boom')
+  assert.equal(dog.sfx.forEffect('fx-glow'), null)
+  assert.throws(() => dog.sfx('nope'), /no sound/)
+  assert.throws(() => dog.sfx('hit', { element: 'lava' }), /element/)
+})
+
+test('dog.sfx: element, seed and pitch change the sound; loops are seamless', () => {
+  const base = dog.sfx('slash')
+  const differs = (x, y) => x.samples.length !== y.samples.length || x.samples.some((v, i) => Math.abs(v - y.samples[i]) > 1e-3)
+  for (const el of dog.sfx.elements) assert.ok(differs(base, dog.sfx('slash', { element: el })), el)
+  assert.ok(differs(base, dog.sfx('slash', { seed: 1 })))
+  assert.ok(differs(dog.sfx('coin'), dog.sfx('coin', { pitch: 1.5 })))
+  for (const id of ['rain', 'wind', 'campfire']) {
+    const s = dog.sfx(id)
+    assert.equal(s.loop, true)
+    // the jump from the last sample back to the first is no bigger than a normal step inside the sound
+    let maxStep = 0
+    for (let i = 1; i < s.samples.length; i++) maxStep = Math.max(maxStep, Math.abs(s.samples[i] - s.samples[i - 1]))
+    assert.ok(Math.abs(s.samples[0] - s.samples[s.samples.length - 1]) <= maxStep + 1e-6, `${id} seam`)
+  }
+})
+
+test('Sound.toWAV writes a valid 16-bit mono WAV', () => {
+  const s = dog.sfx('coin')
+  const wav = s.toWAV()
+  const dv = new DataView(wav.buffer)
+  const str = (o, n) => String.fromCharCode(...wav.subarray(o, o + n))
+  assert.equal(str(0, 4), 'RIFF'); assert.equal(str(8, 4), 'WAVE'); assert.equal(str(36, 4), 'data')
+  assert.equal(dv.getUint32(4, true), wav.length - 8)
+  assert.equal(dv.getUint16(22, true), 1)
+  assert.equal(dv.getUint32(24, true), dog.sfx.sampleRate)
+  assert.equal(dv.getUint16(34, true), 16)
+  assert.equal(dv.getUint32(40, true), s.samples.length * 2)
+  assert.equal(dv.getInt16(44 + 2000 * 2, true), Math.round(s.samples[2000] * 32767))
+  assert.match(s.toDataURL(), /^data:audio\/wav;base64,UklGR/)
+  const pack = dog.sfxPack(['coin', 'hit'])
+  assert.deepEqual(Object.keys(pack.files).sort(), ['README.txt', 'coin.wav', 'hit.wav'])
+})

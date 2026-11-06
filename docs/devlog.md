@@ -1,6 +1,6 @@
 # DOG devlog
 
-Five plan → build rounds focused on **more effects** and **better engine tech**.
+Five plan → build rounds focused on **more effects** and **better engine tech**, then one round per follow-up feature.
 Each round: a plan written before coding, then what actually shipped and how it was checked.
 
 ---
@@ -359,3 +359,121 @@ watch frames from the new reel, snapshots updated on purpose, the full browser s
 
 From 20 effect looks to **545**, with every one recolorable, resizable and exportable to Phaser/Godot. Tests went
 from 36 to 50, and every round's plan is above, next to what actually happened.
+
+---
+
+## Round 6 · Sound: `dog.sfx()`, game sounds made by code
+
+### Plan
+
+**Problem.** DOG gives a game its pictures and its effects, but a game also needs sounds, and the effects are
+silent. Asset packs ship fixed WAV files. DOG's whole point is "everything is code you can change", so the
+sounds should be code too.
+
+- **Synth engine** (`src/sfx.js`, zero dependencies). A sound is a short recipe of layers. Each layer has:
+  - a wave: square, pulse, saw, triangle, sine or noise
+  - an envelope (attack / hold / decay)
+  - pitch slides, pitch steps (arpeggios and jingles), vibrato
+  - low/high-pass filters, bit crush, repeats
+
+  The engine renders the layers to samples, mixes them and limits the result. Rendering is deterministic, and
+  `seed` makes small variations, so ten hits don't sound identical.
+- **Sounds that match what DOG already draws.**
+  - Every attack style (slash, stab, thrust, whip, smash, burn, bonk, punch, shoot, magic), so
+    `dog.sfx(dog.action.styleOf(hero))` just works.
+  - Every action (hit, heal, level-up, cast, death).
+  - The effects (boom, meteor, laser, poof, crit, miss, block, parry...).
+  - Pickups, UI blips, movement, jingles, and a few seamless loops (rain, wind, fire).
+  - `element: 'fire'` adds that element's flavor layer (crackle, shimmer, bubbles, bell, rumble), the way it
+    changes an effect's color. `pitch` and `volume` work like recoloring.
+- **Output.**
+  - `.toWAV()`, `.toDataURL()`, `.play()` in the browser (one shared AudioContext), `.save(path)` in Node.
+  - `dog.sfxPack()`: a zip of WAVs.
+  - CLI: `dog sfx coin -o coin.wav`.
+  - Every sound pre-exported in `assets/sfx/`.
+- **Where you hear them.**
+  - A sounds page (play, vary, pick element and pitch, download one or all).
+  - The effect detail on the effects page plays its sound.
+  - The demo game gets sound, with a mute toggle. It stays silent until a player takes over, so autoplay
+    doesn't make noise.
+
+**Checks.**
+- Tests: every sound is deterministic, non-silent, never clips, and has no NaNs. WAV headers parse back.
+  Element and pitch really change the samples. Sound hashes go into the snapshots.
+- Listen-review: render every sound and look at the waveform and spectrum sheet, since sound can't be "seen"
+  in a contact sheet the usual way.
+- The demo game in a browser, with sound triggered by real input.
+
+### Shipped
+
+- **`dog.sfx(name, { element, pitch, seed, volume })`**: 66 sounds made by code, rendered on demand (all 66 in about 0.3 s),
+  cached, and returned as a `Sound`: `.play()`, `.toWAV()`, `.toDataURL()`, `.toAudioBuffer()`, `.save(path)`.
+  - UI: click, select, confirm, cancel, error, text, menu.
+  - Movement: jump, land, step, dash, splash.
+  - Pickups: coin, gem, key, pickup, power-up, chest.
+  - All 10 attack styles and the actions.
+  - Magic, explosions (boom, meteor, quake, firework, shockwave), five element sounds.
+  - Jingles: win, lose, fanfare.
+  - Seamless loops: rain, wind, campfire.
+- **10 element flavors** (fire crackle, ice chime, poison bubbles, holy bell, dark rumble, water bloops, nature chirps,
+  blood squelch, arcane sparkle, steel ring). They are layered on any sound, the same 10 names as effect colors.
+- **Names line up with the rest of DOG.**
+  - `dog.sfx(dog.action.styleOf(hero))` is the right swing for the weapon.
+  - `dog.sfx.forEffect('fx-meteor')` gives an effect's sound.
+  - Tests check that every style, action and effect mapping points at a real sound.
+- **Engine** (`src/sfx.js`, no dependencies, ~250 lines): 6 waves; envelopes; pitch slides and steps (arpeggios,
+  jingles with per-note lengths); vibrato and tremolo; one-pole low/high-pass; bit crush; retriggers with jitter.
+  Seeded noise, so it's deterministic. Seamless loops by cross-fading the tail into the head.
+- **Output.**
+  - `dog.sfxPack()` zips WAVs.
+  - CLI: `dog sfx` (list), `dog sfx slash --element fire`, and `dog sfxpack`.
+  - `assets/sfx/*.wav` (66 files, 1.8 MB).
+  - A "Sounds" table in the catalog.
+- **Pages.**
+  - `sfx.html`: pixel waveforms, kind filters, element and pitch, "vary each play", download one or all.
+  - The effects page's detail plays the effect's sound.
+  - Both starter templates make sound: the canvas starter calls `dog.sfx`, and the Phaser starter loads WAVs that the
+    build writes.
+  - The demo game has sound with a remembered mute toggle.
+- Types (`Sound`, `SfxOptions`, `dog.sfx`, `dog.sfxPack`), checked by `tsc` including a deliberate bad element.
+  README (EN/KO), SKILL.md (Sounds section, runs in the test), CONTRIBUTING ("Adding a sound") and llms.txt are updated.
+
+### What the review caught
+
+- **Loudness was all over the place.** Normalizing every sound to the same *peak* made square-wave sounds (death,
+  power-up, coin) three times "louder" by RMS than noise-based ones like explosions. The engine now matches the RMS of
+  each sound's loudest 20 ms instead, with a peak cap. Measured RMS went from 0.06–0.44 to 0.09–0.25; `level` sets
+  intent (a UI click is meant to be quiet).
+- **Sound can't be looked at in a contact sheet, so the review used one anyway**: a waveform plus spectrogram for every
+  sound. It showed that:
+  - The quake and the portal lived almost entirely below 250 Hz, which phone speakers can't play. Both got mid-range
+    layers (crumble and pebbles, a wobbling mid tone).
+  - Five of the ten element flavors were invisible on a slash: their layers sat under the whoosh and ended with it.
+    Flavors are now louder and ring a little past the sound they join. Each element has a distinct signature in the
+    spectrogram.
+- The first sound cards put a download link inside the play button (invalid nested controls); cards are now two
+  separate buttons.
+- The demo's hit sound first drew its variation from the game's random generator, which would have changed the
+  self-playing demo's run (and the recorded promo). It uses a counter instead.
+- Before documenting a Phaser route that needs no files, it was tested in Phaser 3: `this.sound.decodeAudio()` takes
+  both `toWAV().buffer` and `toDataURL()`, and the decoded sound plays.
+
+### Checks
+
+- 54 tests:
+  - Every sound is finite, never clips and isn't silent.
+  - Same input, same samples.
+  - Element, seed and pitch all change the samples.
+  - The loop seams are no bigger than a normal step.
+  - The WAV header parses back.
+  - The name mappings point at real sounds.
+  - The catalog's sound list matches.
+- Snapshots: 1,271 hashes, now including every sound's 16-bit PCM.
+- `tsc --strict`.
+- Browser checks:
+  - Sounds page: play, loop on/off, element, pitch, single and zip download, mobile layout.
+  - Effects-page sound button: shown for the meteor, hidden for the silent glow.
+  - Demo game: 0 sounds while it plays itself, sounds after taking over, 0 when muted, and the mute setting is
+    remembered.
+  - Phaser template with its WAVs.
+  - The full suite from earlier rounds.

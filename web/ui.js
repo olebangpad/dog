@@ -26,8 +26,8 @@ export function thumb(img, size = 32) {
   return c
 }
 
-export function download(name, bytes) {
-  const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
+export function download(name, bytes, type = 'image/png') {
+  const url = URL.createObjectURL(new Blob([bytes], { type }))
   const a = h('a', { href: url, download: name })
   document.body.append(a)
   a.click()

@@ -25,6 +25,7 @@
     <nav class="top-nav">
       <a href="./#maker">Make a character</a>
       <a href="fx.html">Effects</a>
+      <a href="sfx.html">Sounds</a>
       <a class="star" href="https://github.com/olebangpad/dog">★ Star on GitHub</a>
     </nav>
   </header>
@@ -43,9 +44,10 @@
       </div>
     </div>
     <div class="game-bar">
-      <p class="hint">Move: arrows / WASD or the pad · Attack: space or A · It plays itself until you take over.</p>
+      <p class="hint">Move: arrows / WASD or the pad · Attack: space or A · It plays itself (silently) until you take over.</p>
       <div class="row wrap">
         <button class="btn primary" id="new-hero">🎲 New hero</button>
+        <button class="btn" id="mute" aria-pressed="true">🔊 Sound on</button>
         <a class="btn" id="edit-hero" href="./#maker">Edit this hero</a>
       </div>
       <pre class="code" id="hero-code"></pre>

@@ -27,8 +27,24 @@ function showHero(spec) {
   writeHash('c', encode(spec))
 }
 
+// ------------------------------------------------------------------ sound
+let muted = false
+try { muted = localStorage.getItem('dog-muted') === '1' } catch {}
+const showMute = () => { $('#mute').textContent = muted ? '🔇 Sound off' : '🔊 Sound on'; $('#mute').setAttribute('aria-pressed', String(!muted)) }
+$('#mute').addEventListener('click', (e) => {
+  muted = !muted
+  try { localStorage.setItem('dog-muted', muted ? '1' : '0') } catch {}
+  showMute()
+  e.currentTarget.blur()
+})
+showMute()
+// browsers only start audio from a key press or tap: open it on the first one
+let unlocked = false
+const unlock = () => { if (!unlocked && !muted) { unlocked = true; dog.sfx('click').play({ volume: 0 }) } }
+const onSound = (name, opts) => { if (!muted && unlocked) dog.sfx(name, opts).play({ volume: 0.6 }) }
+
 const startHero = heroFromLink() ?? DEFAULT
-const game = createGame($('#game'), { spec: startHero, auto: true, seed: 7, onHero: showHero })
+const game = createGame($('#game'), { spec: startHero, auto: true, seed: 7, onHero: showHero, onSound })
 showHero(startHero)
 
 // ------------------------------------------------------------------ input
@@ -37,6 +53,7 @@ addEventListener('keydown', (e) => {
   if (e.target.closest('input, textarea, a, button') && e.key !== ' ' && !e.key.startsWith('Arrow')) return
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key
   if (GAME_KEYS.has(k)) e.preventDefault()
+  unlock()
   game.press(k, true)
 })
 addEventListener('keyup', (e) => game.press(e.key, false))
@@ -44,7 +61,7 @@ addEventListener('blur', () => GAME_KEYS.forEach((k) => game.press(k, false)))
 
 for (const b of $$('#pad button')) {
   const key = b.dataset.key
-  const down = (e) => { e.preventDefault(); b.classList.add('held'); game.press(key, true) }
+  const down = (e) => { e.preventDefault(); unlock(); b.classList.add('held'); game.press(key, true) }
   const up = () => { b.classList.remove('held'); game.press(key, false) }
   b.addEventListener('pointerdown', down)
   b.addEventListener('pointerup', up)

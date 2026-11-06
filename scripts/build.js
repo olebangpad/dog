@@ -9,6 +9,7 @@
 // assets/anim/<id>.png       animated PNG (4x) of every animated look
 // assets/strips/<id>.png     horizontal frame strip (1x) for game engines
 // assets/atlas.png/.json     one texture atlas with every frame of every look
+// assets/sfx/<id>.wav        every sound effect (16-bit mono WAV)
 
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { deflateSync } from 'node:zlib'
@@ -366,6 +367,7 @@ async function buildTemplates() {
     await write(join(dir, `${name}.json`), pack.files[`${name}.json`])
   }
   await write(join(dir, 'grass.png'), png(dog('grass')))
+  for (const s of ['slash', 'hit', 'poof']) await write(join(dir, `${s}.wav`), dog.sfx(s).toWAV())
 }
 
 // skills/dog/catalog.md: every sprite id, so people (and AI assistants) can pick sprites by name.
@@ -410,11 +412,26 @@ Walk directions: ${dog.walk.dirs.map((d) => `\`${d}\``).join(' ')}.
 
 ${['tiles', 'items', 'monsters', 'icons', 'effects'].map((cat) => `## ${cat[0].toUpperCase() + cat.slice(1)}\n\n${table(byCat(cat))}`).join('\n\n')}
 
+## Sounds: \`dog.sfx(name, { element, pitch, seed })\`
+
+Elements: ${dog.sfx.elements.map((e) => `\`${e}\``).join(' ')}. Every attack style and action has a sound of the same name:
+\`dog.sfx(dog.action.styleOf(spec))\`. \`dog.sfx.forEffect('fx-meteor')\` gives an effect's sound.
+
+| sound | length | tags |
+| --- | --- | --- |
+${dog.sfx.list.map((id) => `| \`${id}\` | ${dog.sfx(id).duration.toFixed(2)}s${dog.sfx(id).loop ? ' loop' : ''} | ${dog.sfx.tags(id).join(', ')} |`).join('\n')}
+
 ## Materials
 
 ${Object.entries(MATERIALS_FOR_DOCS).map(([name, ramp]) => `\`${name}\` ${ramp.join(' ')}`).join('  \n')}
 `
   await write(join(root, 'skills', 'dog', 'catalog.md'), md)
+}
+
+// --------------------------------------------------------------- sounds
+async function buildSounds() {
+  for (const id of dog.sfx.list) await write(join(root, 'assets', 'sfx', `${id}.wav`), dog.sfx(id).toWAV())
+  return dog.sfx.list.length
 }
 
 // time every stage, so slow builds point at their cause
@@ -426,7 +443,7 @@ async function stage(name, fn) {
   timings.push(`${name} ${((Date.now() - s) / 1000).toFixed(1)}s`)
   return r
 }
-const files = await stage('assets', buildAssets)
+const files = await stage('assets', buildAssets) + await stage('sounds', buildSounds)
 await stage('templates', buildTemplates)
 await stage('catalog', buildCatalog)
 await stage('showcase', buildShowcase)

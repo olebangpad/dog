@@ -247,6 +247,80 @@ Walk directions: `down` `up` `left` `right`.
 | `fx-drip` | 32x32 | 10 @ 10fps | fire, water, blood, arcane |
 | `fx-notes` | 32x32 | 12 @ 10fps | ice, holy, nature, arcane |
 
+## Sounds: `dog.sfx(name, { element, pitch, seed })`
+
+Elements: `fire` `ice` `poison` `holy` `dark` `water` `nature` `blood` `arcane` `steel`. Every attack style and action has a sound of the same name:
+`dog.sfx(dog.action.styleOf(spec))`. `dog.sfx.forEffect('fx-meteor')` gives an effect's sound.
+
+| sound | length | tags |
+| --- | --- | --- |
+| `click` | 0.05s | ui |
+| `select` | 0.13s | ui |
+| `confirm` | 0.25s | ui |
+| `cancel` | 0.23s | ui |
+| `error` | 0.26s | ui |
+| `text` | 0.05s | ui |
+| `menu` | 0.15s | ui |
+| `jump` | 0.18s | move |
+| `land` | 0.11s | move |
+| `step` | 0.06s | move |
+| `dash` | 0.22s | move |
+| `splash` | 0.37s | move, water |
+| `coin` | 0.39s | pickup, reward |
+| `gem` | 0.52s | pickup, reward |
+| `key` | 0.43s | pickup, reward |
+| `pickup` | 0.16s | pickup |
+| `powerup` | 0.63s | pickup, buff |
+| `chest` | 0.72s | pickup, reward |
+| `slash` | 0.18s | attack, combat |
+| `stab` | 0.12s | attack, combat |
+| `thrust` | 0.22s | attack, combat |
+| `whip` | 0.15s | attack, combat |
+| `smash` | 0.37s | attack, combat |
+| `burn` | 0.51s | attack, combat, fire |
+| `bonk` | 0.24s | attack, combat |
+| `punch` | 0.13s | attack, combat |
+| `shoot` | 0.22s | attack, combat |
+| `magic` | 0.37s | attack, magic |
+| `hit` | 0.14s | action, combat |
+| `hurt` | 0.23s | action, combat |
+| `crit` | 0.33s | action, combat, feedback |
+| `miss` | 0.22s | action, combat, feedback |
+| `block` | 0.14s | action, combat, feedback |
+| `parry` | 0.37s | action, combat, feedback |
+| `heal` | 0.65s | action, magic, heal |
+| `levelup` | 0.75s | action, reward |
+| `cast` | 0.55s | action, magic |
+| `death` | 0.68s | action |
+| `charge` | 0.65s | magic, buff |
+| `buff` | 0.51s | magic, buff |
+| `debuff` | 0.51s | magic, debuff |
+| `shield` | 0.45s | magic, buff |
+| `teleport` | 0.48s | magic, movement |
+| `portal` | 0.87s | magic |
+| `summon` | 0.98s | magic, spectacle |
+| `revive` | 1.12s | magic, holy, spectacle |
+| `boom` | 0.66s | explosion, burst |
+| `meteor` | 1.13s | explosion, spectacle, fire |
+| `quake` | 1.38s | explosion, spectacle |
+| `firework` | 1.18s | explosion, celebration |
+| `poof` | 0.24s | smoke, spectacle |
+| `laser` | 0.22s | beam, projectile |
+| `zap` | 0.29s | electric, element |
+| `shockwave` | 0.42s | burst |
+| `bolt` | 0.24s | projectile, magic |
+| `fire` | 0.55s | element, fire |
+| `ice` | 0.42s | element, ice |
+| `poison` | 0.57s | element, poison |
+| `holy` | 0.92s | element, holy |
+| `dark` | 0.65s | element, dark |
+| `win` | 1.13s | jingle |
+| `lose` | 1.33s | jingle |
+| `fanfare` | 1.03s | jingle, celebration, reward |
+| `rain` | 2.00s loop | loop, weather |
+| `wind` | 4.00s loop | loop, weather |
+| `campfire` | 2.00s loop | loop, fire |
+
 ## Materials
 
 `red` #4a1430 #9c2a3a #e0453a #ff9a6a  

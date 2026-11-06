@@ -1,6 +1,6 @@
 // DOG Quest: a tiny top-down action scene built only from DOG sprites.
 // Characters come from dog.char / dog.walk, attacks and hits from dog.action,
-// crits, coins, poofs, level-ups, firelight and fireflies from dog.fx,
+// crits, coins, poofs, level-ups, firelight and fireflies from dog.fx, sound cues for dog.sfx,
 // tiles, pickups, HUD icons and text from the sprite collection and pixel font.
 // It is a showcase, not a game engine: ~400 lines, no dependencies.
 
@@ -98,7 +98,7 @@ function backgrounds() {
 }
 
 // ------------------------------------------------------------------ game
-export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {}) {
+export function createGame(canvas, { spec, auto = true, seed = 1, onHero, onSound } = {}) {
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
@@ -143,6 +143,8 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
   }
 
   const effect = (a, x, y) => g.fx.push({ a, x, y, t: 0 })
+  // sound cues (dog.sfx names); the page decides whether to play them. Silent while the demo plays itself.
+  const sound = (name, opts) => { if (!g.auto) onSound?.(name, opts) }
 
   // ------------------------------------------------------------ input
   const keys = new Set()
@@ -231,6 +233,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     g.queued = Math.max(0, (g.queued ?? 0) - dt)
     if ((input.attack || g.queued) && !h.cooldown) {
       Object.assign(h, { state: 'attack', t: 0, struck: false, cooldown: 0.45 })
+      sound(dog.action.styleOf(h.spec), { element: h.element })
       g.queued = 0
     }
   }
@@ -251,6 +254,8 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
       e.crit = rand() < 0.2 // a crit hits twice as hard and says so
       e.hp -= e.crit ? 2 : 1
       if (e.crit) effect(fx('crit'), e.x, e.y - 26)
+      g.hits = (g.hits ?? 0) + 1
+      sound(e.crit ? 'crit' : 'hit', { seed: g.hits % 4 }) // 4 variations so repeated hits don't sound identical
       const n = Math.hypot(dx, dy) || 1
       e.kb = [(dx / n) * 60, (dy / n) * 60]
       Object.assign(e, { state: e.hp > 0 ? 'hit' : 'dying', t: 0 })
@@ -276,6 +281,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
           e.gone = true
           g.kills++
           effect(fx('poof', { size: 24 }), e.x, e.y - 8)
+          sound('poof')
           const roll = rand()
           if (roll < 0.7) g.pickups.push({ kind: 'coin', x: e.x, y: e.y, t: 0 })
           else if (roll < 0.9) g.pickups.push({ kind: 'heart', x: e.x, y: e.y, t: 0 })
@@ -306,8 +312,8 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     h.hp -= 1
     const n = dist(h, from) || 1
     h.kb = [((h.x - from.x) / n) * 50, ((h.y - from.y) / n) * 50]
-    if (h.hp <= 0) Object.assign(h, { state: 'dead', t: 0, hp: 0 })
-    else Object.assign(h, { state: 'hurt', t: 0, invuln: 1.2 })
+    if (h.hp <= 0) { Object.assign(h, { state: 'dead', t: 0, hp: 0 }); sound('lose') }
+    else { Object.assign(h, { state: 'hurt', t: 0, invuln: 1.2 }); sound('hurt') }
   }
 
   function levelUp() {
@@ -317,6 +323,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
     h.hp = h.maxHp
     Object.assign(h, { state: 'levelup', t: 0, invuln: 1.5 })
     effect(fx('confetti', { size: 48 }), h.x, h.y - 20)
+    sound('levelup')
   }
 
   function updatePickups(dt) {
@@ -325,8 +332,8 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero } = {})
       p.t += dt
       if (dist(p, h) < 12 && h.state !== 'dead') {
         p.gone = true
-        if (p.kind === 'coin') { g.coins++; effect(fx('coin-pop', { size: 24 }), p.x, p.y - 12) }
-        else if (h.hp < h.maxHp) { h.hp = Math.min(h.maxHp, h.hp + 2); effect(anim(dog.frames('sparkle', { A: 'pink' }), 20), p.x, p.y - 6) }
+        if (p.kind === 'coin') { g.coins++; effect(fx('coin-pop', { size: 24 }), p.x, p.y - 12); sound('coin') }
+        else if (h.hp < h.maxHp) { h.hp = Math.min(h.maxHp, h.hp + 2); effect(fx('sparkle-burst', { element: 'blood', size: 24 }), p.x, p.y - 6); sound('heal') }
       }
       if (p.t > 12) p.gone = true
     }

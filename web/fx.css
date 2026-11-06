@@ -41,3 +41,17 @@
   .fx-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
   .fx-card canvas { width: 72px; height: 72px; }
 }
+
+/* sounds page */
+.sfx-grid .fx-card { position: relative; }
+.sfx-grid .fx-card canvas { width: 96px; height: 48px; }
+.sfx-grid .fx-card.playing { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+.sfx-grid .fx-card { cursor: default; padding: 0; }
+.sfx-grid .fx-card .play { all: unset; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px 8px; cursor: pointer; border-radius: 10px; }
+.sfx-grid .fx-card .play:focus-visible { outline: 2px solid var(--accent); }
+.sfx-grid .fx-card .dl { position: absolute; top: 2px; right: 2px; background: none; border: 0; color: var(--muted); font-size: 13px; opacity: .6; cursor: pointer; padding: 4px 6px; }
+.sfx-grid .fx-card .dl:hover, .sfx-grid .fx-card .dl:focus-visible { opacity: 1; color: var(--accent); }
+.sfx-pitch { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.sfx-pitch output { font: 12px var(--pixel); color: var(--ink); min-width: 48px; }
+#vary[aria-pressed='true'] { border-color: var(--accent); color: var(--ink); }
+.fx-wrap > .code-head { margin-top: 18px; }

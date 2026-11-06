@@ -16,7 +16,8 @@
 //
 // hero.png/json and slime.png/json are DOG "game packs": make your own in the
 // character maker (📦 Game pack) or with `node scripts/dog.js pack hero --hat crown`,
-// then drop the files in here with the same names.
+// then drop the files in here with the same names. The .wav files are DOG sounds
+// (`node scripts/dog.js sfx slash -o slash.wav`, or the sounds page).
 //
 // Run: serve this folder (python3 -m http.server) and open it. Arrows move, space attacks.
 
@@ -27,6 +28,7 @@ class Play extends Phaser.Scene {
     this.load.aseprite('hero', 'hero.png', 'hero.json')
     this.load.aseprite('slime', 'slime.png', 'slime.json')
     this.load.image('grass', 'grass.png')
+    for (const s of ['slash', 'hit', 'poof']) this.load.audio(s, `${s}.wav`)
   }
 
   create() {
@@ -83,6 +85,7 @@ class Play extends Phaser.Scene {
     h.setVelocity(0, 0)
     h.setFlipX(this.facing === 'left') // action frames face right; mirror them for left
     h.play('attack')
+    this.sound.play('slash', { volume: 0.6 })
     h.once('animationcomplete', () => { h.busy = false; h.setFlipX(false) })
     // a box in front of the hero
     const dx = { left: -1, right: 1, up: 0, down: 0 }[this.facing]
@@ -98,6 +101,7 @@ class Play extends Phaser.Scene {
     s.dead = s.hp <= 0
     s.setVelocity(0, 0)
     s.play(s.dead ? 'death' : 'hit')
+    this.sound.play(s.dead ? 'poof' : 'hit', { volume: 0.6 })
     s.once('animationcomplete', () => {
       if (!s.dead) return this.wander(s)
       s.destroy()

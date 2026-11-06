@@ -164,6 +164,44 @@ export interface SequenceStep {
   with?: boolean
 }
 
+export interface SfxOptions {
+  /** 0 (default) is the canonical sound; other seeds vary pitch and timing a little. */
+  seed?: number
+  /** Pitch multiplier: 2 = an octave up. */
+  pitch?: number
+  volume?: number
+  /** Adds the element's flavor layer (crackle, chime, bubbles, bell, rumble...). */
+  element?: FxColorName
+}
+
+/** A rendered sound: mono samples in -1..1. Treat it as read-only (dog.sfx caches it). */
+export class Sound {
+  constructor(samples: Float32Array, opts?: { sampleRate?: number; id?: string; loop?: boolean })
+  readonly samples: Float32Array
+  readonly sampleRate: number
+  readonly id: string
+  /** Seamless loop (rain, wind, campfire). */
+  readonly loop: boolean
+  /** Seconds. */
+  readonly duration: number
+  /** 16-bit PCM mono WAV bytes. */
+  toWAV(): Uint8Array
+  toDataURL(): string
+  /** Browser: an AudioBuffer for your own Web Audio graph. */
+  toAudioBuffer(context?: BaseAudioContext): AudioBuffer
+  /** Browser: play now. Call it from a click/key handler the first time (autoplay rules). */
+  play(opts?: { volume?: number; loop?: boolean; rate?: number }): { stop(): void; source: AudioBufferSourceNode }
+  /** Node only: write a .wav file. */
+  save(path: string): Promise<string>
+}
+
+export interface SoundPack {
+  id: string
+  files: Record<string, Uint8Array | string>
+  sounds: string[]
+  zip(): Uint8Array
+}
+
 export interface Dog {
   /** Render any sprite or variant: dog('potion'), dog('potion-mana'), dog('potion', { A: '#ff4fd8' }). */
   (id: string, opts?: Ramps & { frame?: number; outline?: string; white?: string }): Pixmap
@@ -201,6 +239,19 @@ export interface Dog {
   pack(spec: string | CharacterSpec, opts?: { name?: string; element?: ElementName | Color; actions?: ActionName[]; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Every effect (or the ids given) as one pack. */
   fxPack(ids?: string[], opts?: { name?: string; deflate?: (b: Uint8Array) => Uint8Array }): Pack
+  /** Sound effects made by code: dog.sfx('coin').play(), dog.sfx('slash', { element: 'fire' }). */
+  sfx: {
+    (name: string, opts?: SfxOptions): Sound
+    /** Every sound name. Attack styles and actions have sounds of the same name. */
+    list: string[]
+    elements: FxColorName[]
+    tags(name: string): string[]
+    sampleRate: number
+    /** The sound for an effect ('fx-meteor' -> 'meteor'), or null for silent ambience. */
+    forEffect(effect: string): string | null
+  }
+  /** Sounds (all, or the names given) as WAV files in one zip. */
+  sfxPack(names?: string[], opts?: SfxOptions & { name?: string }): SoundPack
   fx: {
     /** Procedural effect: dog.fx('comet', { element: 'ice', size: 64 }). */
     (name: string, opts?: FxOptions): Frames
@@ -245,3 +296,8 @@ export const CHAR_SIZE: 24
 export const ACTION_SIZE: 32
 export const ACTION_FRAMES: 8
 export const PACK_CELL: 32
+export const SAMPLE_RATE: number
+/** 'A4' -> 440. */
+export function note(n: string | number): number
+export function renderSound(recipe: { id: string; layers: object[]; level?: number; loop?: number }, opts?: { seed?: number; pitch?: number; sampleRate?: number }): Float32Array
+export const SOUNDS: { id: string; tags: string[]; [k: string]: unknown }[]

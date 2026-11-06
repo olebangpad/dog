@@ -4,7 +4,7 @@
 
 # DOG · Dots Of Games
 
-**Pixel art as code.** 440+ free game sprites and **540+ game effects** you can **combine, resize and recolor in one line**,<br>
+**Pixel art as code.** 440+ free game sprites, **540+ game effects** and **66 sound effects** you can **combine, resize and recolor in one line**,<br>
 plus a character maker with **2.7 million combinations** that walk in 4 directions and act. Every sprite is plain text. Zero dependencies.
 
 [**▶ Play the demo**](https://olebangpad.github.io/dog/game.html) ·
@@ -12,6 +12,7 @@ plus a character maker with **2.7 million combinations** that walk in 4 directio
 [Make a game](#-make-a-game-with-dog) ·
 [Character maker](#-character-maker) ·
 [Effects](#-545-game-effects) ·
+[Sounds](#-66-game-sounds-made-by-code) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
 [Download sprites](#-just-want-the-pngs) ·
@@ -21,6 +22,7 @@ plus a character maker with **2.7 million combinations** that walk in 4 directio
 
 ![sprites](https://img.shields.io/badge/sprites-126_base_·_441_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
+![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C756%2C176-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
@@ -47,7 +49,8 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 [**DOG Quest**](https://olebangpad.github.io/dog/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
 The hero is a `dog.char()`, it moves with `dog.walk()`, swings with `dog.action('attack')`, enemies flash with
 `dog.action('hit')` and puff away with `dog.action('death')`; crits, coin pops, poofs, level-up confetti, the campfire's glow and the
-fireflies are `dog.fx()`; tiles, coins, hearts and the HUD text are sprites and the pixel font.
+fireflies are `dog.fx()`; once you take over, every swing, hit, coin and level-up has a `dog.sfx()` sound;
+tiles, coins, hearts and the HUD text are sprites and the pixel font.
 It plays itself until you press a key, and the character maker has a **▶ Play as this character** button.
 
 <a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
@@ -145,6 +148,25 @@ dog.fxPack(['meteor', 'poof', 'crit'])             // one sheet + Phaser/Aseprit
 Effects are recipes: a few lines that paint light into layers, which the engine turns into shaded, outlined pixel art
 (see [`src/fx/`](src/fx) and [how to add one](CONTRIBUTING.md#adding-an-effect)). A test checks that every recipe keeps its layout when drawn at double size.
 
+### 🔊 66 game sounds, made by code
+
+Sounds work like the art: **recipes, not files**. Every attack style and action has one, so the right swing sound comes with
+the weapon. Add an **element** the way you'd recolor an effect, change the pitch, or roll small variations so repeated hits
+don't sound identical. Listen and download on the [**sounds page**](https://olebangpad.github.io/dog/sfx.html).
+
+```js
+dog.sfx('coin').play()                                  // browser (start the first sound from a key press or click)
+dog.sfx(dog.action.styleOf(hero)).play()                // sword -> 'slash', hammer -> 'smash', bow -> 'shoot'...
+dog.sfx('hit', { element: 'ice', seed: 2, pitch: 1.2 }) // 10 element flavors, variations, any pitch
+dog.sfx(dog.sfx.forEffect('fx-meteor'))                 // the sound that goes with an effect
+await dog.sfx('levelup').save('levelup.wav')            // Node; .toWAV() bytes anywhere
+dog.sfxPack(['slash', 'hit', 'coin']).zip()             // WAVs in one zip
+```
+
+UI blips, jumps and steps, coins, gems and chests, every weapon swing, hits, crits, blocks and parries, spells, explosions,
+meteors and quakes, element sounds, win / lose / fanfare jingles, and seamless rain, wind and campfire loops.
+All of them are pre-exported in `assets/sfx/` as 16-bit WAV, CC0.
+
 ### 🚶 Walk in 4 directions
 
 Humanoids have drawn front, back and side poses; gear follows the view (the weapon swaps hands from behind,
@@ -196,6 +218,7 @@ Everything is pre-exported in [`assets/`](assets). No build step needed.
 | `assets/anim/` | animated PNGs (4x) of every animated look |
 | `assets/strips/` | horizontal frame strips (1x) for game engines |
 | `assets/walk/` | walk-cycle strips for every body in every direction |
+| `assets/sfx/` | every sound effect as a 16-bit mono WAV |
 | `assets/atlas.png` + `atlas.json` | one texture atlas with every frame (TexturePacker JSON hash: `this.load.atlas('dog', 'atlas.png', 'atlas.json')`) |
 
 All art is **CC0**: use it in commercial games, remix it, no credit required (credit is appreciated ❤).
@@ -238,6 +261,8 @@ node scripts/dog.js char heroine --hat cowboy --hand rod --walk left --anim --sc
 node scripts/dog.js fx meteor --element ice --size 64 -o meteor.png      # any effect, color, size
 node scripts/dog.js fx burning --on slime --strip -o burning.png        # status effect on a character
 node scripts/dog.js fxpack meteor poof crit -o effects.zip              # effects as a game pack
+node scripts/dog.js sfx slash --element fire -o slash.wav              # a sound effect (dog.js sfx lists them)
+node scripts/dog.js sfxpack -o sounds.zip                              # every sound as WAVs
 ```
 
 TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `dog.` autocompletes.
@@ -296,6 +321,8 @@ import { dog, compose, sheet, text, Pixmap } from './src/index.js'
 | `dog.fx.sequence(steps)` | chain or overlap effects into one animation |
 | `dog.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |
 | `dog.pack(spec)` · `dog.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
+| `dog.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `dog.sfx.list`, `dog.sfx.forEffect(fx)` |
+| `dog.sfxPack(names)` | sounds as WAV files in one zip |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |
 | `sheet(images, { columns, gap })` | pack into a sprite sheet → `{ image, frames }` |
 | `text('SCORE 9', { color })` | built-in 3×5 pixel font |
@@ -331,6 +358,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [x] Game packs for Phaser / Godot, starter templates, AI skill
 - [x] 500+ procedural effects in any color and size, an effects gallery, weapon-aware attacks
 - [x] TypeScript types, visual regression tests
+- [x] Sound effects made by code, matched to every attack, action and effect
 - [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)

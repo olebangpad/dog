@@ -83,6 +83,9 @@ function renderDetail() {
     `// ${r.frames.length} Pixmaps, play at frames.fps (${r.fps})${r.loop ? ', loops' : ''}`,
   ]
   if (size === 32 && looks[lookId]) lines.push(`// also a regular sprite: dog.frames('${lookId}')`)
+  const sfx = dog.sfx.forEffect(id)
+  $('#detail-sound').hidden = !sfx
+  if (sfx) lines.push(`dog.sfx('${sfx}'${state.color ? `, { element: '${state.color}' }` : ''}).play()   // its sound`)
   $('#detail-code').textContent = lines.join('\n')
 }
 $('#detail-anim').addEventListener('click', () => {
@@ -95,6 +98,7 @@ $('#detail-strip').addEventListener('click', () => {
 })
 $('#detail-pack').addEventListener('click', () => downloadPack([detail.id], detail.id.replace(/^fx-/, '')))
 $('#detail-copy').addEventListener('click', () => copy($('#detail-code').textContent, 'Code copied'))
+$('#detail-sound').addEventListener('click', () => dog.sfx(dog.sfx.forEffect(detail.id), { element: state.color ?? undefined }).play())
 
 async function downloadPack(list, name) {
   const lookIds = list.map((id) => (state.color && looks[`${id}-${state.color}`] ? `${id}-${state.color}` : id))

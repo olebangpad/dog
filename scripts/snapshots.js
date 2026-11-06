@@ -46,6 +46,11 @@ export async function computeSnapshots() {
   // image ops
   out['ops:pipeline'] = fnv([dog('slime-pink').smooth(2).outline('#fff').shadow().hue(40).rotate(90).flipX().scale(0.5)])
   out['pack:hero'] = fnv([dog.pack(specs[0]).image])
+  // sounds: the 16-bit PCM bytes, so tiny float differences below one step don't count
+  const pcm = (sound) => ({ w: sound.samples.length, h: sound.sampleRate, data: sound.toWAV().subarray(44) })
+  for (const id of dog.sfx.list) out[`sfx:${id}`] = fnv([pcm(dog.sfx(id))])
+  for (const el of dog.sfx.elements) out[`sfx:slash-${el}`] = fnv([pcm(dog.sfx('slash', { element: el }))])
+  out['sfx:hit-seed3-pitch1.3'] = fnv([pcm(dog.sfx('hit', { seed: 3, pitch: 1.3 }))])
   return out
 }
 

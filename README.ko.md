@@ -4,7 +4,7 @@
 
 # DOG · Dots Of Games
 
-**코드로 만드는 도트 그래픽.** 440개가 넘는 무료 2D 게임 도트 이미지와 **540개가 넘는 게임 이펙트**를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
+**코드로 만드는 도트 그래픽.** 440개가 넘는 무료 2D 게임 도트 이미지, **540개가 넘는 게임 이펙트**, **효과음 66개**를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
 **275만 가지** 조합의 캐릭터 메이커도 들어 있고, 캐릭터는 4방향으로 걷고 행동합니다. 모든 스프라이트는 텍스트 파일이고, 의존성은 0개입니다.
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/dog/game.html) ·
@@ -12,6 +12,7 @@
 [게임 만들기](#-dog로-게임-만들기) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
 [이펙트 545종](#-이펙트-545종) ·
+[효과음](#-코드로-만든-효과음-66개) ·
 [상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
 [걷기](#-4방향-걷기) ·
 [PNG 바로 받기](#-png만-필요하다면) ·
@@ -40,7 +41,7 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 [**DOG Quest**](https://olebangpad.github.io/dog/game.html)는 직접 해볼 수 있는 작은 데모입니다. 화면의 모든 픽셀이 이 레포에서 나옵니다.
 주인공은 `dog.char()`, 걷기는 `dog.walk()`, 공격은 `dog.action('attack')`, 적이 맞으면 `dog.action('hit')`,
 쓰러지면 `dog.action('death')`, 크리티컬·코인 획득·적이 사라지는 연기·레벨업 꽃가루·모닥불 불빛·반딧불은 `dog.fx()`이고,
-타일·코인·하트·HUD 글자도 전부 스프라이트와 도트 폰트입니다.
+직접 조작하기 시작하면 공격·타격·코인·레벨업마다 `dog.sfx()` 효과음이 나고, 타일·코인·하트·HUD 글자도 전부 스프라이트와 도트 폰트입니다.
 키를 누르기 전까지는 혼자 플레이하고, 캐릭터 메이커의 **▶ Play as this character** 버튼으로 내가 만든 캐릭터로 플레이할 수 있습니다.
 
 <a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest 플레이 화면" width="512"></a>
@@ -139,6 +140,24 @@ dog.fxPack(['meteor', 'poof', 'crit'])             // 시트 한 장 + Phaser/As
 이펙트는 레시피입니다. 빛을 레이어에 칠하는 몇 줄의 코드를 엔진이 음영과 외곽선이 있는 도트로 바꿉니다
 ([`src/fx/`](src/fx), [추가하는 법](CONTRIBUTING.md#adding-an-effect)). 모든 레시피는 두 배 크기에서도 모양이 유지되는지 테스트합니다.
 
+### 🔊 코드로 만든 효과음 66개
+
+소리도 그림처럼 **파일이 아니라 레시피**입니다. 공격 방식과 행동마다 같은 이름의 소리가 있어서, 무기에 맞는 휘두르는 소리가 저절로 따라옵니다.
+이펙트 색을 바꾸듯 **속성**을 더하고, 음높이를 바꾸고, 조금씩 다른 변형을 뽑아서 같은 타격음이 반복돼도 지루하지 않게 할 수 있어요.
+[**효과음 페이지**](https://olebangpad.github.io/dog/sfx.html)에서 듣고 내려받을 수 있습니다.
+
+```js
+dog.sfx('coin').play()                                  // 브라우저 (첫 소리는 키 입력이나 클릭에서 시작하세요)
+dog.sfx(dog.action.styleOf(hero)).play()                // 검 -> 'slash', 망치 -> 'smash', 활 -> 'shoot' ...
+dog.sfx('hit', { element: 'ice', seed: 2, pitch: 1.2 }) // 속성 10가지, 변형, 원하는 음높이
+dog.sfx(dog.sfx.forEffect('fx-meteor'))                 // 이펙트에 맞는 소리
+await dog.sfx('levelup').save('levelup.wav')            // Node; .toWAV()로 어디서든 바이트로
+dog.sfxPack(['slash', 'hit', 'coin']).zip()             // WAV 묶음 zip
+```
+
+UI 효과음, 점프·발소리, 코인·보석·상자, 무기별 공격음, 타격·크리티컬·막기·패링, 마법, 폭발·운석·지진, 속성 소리,
+승리·패배·팡파르 징글, 끊김 없이 반복되는 비·바람·모닥불 소리까지 있습니다. 전부 `assets/sfx/`에 16비트 WAV로 들어 있고 CC0입니다.
+
 ### 🚶 4방향 걷기
 
 사람형 캐릭터는 앞·뒤·옆 모습이 따로 그려져 있고, 장비도 방향에 맞게 바뀝니다
@@ -190,6 +209,7 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 | `assets/anim/` | 애니메이션 PNG (4배) |
 | `assets/strips/` | 게임 엔진용 가로 프레임 스트립 (1배) |
 | `assets/walk/` | 모든 몸의 4방향 걷기 스트립 |
+| `assets/sfx/` | 모든 효과음 (16비트 모노 WAV) |
 | `assets/atlas.png` + `atlas.json` | 모든 프레임이 들어간 텍스처 아틀라스 (TexturePacker JSON 형식: `this.load.atlas('dog', 'atlas.png', 'atlas.json')`) |
 
 모든 그림은 **CC0**입니다. 상업용 게임에도 출처 표기 없이 쓸 수 있습니다 (표기해 주시면 감사합니다 ❤).
@@ -232,6 +252,8 @@ node scripts/dog.js char heroine --hat cowboy --hand rod --walk left --anim --sc
 node scripts/dog.js fx meteor --element ice --size 64 -o meteor.png      # 아무 이펙트, 색, 크기
 node scripts/dog.js fx burning --on slime --strip -o burning.png        # 캐릭터에 상태이상
 node scripts/dog.js fxpack meteor poof crit -o effects.zip              # 이펙트 게임 팩
+node scripts/dog.js sfx slash --element fire -o slash.wav              # 효과음 (dog.js sfx만 치면 목록)
+node scripts/dog.js sfxpack -o sounds.zip                              # 전체 효과음 WAV
 ```
 
 TypeScript와 에디터 자동완성: 타입이 [`src/index.d.ts`](src/index.d.ts)에 들어 있습니다.
@@ -265,6 +287,8 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `dog.fx.sequence(steps)` | 이펙트를 이어 붙이거나 겹쳐서 하나의 애니메이션으로 |
 | `dog.status(spec, effect, { walk })` | 상태이상이 걸린 캐릭터 (32×32 프레임) |
 | `dog.pack(spec)` · `dog.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
+| `dog.sfx(name, { element, pitch, seed })` | 효과음: `.play()`, `.toWAV()`, `.save(path)`. 목록은 `dog.sfx.list`, 이펙트 소리는 `dog.sfx.forEffect(fx)` |
+| `dog.sfxPack(names)` | 효과음 WAV 묶음 zip |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |
 | `sheet(images, { columns, gap })` | 스프라이트 시트로 묶기 |
 | `text('SCORE 9', { color })` | 내장 3×5 도트 폰트 |

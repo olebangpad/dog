@@ -84,6 +84,24 @@ the result as an ordinary animated sprite, so recoloring, packs and the gallery 
 - `variants` lists colors from `dog.fx.colors` (`fire ice poison holy dark water nature blood arcane steel`); each one becomes a look.
 - Check it with `node scripts/dog.js fx pulse --size 64 --scale 4 -o pulse.png` (or the effects page), then `npm run snapshots` and `npm test`.
 
+## Adding a sound
+
+Sounds are recipes too, in [`src/sfx/sounds.js`](src/sfx/sounds.js): a list of layers that [`src/sfx.js`](src/sfx.js) renders and mixes.
+
+```js
+{ id: 'coin', tags: ['pickup', 'reward'], level: 0.86, layers: [
+  { wave: 'square', notes: ['B5', 'E6'], every: 0.055, hold: 0.06, decay: 0.3 },   // two quick notes
+] }
+```
+
+- A layer is one voice: `wave` (square, pulse, saw, triangle, sine, noise), pitch (`freq` → `to`, or `notes` + `every`),
+  envelope (`attack`, `hold`, `decay`), and extras: `vibrato`, `tremolo`, `lowpass`/`lowpassTo`, `highpass`, `crush`,
+  `delay`, `repeat: { count, every, jitter, pitch, fade }`. The comment at the top of `src/sfx.js` lists them all.
+- `level` is loudness relative to the others (the engine evens out loudness, so a square-wave jingle and an explosion sit
+  together). `loop: 2` makes a seamless 2-second loop.
+- Keep sounds short (most are under 0.6 s) and give them something above ~300 Hz: phone speakers can't play deep bass.
+- Check it: `node scripts/dog.js sfx coin -o coin.wav` and listen, try it with an `--element`, then `npm run snapshots` and `npm test`.
+
 ## Text art legend
 
 ```

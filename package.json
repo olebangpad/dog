@@ -1,7 +1,7 @@
 {
   "name": "dots-of-games",
   "version": "0.1.0",
-  "description": "Pixel art as code: CC0 game sprites you can combine, resize and recolor in one line, plus a 2.7M-combination character maker. Zero dependencies.",
+  "description": "Pixel art and sound as code: CC0 game sprites, 500+ effects and 66 sound effects you can combine, resize, recolor and export in one line, plus a 2.7M-combination character maker. Zero dependencies.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -42,7 +42,10 @@
     "palette",
     "recolor",
     "8-bit",
-    "16x16"
+    "16x16",
+    "sound-effects",
+    "sfx",
+    "wav"
   ],
   "license": "MIT",
   "engines": {

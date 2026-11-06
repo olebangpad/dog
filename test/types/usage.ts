@@ -1,5 +1,5 @@
 // Compiled with tsc (noEmit, strict) to check src/index.d.ts against real usage.
-import { dog, compose, sheet, text, Pixmap, MATERIALS, type CharacterSpec, type Frames } from '../../src/index.js'
+import { dog, compose, sheet, text, Pixmap, Sound, MATERIALS, type CharacterSpec, type Frames, type SoundPack } from '../../src/index.js'
 
 const knight: CharacterSpec = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', A: 'red' }
 const img: Pixmap = dog('potion', { A: '#ff4fd8' }).scale(8).outline('#fff').hue(30)
@@ -24,6 +24,13 @@ const ramp: string = MATERIALS.gold[2]
 const n: number = dog.char.count() + dog.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)
 
+const coin: Sound = dog.sfx('coin', { pitch: 1.2, seed: 2 })
+const fireSlash = dog.sfx(dog.action.styleOf(knight), { element: 'fire' })
+const wav: Uint8Array = coin.toWAV()
+const soundFor: string | null = dog.sfx.forEffect('fx-meteor')
+const sounds: SoundPack = dog.sfxPack(['coin', 'hit'])
+console.log(coin.duration, fireSlash.loop, wav.length, soundFor, sounds.zip().length, dog.sfx.list.length, dog.sfx.elements[0])
+
 // @ts-expect-error: walk direction must be one of the four
 dog.walk(knight, 'diagonal')
 // @ts-expect-error: unknown action
@@ -31,3 +38,5 @@ dog.action(knight, 'dance')
 // @ts-expect-error: a character needs a body
 const bad: CharacterSpec = { hat: 'crown' }
 console.log(bad)
+// @ts-expect-error: element must be an effect color name
+dog.sfx('hit', { element: 'lava' })

@@ -42,6 +42,8 @@ function sprites(spec) {
   }
 }
 const hero = { ...sprites(HERO), x: 128, y: 96, dir: 'down', state: 'walk', t: 0 }
+// sounds are code too: the hero's weapon picks its swing sound (sword -> 'slash')
+const swing = dog.sfx(dog.action.styleOf(HERO)), hitSound = dog.sfx('hit'), poof = dog.sfx('poof')
 const enemySprites = sprites(ENEMY)
 
 // --- the map: grass everywhere, trees around the edge, drawn once
@@ -71,6 +73,7 @@ function attack() {
   if (hero.state !== 'walk') return
   hero.state = 'attack'
   hero.t = 0
+  swing.play() // fine here: browsers allow audio that starts from a key press
   const dx = { left: -1, right: 1 }[hero.dir] ?? 0, dy = { up: -1, down: 1 }[hero.dir] ?? 0
   for (const e of enemies) {
     if (e.state !== 'walk') continue
@@ -78,6 +81,7 @@ function attack() {
       e.hp--
       e.state = e.hp > 0 ? 'hit' : 'death'
       e.t = 0
+      ;(e.hp > 0 ? hitSound : poof).play()
     }
   }
 }

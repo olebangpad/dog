@@ -40,9 +40,12 @@ test('every SKILL.md code block runs', async () => {
 })
 
 test('every sprite id in the catalog exists', async () => {
-  const { looks } = await import(lib)
+  const { looks, dog } = await import(lib)
   const catalog = readFileSync(join(root, 'skills', 'dog', 'catalog.md'), 'utf8')
-  const ids = [...catalog.matchAll(/^\| `([a-z0-9-]+)` \|/gm)].map((m) => m[1])
+  const [spritePart, soundPart = ''] = catalog.split('\n## Sounds')
+  const rows = (md) => [...md.matchAll(/^\| `([a-z0-9-]+)` \|/gm)].map((m) => m[1])
+  const ids = rows(spritePart)
   assert.ok(ids.length > 100)
   for (const id of ids) assert.ok(looks[id], id)
+  assert.deepEqual(rows(soundPart), dog.sfx.list)
 })

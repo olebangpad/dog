@@ -1,6 +1,6 @@
 ---
 name: dog-pixel-art
-description: Build 2D pixel-art games and game assets with DOG (Dots Of Games), a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and game assets with DOG (Dots Of Games), a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # DOG: pixel art as code
@@ -81,6 +81,32 @@ dog.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row per
   vanishes, `coin-pop` on pickup, `confetti` or `firework` on level-up, `glow` under a campfire, `fireflies` or `leaves` drifting.
 - Like every animation, build them once (`frames.map(toCanvas)`) and only `drawImage` in the loop.
 
+## Sounds
+
+66 sound effects made by code (`dog.sfx.list`), listed in [catalog.md](catalog.md). Every attack style and every action
+has a sound of the same name, and `dog.sfx.forEffect()` gives an effect's sound.
+
+```js
+const hero = { body: 'hero', hand: 'axe' }
+const swing = dog.sfx(dog.action.styleOf(hero))          // the attack sound for the weapon ('smash' for an axe)
+dog.sfx('hit', { element: 'ice', seed: 2 })              // element flavor (like an effect color), seed = small variation
+dog.sfx('coin', { pitch: 1.5 })                          // pitch multiplier
+dog.sfx(dog.sfx.forEffect('fx-meteor'))                  // the sound that goes with an effect
+const wav = dog.sfx('levelup').toWAV()                   // 16-bit mono WAV bytes; .toDataURL(); .save(path) in Node
+const sounds = dog.sfxPack(['slash', 'hit', 'coin'])     // WAVs in one zip: .files, .zip()
+console.log(swing.duration, wav.length, Object.keys(sounds.files))
+```
+
+- Browser: `sound.play()` returns `{ stop() }`. Browsers only start audio from a key press or click, so trigger the first
+  sound from an input handler (later ones can come from the game loop). Loops (`rain`, `wind`, `campfire`) are seamless:
+  `.play({ loop: true })`.
+- Names: UI `click select confirm cancel error text menu`, movement `jump land step dash splash`, pickups `coin gem key pickup
+  powerup chest`, jingles `win lose fanfare`, plus the attack styles, actions and effects. Use `seed: 1..4` on repeated
+  sounds (hits, steps) so they don't all sound the same.
+- Phaser 3: `this.load.audio('coin', 'coin.wav')` with exported files, or with no files
+  `this.sound.decodeAudio('coin', dog.sfx('coin').toWAV().buffer)` and play after the `decoded` event.
+  Godot: drop the WAVs in and use an `AudioStreamPlayer`. Every sound is also in `assets/sfx/<name>.wav`.
+
 ## Everything else
 
 ```js
@@ -156,7 +182,8 @@ requestAnimationFrame(function loop(now) {
 
 Grow it from there: enemies are more specs (`{ body: 'slime' }`, `{ body: 'goblin', hand: 'dagger' }`) using `dog.walk` +
 `dog.action(enemy, 'hit')` / `'death'`; pickups are `dog('coin', { frame })` and `dog('heart')` (`.downscale(2)` gives 8×8);
-HUD numbers use `text()`; hit sparks, crits, coin pops and poofs are `dog.fx()` (see Effects). A complete example with collisions, enemies, coins, crits, effects and a HUD is `web/quest.js` in the repo;
+HUD numbers use `text()`; hit sparks, crits, coin pops and poofs are `dog.fx()` (see Effects), and every one of those
+moments has a `dog.sfx()` sound (see Sounds). A complete example with collisions, enemies, coins, crits, effects and a HUD is `web/quest.js` in the repo;
 a commented starter is `templates/canvas/index.html`.
 
 ## Recipe: export for Phaser, Godot or any engine
