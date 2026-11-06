@@ -699,3 +699,17 @@ the art appears". `codeart` was considered and dropped: it's free on npm, but 95
 
 Owner steps are the same as Round 8, with the new name: rename the repository to **`pixspell`**, then the About box,
 the social preview, `NPM_TOKEN`, and a `v0.1.0` release.
+
+### Polish after the rename
+
+- **The README now opens on code.** `docs/promo/code.gif` (960×420, 318 KB, 15 s): five lines of PixSpell are typed one
+  by one, and each line's result appears with a spell sparkle as it finishes.
+  - The lines make a recolored slime, a wizard, a spell cast, an ice meteor, and a coin sound (shown as its waveform).
+  - `codereel.html` renders it, and `scripts/record-promo.cjs` records it frame by frame at full size so the code
+    stays readable.
+  - The first draft cut off the wizard line at the editor's edge. The line was shortened and the font set to 15 px.
+  - The animated scene moved down into "Why PixSpell?".
+- **A mascot that fits the name:** the site header shows a wizard casting (`spell.action(..., 'cast', 'holy')`), and the
+  favicon is the wizard hat. The dog sprite stays in the collection.
+- Rename leftovers fixed: AGENTS.md named the CLI `spell.js` (it's `pixspell.js`) and listed the API as `dog`; one README
+  line said `dog.` autocompletes.

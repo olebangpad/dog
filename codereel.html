@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=960">
+  <title>PixSpell · code reel</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* 960x420: code typed on the left, the art it makes on the right. Recorded to docs/promo/code.gif. */
+    :root { --bg: #101712; --panel: #172019; --line: #2b3b30; --ink: #e8f3e4; --muted: #8aa592; --accent: #a8e05a; --gold: #ffd06a; --str: #f0a868; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); overflow: hidden; }
+    body { width: 960px; height: 420px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 22px 24px 0; font-family: 'Silkscreen', monospace; }
+    .editor { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; overflow: hidden; height: 330px; }
+    .bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 2px solid var(--line); font-size: 13px; color: var(--muted); }
+    .bar i { width: 11px; height: 11px; border-radius: 50%; background: #3a4a3f; }
+    .bar span { margin-left: 8px; }
+    pre { margin: 0; padding: 14px 16px; font: 15px/1.8 ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace; white-space: pre; }
+    .ln { color: #4d6152; display: inline-block; width: 22px; }
+    .k { color: var(--accent); font-weight: 700; }
+    .s { color: var(--str); }
+    .c { color: var(--muted); }
+    .cur { display: inline-block; width: 9px; height: 19px; background: var(--accent); vertical-align: -3px; }
+    .stage { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    canvas { width: 320px; height: 320px; image-rendering: pixelated; border-radius: 12px; border: 2px solid var(--line);
+      background: repeating-conic-gradient(#1d2a21 0 25%, #18231b 0 50%) 0 0 / 40px 40px; }
+    .label { font-size: 13px; color: var(--muted); height: 16px; }
+    footer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-top: -4px; font-size: 15px; color: var(--muted); }
+    footer b { color: var(--accent); font-weight: 700; font-size: 20px; margin-right: 8px; }
+    footer code { font-family: inherit; color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="editor">
+    <div class="bar"><i></i><i></i><i></i><span>game.js</span></div>
+    <pre id="code"></pre>
+  </div>
+  <div class="stage">
+    <canvas id="out" width="160" height="160"></canvas>
+    <div class="label" id="label"></div>
+  </div>
+  <footer><span><b>PixSpell</b> game assets as code · CC0 · zero dependencies</span><code>npm i pixspell</code></footer>
+  <script type="module" src="web/codereel.js"></script>
+</body>
+</html>

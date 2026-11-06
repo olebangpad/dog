@@ -14,7 +14,7 @@ Plain ES modules, zero dependencies, Node 18+ and modern browsers.
 
 | path | what |
 | --- | --- |
-| `src/index.js` | the public API (`dog`, `spell.char`, `spell.walk`, `spell.action`, `spell.fx`, `spell.sfx`, packs, grids) |
+| `src/index.js` | the public API: `spell` (`spell.char`, `spell.walk`, `spell.action`, `spell.fx`, `spell.sfx`, packs, grids); `dog` is an alias of the early name |
 | `src/index.d.ts` | TypeScript types for the public API; keep in sync |
 | `src/sprites/*.js` | sprite text art by category (`.` clear, `#` outline, `w` white, `1-4` / `5-8` / `a-d` ramps A / B / C) |
 | `src/pixmap.js`, `src/png.js`, `src/zip.js` | images, PNG/APNG encoder, zip writer |
@@ -22,7 +22,7 @@ Plain ES modules, zero dependencies, Node 18+ and modern browsers.
 | `src/fx.js` + `src/fx/*.js` | effect engine + recipes |
 | `src/sfx.js` + `src/sfx/sounds.js` | sound engine + recipes |
 | `web/`, `*.html` | the GitHub Pages site (studio, maker, effects, sounds, demo game) |
-| `scripts/` | `build.js` (assets, showcase images, catalog), `spell.js` (CLI), `validate.js`, `snapshots.js` |
+| `scripts/` | `build.js` (assets, showcase images, catalog), `pixspell.js` (CLI), `validate.js`, `snapshots.js` |
 | `test/` | `node --test` suites, `snapshots.json` (hashes of every rendered look and sound), `types/usage.ts` |
 | `skills/pixspell/` | the AI skill (`SKILL.md`, generated `catalog.md`); also a Claude Code plugin via `.claude-plugin/` |
 

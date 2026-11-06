@@ -22,7 +22,7 @@
 [스프라이트 추가하기](CONTRIBUTING.md) ·
 [English](README.md)
 
-<img src="docs/img/scene.png" alt="PixSpell 스프라이트로만 만든 애니메이션 장면" width="576">
+<img src="docs/promo/code.gif" alt="PixSpell 코드를 한 줄씩 치면 분홍 슬라임, 마법사, 주문 시전, 얼음 운석, 코인 효과음이 나타나는 장면" width="100%">
 
 [![CI](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml)
 
@@ -48,6 +48,8 @@ PixSpell은 모든 스프라이트를 **텍스트**로 저장하고, 고정된 �
 ```js
 spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
+
+<img src="docs/img/scene.png" alt="PixSpell 스프라이트로만 만든 애니메이션 장면" width="576">
 
 ### 🎮 PixSpell로만 만든 게임 화면
 

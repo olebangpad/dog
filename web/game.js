@@ -90,6 +90,6 @@ function fit() {
 addEventListener('resize', fit)
 fit()
 
-$('#favicon').href = spell('dog').toDataURL()
+$('#favicon').href = spell('hat-wizard').toDataURL()
 game.start()
 Object.assign(window, { game, spell })

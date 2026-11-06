@@ -501,12 +501,13 @@ function update({ gallery = true, colors = true, layers = true, editor = true } 
 
 // mascot + favicon + background tile + stats
 function decorate() {
-  const frames = spell.frames('dog')
+  // the mascot casts a spell, the favicon is its hat
+  const frames = spell.action({ body: 'hero', hat: 'wizard', hand: 'staff' }, 'cast', 'holy')
   const mascot = $('#mascot')
   let i = 0
-  setInterval(() => { paint(mascot, frames[i++ % frames.length]) }, 1000 / 6)
+  setInterval(() => { paint(mascot, frames[i++ % frames.length]) }, 1000 / frames.fps)
   paint(mascot, frames[0])
-  $('#favicon').href = spell('dog').toDataURL()
+  $('#favicon').href = spell('hat-wizard').toDataURL()
   const style = document.createElement('style')
   style.textContent = `.stage[data-bg='grass'] { background-image: url(${spell('grass').scale(4).toDataURL()}); }`
   document.head.append(style)

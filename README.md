@@ -31,7 +31,7 @@ in one line of JavaScript. CC0 art, zero dependencies, made for game developers 
 ![tiles](https://img.shields.io/badge/tiles-8_·_16_·_32_·_64_px-a8e05a?style=flat-square)
 [![CI](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml)
 
-<img src="docs/img/scene.png" alt="An animated scene built only from PixSpell sprites" width="576">
+<img src="docs/promo/code.gif" alt="PixSpell code typed line by line: a pink slime, a wizard, a spell cast, an ice meteor and a coin sound appear as each line finishes" width="100%">
 
 </div>
 
@@ -55,6 +55,8 @@ can become any color, size or combination in a single call:
 ```js
 spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
+
+<img src="docs/img/scene.png" alt="An animated scene built only from PixSpell sprites" width="576">
 
 ### 🎮 A game screen made only from PixSpell
 
@@ -304,7 +306,7 @@ node scripts/pixspell.js export --grid 32                                   # ev
 node scripts/pixspell.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid works on render, char, fx, pack
 ```
 
-TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `dog.` autocompletes.
+TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `spell.` autocompletes.
 
 ## ✏️ Sprites are just text
 
