@@ -21,9 +21,10 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
   stretches framed images to any size with their corners intact.
 - **Items:** 26 more (48 in all): dagger, spear, hammer, wand, armor, boots, amulet, candle, bread, cheese, cake, carrot,
   egg, grapes, bottle, gold bar, trophy, map, compass, hourglass, feather, bone, backpack, letter, dice and runes.
-- **Monsters:** 15 new ones (spider, snake, rat, wolf, mushroom monster, crab, beetle, golem, imp, will-o-wisp,
-  jellyfish, biting plant, mimic, bee, baby dragon), 21 in all, each a character body: hats, walks and actions work on
-  every monster. `spell.char.random(seed)` now draws from 27 bodies, so a seed gives a different character than it did
+- **Monsters:** 25 new ones (spider, snake, rat, wolf, mushroom monster, crab, beetle, golem, imp, will-o-wisp,
+  jellyfish, biting plant, mimic, bee, baby dragon, owl, penguin, bunny, octopus, mummy, yeti, boar, piranha, sand worm,
+  scorpion), 31 in all, each a character body: hats, walks and actions work on
+  every monster. `spell.char.random(seed)` now draws from 37 bodies, so a seed gives a different character than it did
   before this change.
 - **Characters:**
   - 12 bodies and 2.7 million combinations of hats, held items and off-hand items, snapped on by name.

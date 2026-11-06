@@ -1032,3 +1032,14 @@ characters had little world to stand in. The plan is world building, then monste
 - **The sounds page** has a `creature` filter.
 - **Checks:** every sound renders between 0.05 and 3 s, doesn't clip and is loud enough. 37 new snapshot hashes,
   none changed.
+
+### (c) Shipped: 10 more monsters (31 in all)
+
+- **The new monsters:** owl, penguin, bunny, octopus, mummy, yeti, boar, piranha, sand worm and scorpion. Each has a
+  2-frame idle animation (blinking, waddling, swaying, bobbing) and 3–4 colors.
+- **All of them are bodies too,** so they wear hats, walk and act like everyone else. There are 37 bodies and 2,763,928
+  combinations; 887 sprite looks in all.
+- **Checks:**
+  - The gear test passed for every hat on every new body without changes.
+  - Snapshots: 42 new looks. As in round 11, the only changed ones are the random-seed characters, because
+    `spell.char.random` picks from more bodies.
