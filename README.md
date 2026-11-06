@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -386,6 +386,21 @@ Ready-made pairs are in [`assets/terrain/`](assets/terrain) and the download zip
 paths, cobblestone, lava and stone, snow, swamp, mud). Any two seamless tiles work, at any tile size;
 `npx pixspell autotile water grass` writes one.
 
+### 🕹️ Retro palettes
+
+<img src="docs/img/palettes.png" alt="The same island in full color, Game Boy greens, PICO-8, Sweetie 16, Commodore 64 and 1-bit" width="840">
+
+One line turns the whole game into a Game Boy, PICO-8 or C64 game: everything drawn afterwards (sprites,
+characters, actions, effects, terrain) uses that console's colors. Single-hue palettes map by brightness, so outlines
+stay darkest and highlights lightest.
+
+```js
+spell.palette('gameboy')                           // also: gameboy-pocket, pico-8, sweetie-16, c64, cga, virtual-boy, 1-bit, sepia
+spell.palette(['#000000', '#ff004d', '#fff1e8'])   // or your own colors
+spell.palette(null)                                // full color again
+spell.toPalette(sceneImage, 'pico-8')              // convert something you composed yourself
+```
+
 ### 🪟 A UI kit
 
 <img src="docs/img/ui.png" alt="A game screen's UI made from PixSpell: hearts, health, mana and XP bars, a dialog panel with buttons, an inventory of item slots and icon buttons" width="720">
@@ -544,6 +559,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
 | `spell.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `spell.sfx.list`, `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | sounds as WAV files in one zip |
+| `spell.palette(name)` · `spell.toPalette(img, name)` | retro palettes for everything drawn afterwards (`null` = off), or for one image; `spell.palettes` lists them |
 | `spell.autotile(inner, outer, { grid })` | terrain transitions: `.tiles` (16), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()` (Tiled .tsx + Godot .tres); `outer` null = overlay |
 | `spell.music(name, { key, tempo, seed })` | chiptune music: a seamless loop or a jingle, as a Sound. Tracks: `spell.music.list`, `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |

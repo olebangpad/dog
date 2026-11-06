@@ -1041,3 +1041,30 @@ test('autotile: 16 corner tiles that meet, a dual-grid map, overlays and engine 
   assert.match(pack.files['water-grass.tres'], /3:3\/0\/terrains_peering_bit\/bottom_right_corner = 1/)
   assert.throws(() => spell.autotile('bar', 'grass'), /needs 16x16 tiles/) // the health bar is 32x8
 })
+
+test('palettes: everything drawn afterwards uses the console colors, and null brings full color back', () => {
+  const before = spell.char({ body: 'hero', hat: 'knight', hand: 'sword' }).data
+  try {
+    assert.equal(spell.palette('gameboy'), 'gameboy')
+    assert.equal(spell.palette(), 'gameboy')
+    const gb = spell.palettes.gameboy.colors
+    for (const img of [spell('slime'), spell.char({ body: 'hero', hat: 'knight', hand: 'sword' }), ...spell.fx('meteor'), ...spell.action('goblin', 'attack', 'fire')]) {
+      for (const c of img.colors()) assert.ok(gb.includes(c.slice(0, 7)), `${c} is not a Game Boy color`)
+    }
+    // the outline stays the darkest shade
+    const slime = spell('slime')
+    const outline = slime.get(6, 5) // an outline pixel of the slime
+    assert.deepEqual(outline.slice(0, 3), [0x0f, 0x38, 0x0f])
+    spell.palette(['#000000', '#ff0000', '#ffffff'])
+    assert.ok(spell('potion').colors().every((c) => ['#000000', '#ff0000', '#ffffff'].includes(c.slice(0, 7))))
+    assert.throws(() => spell.palette('nes-ish'), /no palette called/)
+  } finally {
+    spell.palette(null)
+  }
+  assert.equal(spell.palette(), null)
+  assert.deepEqual(spell.char({ body: 'hero', hat: 'knight', hand: 'sword' }).data, before, 'full color again')
+  // converting something already drawn, frames keep their timing
+  const coins = spell.toPalette(spell.frames('coin'), 'pico-8')
+  assert.equal(coins.length, spell.frames('coin').length)
+  assert.ok(coins.every((f) => f.colors().every((c) => spell.palettes['pico-8'].colors.includes(c.slice(0, 7)))))
+})

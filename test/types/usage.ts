@@ -27,6 +27,11 @@ const tracks: string[] = spell.music.list
 const diag: Frames = spell.walk(knight, 'down-right')
 const eight: string[] = [...spell.walk.dirs, ...spell.walk.diagonals]
 const pack8: Pack = spell.pack(knight, { diagonals: true })
+spell.palette('gameboy')
+const activeName: string | null = spell.palette()
+spell.palette(null)
+const retro: Pixmap = spell.toPalette(spell('slime'), 'pico-8')
+const retroFrames: Pixmap[] = spell.toPalette(spell.frames('coin'), ['#000000', '#ffffff'])
 const shore = spell.autotile('water', 'grass', { grid: 32 })
 const island: Pixmap = shore.draw([[false, true], [true, true]])
 const masks: number[][] = spell.autotile('dirt', null).layout([[1, 0]])

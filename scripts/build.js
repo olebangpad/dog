@@ -489,6 +489,19 @@ function terrainShowcase() {
   })
 }
 
+// The same island in six palettes: spell.palette() before drawing, nothing else changes
+function palettesShowcase() {
+  const names = [null, 'gameboy', 'pico-8', 'sweetie-16', 'c64', '1-bit']
+  const panels = names.map((name) => {
+    spell.palette(name)
+    const frame = terrainShowcase()[0].crop(128, 64, 272, 176)
+    const tag = text(name ?? 'full color', { color: '#ffffff' }).scale(2)
+    return frame.draw(Pixmap.create(tag.w + 8, tag.h + 6, '#000000aa'), 4, 4).draw(tag, 8, 7)
+  })
+  spell.palette(null)
+  return sheet(panels, { columns: 3, gap: 6, padding: 6, background: BG }).image
+}
+
 // A village and a dungeon room built only from tiles and props, animated (lava, torches, cauldron, fountain, banners)
 function worldShowcase() {
   const T = 16, W = 14, H = 9
@@ -543,6 +556,7 @@ async function buildShowcase() {
   { const { frames, fps } = heroExample(); await write(join(dir, 'hero.png'), apng(frames, fps)) }
   await write(join(dir, 'world.png'), apng(worldShowcase(), 6))
   await write(join(dir, 'terrain.png'), apng(terrainShowcase(), 6))
+  await write(join(dir, 'palettes.png'), png(palettesShowcase()))
   // ready-made terrain transitions (also in the download zips)
   for (const [inner, outer] of spell.autotile.presets) {
     const pack = spell.autotile(inner, outer).pack({ deflate })

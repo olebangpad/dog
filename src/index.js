@@ -22,6 +22,7 @@ import { renderSound, Sound, note, SAMPLE_RATE } from './sfx.js'
 import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
 import { SONGS, renderSong } from './music.js'
 import { createAutotile } from './autotile.js'
+import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './palette.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -198,7 +199,9 @@ spell.char = Object.assign(gridded(characters, false), characters, {
  *   spell.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')   -> 8 frames, 32x32, .fps
  *   actions: attack hit heal levelup cast death   elements: fire ice poison holy dark
  */
-spell.action = gridded(createActions(spell, looks), true)
+const rawAction = gridded(createActions(spell, looks), true)
+// actions flash, tint and fade after rendering, so with a palette on they are snapped to it once more
+spell.action = Object.assign((...a) => applyActive(rawAction(...a)), rawAction)
 
 /**
  * Walk cycles: spell.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
@@ -258,7 +261,8 @@ spell.fxPack = createFxPack(spell, looks)
  *   spell.status({ body: 'hero', hat: 'crown' }, 'burning')
  *   spell.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
  */
-spell.status = (spec, name, { walk, element, size = 32, grid, smooth } = {}) => {
+spell.status = (...a) => applyActive(statusFrames(...a))
+function statusFrames(spec, name, { walk, element, size = 32, grid, smooth } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`pixspell: no effect called "${name}"`)
   const k = gridFactor(grid)
@@ -354,6 +358,20 @@ spell.sfx.forEffect = (fx) => {
   const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
   return base ? EFFECT_SOUNDS[base] : null
 }
+
+// ------------------------------------------------------------------ palettes
+/**
+ * Retro palettes. spell.palette('gameboy') makes everything drawn afterwards use those colors (sprites, characters,
+ * actions, effects); spell.palette(null) turns it off; spell.palette() says which is on.
+ * spell.toPalette(imgOrFrames, 'pico-8') converts something already drawn. A custom palette is an array of colors.
+ */
+spell.palette = (...a) => {
+  if (!a.length) return activePalette()
+  fxMemo.clear() // effects are cached; draw them again in the new colors
+  return setPalette(a[0])
+}
+spell.palettes = Object.fromEntries(Object.entries(PALETTES).map(([k, v]) => [k, { colors: [...v.colors], note: v.note }]))
+spell.toPalette = toPalette
 
 // ------------------------------------------------------------------ terrain
 /**

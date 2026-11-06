@@ -176,6 +176,8 @@ export interface SequenceStep {
   with?: boolean
 }
 
+export type PaletteName = 'gameboy' | 'gameboy-pocket' | 'pico-8' | 'sweetie-16' | 'c64' | 'cga' | 'virtual-boy' | '1-bit' | 'sepia'
+
 export interface Autotile {
   inner: string
   outer: string | null
@@ -305,6 +307,14 @@ export interface PixSpell {
     /** The sound for an effect ('fx-meteor' -> 'meteor'), or null for silent ambience. */
     forEffect(effect: string): string | null
   }
+  /**
+   * Retro palettes: spell.palette('gameboy') draws everything from then on with those colors; null turns it off;
+   * no argument returns the active name. A custom palette is an array of colors.
+   */
+  palette(name?: PaletteName | Color[] | null): string | null
+  palettes: Record<PaletteName, { colors: string[]; note: string }>
+  /** Convert something already drawn (an image or frames) to a palette. */
+  toPalette<T extends Pixmap | Pixmap[]>(img: T, name: PaletteName | Color[]): T
   /** Terrain transitions: spell.autotile('water', 'grass').draw(cells). outer null = an overlay on transparency. */
   autotile(inner: string, outer: string | null, opts?: GridOptions & { edge?: 'line' | 'soft' | 'none'; seed?: number; frame?: number }): Autotile
   /** Chiptune music made by code: seamless loops (spell.music('town').play()) and jingles ('victory'). */

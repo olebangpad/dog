@@ -1086,3 +1086,20 @@ characters had little world to stand in. The plan is world building, then monste
   - A pond drawn with a water–grass pair painted grass over the whole map. A pond on a map needs an overlay.
 - **Not checked:** the Tiled XML parses, and its corner order matches Tiled's documented `wangid` order. But I haven't
   opened either file in Tiled or Godot.
+
+### (b) Shipped: retro palettes
+
+- **`spell.palette(name)`** (`src/palette.js`) makes everything drawn afterwards use a console's colors. There are 9
+  palettes: Game Boy, Game Boy Pocket, PICO-8, Sweetie 16, C64, CGA, Virtual Boy, 1-bit and sepia. A custom palette is
+  an array of colors.
+- **How it works:**
+  - `render()` maps the ~15 colors a sprite uses (and its glow color) once per render, so nothing costs per pixel.
+  - Single-hue palettes map by brightness with a little contrast added, so outlines stay darkest. Color palettes pick
+    the nearest color.
+  - Changing the palette clears the effect cache.
+  - Actions and status overlays mix colors after rendering (hit flashes, fades, glow over a body), so with a palette
+    on, their frames are snapped to it once more. A test caught this: Game Boy greens plus a fading goblin gave colors
+    outside the palette.
+- **`spell.toPalette(img, name)`** converts anything already drawn, such as text or a composed scene.
+- **Showcase:** `docs/img/palettes.png` shows the island in six palettes.
+- **Checks:** 9 snapshot hashes, plus a test that full color comes back exactly after `spell.palette(null)`.

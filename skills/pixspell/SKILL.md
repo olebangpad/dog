@@ -175,6 +175,18 @@ const idx = shore.layout(lake)                             // (h+1) x (w+1) tile
 console.log(ground.w, sand.h, idx[1][1], Object.keys(shore.pack().files))   // .png, .tsx (Tiled), .tres (Godot), .json
 ```
 
+Retro look: `spell.palette('gameboy')` (also `gameboy-pocket` `pico-8` `sweetie-16` `c64` `cga` `virtual-boy` `1-bit`
+`sepia`, or an array of colors) recolors everything drawn afterwards; set it once before building sprites. Text and
+anything you composed yourself: `spell.toPalette(img, name)`.
+
+```js
+spell.palette('pico-8')
+const hero = spell.walk({ body: 'hero', hat: 'knight', hand: 'sword' }, 'down')   // in PICO-8 colors
+const hud = spell.toPalette(text('HP 3', { color: '#ff6b5a' }), 'pico-8')
+spell.palette(null)
+console.log(hero.length, hud.w, Object.keys(spell.palettes))
+```
+
 UI kit: `panel` `slot` `button` `button-pressed` stretch to any size with `.nineSlice(w, h)`; `bar` is a 32x8 health bar
 (`bar-mana`, `bar-xp`, `bar-empty`...: draw `bar-empty`, then a cropped `bar` for the fill); icons `gear` `sound` `mute`
 `pause` `play` `home` `menu` `plus` `minus` `arrow` (`.flipX()` for left), plus `heart` `star` `check` `cross` `lock` `cursor`.

@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -372,6 +372,20 @@ shore.pack().zip()                                    // 시트 + Tiled .tsx(코
 자주 쓰는 조합은 [`assets/terrain/`](assets/terrain)과 다운로드 zip에 들어 있습니다(물·풀, 해변, 모래·풀, 길, 자갈길, 용암·돌, 눈, 늪, 진흙).
 이어 붙일 수 있는 타일이면 어떤 두 개든, 어떤 타일 크기든 됩니다. `npx pixspell autotile water grass`로도 만들 수 있습니다.
 
+### 🕹️ 레트로 팔레트
+
+<img src="docs/img/palettes.png" alt="같은 섬을 풀 컬러, 게임보이, PICO-8, Sweetie 16, 코모도어 64, 1비트로 그린 모습" width="840">
+
+한 줄이면 게임 전체가 게임보이, PICO-8, C64 게임이 됩니다. 그 뒤에 그리는 모든 것(스프라이트, 캐릭터, 행동, 이펙트, 지형)이
+그 기기의 색으로 그려집니다. 한 가지 색조의 팔레트는 밝기 순서로 맞추기 때문에 외곽선은 가장 어둡게, 하이라이트는 가장 밝게 남습니다.
+
+```js
+spell.palette('gameboy')                           // gameboy-pocket, pico-8, sweetie-16, c64, cga, virtual-boy, 1-bit, sepia도 있음
+spell.palette(['#000000', '#ff004d', '#fff1e8'])   // 직접 고른 색도 됨
+spell.palette(null)                                // 다시 풀 컬러
+spell.toPalette(sceneImage, 'pico-8')              // 직접 합성한 그림을 변환
+```
+
 ### 🪟 UI 키트
 
 <img src="docs/img/ui.png" alt="PixSpell로 만든 게임 UI: 하트, 체력·마나·경험치 바, 버튼이 있는 대화 창, 아이템 칸 인벤토리, 아이콘 버튼" width="720">
@@ -503,6 +517,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.pack(spec)` · `spell.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
 | `spell.sfx(name, { element, pitch, seed })` | 효과음: `.play()`, `.toWAV()`, `.save(path)`. 목록은 `spell.sfx.list`, 이펙트 소리는 `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | 효과음 WAV 묶음 zip |
+| `spell.palette(name)` · `spell.toPalette(img, name)` | 그 뒤에 그리는 모든 것에 레트로 팔레트 적용(`null`이면 끔), 또는 그림 하나만 변환. 목록은 `spell.palettes` |
 | `spell.autotile(inner, outer, { grid })` | 지형 전환: `.tiles`(16장), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()`(Tiled .tsx + Godot .tres). `outer`가 null이면 오버레이 |
 | `spell.music(name, { key, tempo, seed })` | 칩튠 음악: 끊김 없이 반복되는 루프나 짧은 징글(Sound). 목록은 `spell.music.list`, 정보는 `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | 위 모든 호출에 붙는 옵션: 그 타일 크기용 그림 (`smooth: false`면 단순 확대) |

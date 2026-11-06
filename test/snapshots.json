@@ -2054,5 +2054,14 @@
  "autotile:water-swamp-grass": "17bbd737",
  "autotile:grass-dirt-mud": "15562030",
  "autotile:dirt-sand-overlay-32": "5f43121a",
+ "palette:gameboy": "4451d470",
+ "palette:gameboy-pocket": "fddaa6f4",
+ "palette:pico-8": "64ed379c",
+ "palette:sweetie-16": "5c8edae7",
+ "palette:c64": "be1c5aec",
+ "palette:cga": "e963248a",
+ "palette:virtual-boy": "55c64526",
+ "palette:1-bit": "e321dea9",
+ "palette:sepia": "11a39993",
  "music:town-seed1-key2": "9646662e"
 }

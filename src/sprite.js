@@ -10,6 +10,7 @@
 // A sprite never stores real colors, only which ramp + shade a pixel uses.
 // That is why one drawing can be recolored into any material or hex color.
 
+import { paletteColor } from './palette.js'
 import { MATERIALS, OUTLINE, WHITE } from './materials.js'
 import { parseColor, rampFrom, isColor } from './color.js'
 import { Pixmap } from './pixmap.js'
@@ -137,11 +138,12 @@ export function render(def, opts = {}) {
   for (const [ch, [slot, shade]] of Object.entries(LEGEND)) {
     pal[ch] = parseColor(resolveRamp(opts[slot] ?? def.ramps[slot])[shade])
   }
+  for (const ch in pal) pal[ch] = paletteColor(pal[ch]) // spell.palette('gameboy'): a console's colors
   const img = new Pixmap(def.w, def.h)
   // effects carry a light layer: translucent glow in ramp A's brightest shade, under the sprite
   const light = opts.light === false ? null : def.light?.[(opts.frame ?? 0) % def.frames.length]
   if (light) {
-    const [r, g, b] = parseColor(resolveRamp(opts.A ?? def.ramps.A)[3])
+    const [r, g, b] = paletteColor(parseColor(resolveRamp(opts.A ?? def.ramps.A)[3]))
     for (let i = 0; i < light.length; i++) if (light[i]) img.data.set([r, g, b, light[i]], i * 4)
   }
   rows.forEach((row, y) => {
