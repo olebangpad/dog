@@ -945,3 +945,12 @@ characters had little world to stand in. The plan is world building, then monste
 - **Snapshots:** 72 new looks. The only changed snapshots are the random-seed characters (`char:N`, `walk:N`), because
   `spell.char.random` now picks from more bodies. GitHub heroes don't change: they pick from humanoid bodies only.
 - **Showcase:** `docs/img/monsters.png` shows all 21 monsters idling, with their names.
+
+### (c) Shipped: 26 more items
+
+- **Weapons and gear:** dagger, spear, hammer, wand, armor, boots, amulet, and an animated candle.
+- **Food:** bread, cheese, cake, carrot, egg, grapes, bottle (milk, wine, poison, honey, ink).
+- **Treasure and quest items:** gold bar, trophy, map, compass, hourglass, feather, bone, backpack, letter, dice, runes.
+- **Counts:** 48 items, 790 sprite looks.
+- **Art fix:** the dice pips were drawn in the body's dark shade, which on white bone is pale grey and invisible, so
+  they use the outline color now.
