@@ -46,6 +46,13 @@ export async function computeSnapshots() {
   // image ops
   out['ops:pipeline'] = fnv([dog('slime-pink').smooth(2).outline('#fff').shadow().hue(40).rotate(90).flipX().scale(0.5)])
   out['pack:hero'] = fnv([dog.pack(specs[0]).image])
+  // other tile grids: halved with outlines, Scale2x, native effects, a character pack
+  for (const g of [8, 32, 64]) {
+    for (const id of ['potion', 'sword', 'slime-pink', 'chest-gold', 'tree', 'skull', 'heart', 'grass']) out[`grid${g}:${id}`] = fnv(dog.frames(id, { grid: g }))
+    out[`grid${g}:char`] = fnv(dog.walk(specs[0], 'left', { grid: g }))
+    out[`grid${g}:fx-portal-ice`] = fnv(dog.frames('fx-portal-ice', { grid: g }))
+  }
+  out['grid32:pack'] = fnv([dog.pack(specs[1], { grid: 32, actions: ['attack'] }).image])
   // sounds: the 16-bit PCM bytes, so tiny float differences below one step don't count
   const pcm = (sound) => ({ w: sound.samples.length, h: sound.sampleRate, data: sound.toWAV().subarray(44) })
   for (const id of dog.sfx.list) out[`sfx:${id}`] = fnv([pcm(dog.sfx(id))])

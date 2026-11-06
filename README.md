@@ -15,7 +15,7 @@ plus a character maker with **2.7 million combinations** that walk in 4 directio
 [Sounds](#-66-game-sounds-made-by-code) ·
 [Actions](#%EF%B8%8F-actions--effects) ·
 [Walking](#-walk-in-4-directions) ·
-[Download sprites](#-just-want-the-pngs) ·
+[Download (8/16/32/64 px)](#-just-want-the-pngs) ·
 [Use in code](#-use-it-in-code) ·
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
@@ -209,7 +209,23 @@ add 525 more animated looks; all of them are exported in `assets/` too.
 
 ## 📦 Just want the PNGs?
 
-Everything is pre-exported in [`assets/`](assets). No build step needed.
+**Pick your tile size and get everything in one zip:** [**download page**](https://olebangpad.github.io/dog/#download).
+Choose 8×8, 16×16, 32×32 or 64×64 (what people call 8-bit / 16-bit / 32-bit pixel art) and you get sprites, characters with
+walk strips, effects and sounds made for that grid:
+
+| tile | how it's made |
+| --- | --- |
+| **8×8** | half size by vote, then the 1px outline is drawn again (eyes and seams are kept) |
+| **16×16** | the original pixels |
+| **32×32** · **64×64** | Scale2x once or twice: rounded stair steps, like art drawn at that size, not fat pixels |
+| effects | drawn again at the new size by their recipe (a 64×64 tile gets real 128 px effects) |
+
+<img src="docs/img/grids.png" alt="The same sprites, character and effects at 8, 16, 32 and 64 px tiles" width="100%">
+
+In code it's one option: `dog('sword', { grid: 32 })`, `dog.char(spec, { grid: 8 })`, `dog.pack(spec, { grid: 64 })`.
+On the command line: `node scripts/dog.js export --grid 32` writes `dog-32px.zip`.
+
+The 16 px originals are also pre-exported in [`assets/`](assets). No build step needed.
 
 | Folder | What's inside |
 | --- | --- |
@@ -263,6 +279,8 @@ node scripts/dog.js fx burning --on slime --strip -o burning.png        # status
 node scripts/dog.js fxpack meteor poof crit -o effects.zip              # effects as a game pack
 node scripts/dog.js sfx slash --element fire -o slash.wav              # a sound effect (dog.js sfx lists them)
 node scripts/dog.js sfxpack -o sounds.zip                              # every sound as WAVs
+node scripts/dog.js export --grid 32                                   # everything for 32x32 tiles in one zip
+node scripts/dog.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid works on render, char, fx, pack
 ```
 
 TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `dog.` autocompletes.
@@ -323,6 +341,8 @@ import { dog, compose, sheet, text, Pixmap } from './src/index.js'
 | `dog.pack(spec)` · `dog.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
 | `dog.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `dog.sfx.list`, `dog.sfx.forEffect(fx)` |
 | `dog.sfxPack(names)` | sounds as WAV files in one zip |
+| `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |
+| `dog.toGrid(img, grid)` · `dog.bundle({ grid })` | convert any DOG image · every file for one tile size, for your own exporter |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |
 | `sheet(images, { columns, gap })` | pack into a sprite sheet → `{ image, frames }` |
 | `text('SCORE 9', { color })` | built-in 3×5 pixel font |
@@ -359,6 +379,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 - [x] 500+ procedural effects in any color and size, an effects gallery, weapon-aware attacks
 - [x] TypeScript types, visual regression tests
 - [x] Sound effects made by code, matched to every attack, action and effect
+- [x] Every download at 8, 16, 32 or 64 px tiles
 - [ ] More bodies (each one adds ~180,000 combinations)
 - [ ] PNG → text art importer
 - [ ] More palettes (limit the whole set to a 16- or 32-color palette)

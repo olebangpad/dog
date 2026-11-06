@@ -17,6 +17,7 @@ import { createPack, createFxPack, PACK_CELL } from './pack.js'
 import { runRecipe, FX_COLORS } from './fx.js'
 import { RECIPES } from './fx/index.js'
 import { zip } from './zip.js'
+import { createBundle } from './bundle.js'
 import { renderSound, Sound, note, SAMPLE_RATE } from './sfx.js'
 import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
 
@@ -54,14 +55,95 @@ function lookup(id) {
  *   dog('coin', { frame: 2 })              animation frame
  */
 export function dog(id, opts = {}) {
-  const { def, ramps } = lookup(id)
-  return render(def, { ...ramps, ...opts })
+  const look = lookup(id)
+  const { grid, smooth, ...rest } = opts
+  const k = gridFactor(grid)
+  if (k !== 1 && recipeById[look.def.id]) { // effects are code: draw them again at the new size
+    const frames = effectAtGrid(look, k, rest)
+    return frames[Math.min(rest.frame ?? look.def.cover, frames.length - 1)]
+  }
+  return regrid(render(look.def, { ...look.ramps, ...rest }), k, smooth)
 }
 
 /** All frames of an animated sprite. */
 dog.frames = (id, opts = {}) => {
-  const { def, ramps } = lookup(id)
-  return renderFrames(def, { ...ramps, ...opts })
+  const look = lookup(id)
+  const { grid, smooth, ...rest } = opts
+  const k = gridFactor(grid)
+  if (k !== 1 && recipeById[look.def.id]) return effectAtGrid(look, k, rest)
+  return regridAll(renderFrames(look.def, { ...look.ramps, ...rest }), k, smooth)
+}
+
+// ---------------------------------------------------------------- grids
+/** Tile sizes DOG can deliver: the art is drawn on a 16 px grid and converted from there. */
+export const GRIDS = [8, 16, 32, 64]
+function gridFactor(grid) {
+  if (grid == null || grid === 16) return 1
+  if (!GRIDS.includes(grid)) throw new Error(`dog: grid must be one of ${GRIDS.join(', ')} (the tile size of your game)`)
+  return grid / 16
+}
+/**
+ * Convert art drawn on the 16 px grid to another grid: majority vote when shrinking (outlines survive),
+ * Scale2x when growing (rounded stair steps, like art drawn at that size), or plain zoom with smooth: false.
+ */
+function regrid(img, k, smooth = true) {
+  if (k === 1) return img
+  if (k < 1) return halve(img)
+  return smooth === false ? img.scale(k) : img.smooth(Math.log2(k))
+}
+/**
+ * Half size for pixel art. A plain majority vote loses the 1px outline (it never wins a 2x2 block), so:
+ * vote among the *inside* colors only, then draw the outline again, 1px, around the shrunk shape.
+ */
+const OUTLINE_RGBA = parseColor(OUTLINE)
+function halve(img) {
+  const { w, h, data } = img
+  const W = Math.ceil(w / 2), H = Math.ceil(h / 2)
+  const out = new Pixmap(W, H), od = out.data
+  const isOutline = (i) => data[i] === OUTLINE_RGBA[0] && data[i + 1] === OUTLINE_RGBA[1] && data[i + 2] === OUTLINE_RGBA[2]
+  const clear = (x, y) => x < 0 || y < 0 || x >= w || y >= h || !data[(y * w + x) * 4 + 3]
+  const edge = (x, y) => clear(x - 1, y) || clear(x + 1, y) || clear(x, y - 1) || clear(x, y + 1)
+  let hadOutline = false
+  for (let by = 0; by < H; by++) for (let bx = 0; bx < W; bx++) {
+    let best = -1, bestN = 0
+    const seen = []
+    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+      const x = bx * 2 + dx, y = by * 2 + dy
+      if (x >= w || y >= h) continue
+      const i = (y * w + x) * 4
+      if (!data[i + 3]) continue
+      // the outline on the silhouette edge gets redrawn below; dark details inside (eyes, seams) are kept on purpose
+      const detail = isOutline(i)
+      if (detail && edge(x, y)) { hadOutline = true; continue }
+      const weight = detail ? 3 : 1
+      seen.push([i, weight])
+      let n = 0
+      for (const [j, wj] of seen) if (data[j] === data[i] && data[j + 1] === data[i + 1] && data[j + 2] === data[i + 2] && data[j + 3] === data[i + 3]) n += wj
+      if (n > bestN || (n === bestN && detail)) { best = i; bestN = n }
+    }
+    if (best >= 0) od.set(data.subarray(best, best + 4), (by * W + bx) * 4)
+  }
+  if (hadOutline) {
+    const solid = (x, y) => x >= 0 && y >= 0 && x < W && y < H && od[(y * W + x) * 4 + 3] !== 0
+    const mark = []
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (od[(y * W + x) * 4 + 3]) continue
+      if (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1)) mark.push((y * W + x) * 4)
+    }
+    for (const i of mark) od.set(OUTLINE_RGBA, i)
+  }
+  return out
+}
+function regridAll(frames, k, smooth) {
+  if (k === 1) return frames
+  const out = frames.map((f) => regrid(f, k, smooth))
+  for (const key of ['fps', 'loop']) if (frames[key] !== undefined) out[key] = frames[key]
+  return out
+}
+// a procedural effect look (fx-meteor, fx-meteor-ice) redrawn natively at k times its size
+function effectAtGrid(look, k, { A, B, C } = {}) {
+  const frames = dog.fx(look.def.id, { size: look.def.w * k, element: look.variant ?? undefined, A, B, C })
+  return frames
 }
 
 /** Ids of every look, optionally filtered by category or tag. */
@@ -79,14 +161,42 @@ dog.info = (id) => lookup(id)
  *   dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
  *   dog.char.frames(spec)   dog.char.random(seed)   dog.char.parts   dog.char.count()
  */
-dog.char = createCharacters(looks)
+// grid: { grid: 32 } can ride along in whichever options object a call takes (or in the spec itself)
+function takeGrid(args) {
+  let k = 1, smooth
+  const clean = args.map((a) => {
+    if (a && typeof a === 'object' && !Array.isArray(a) && !(a instanceof Pixmap) && ('grid' in a || 'smooth' in a)) {
+      const { grid, smooth: sm, ...rest } = a
+      k = gridFactor(grid)
+      smooth = sm
+      return rest
+    }
+    return a
+  })
+  return { k, smooth, args: clean }
+}
+const gridded = (fn, many) => Object.assign((...a) => {
+  const { k, smooth, args } = takeGrid(a)
+  const out = fn(...args)
+  return many ? regridAll(out, k, smooth) : regrid(out, k, smooth)
+}, fn)
+
+/** Convert any DOG image or frame list to another tile grid: dog.toGrid(dog('sword'), 32). */
+dog.toGrid = (img, grid, { smooth } = {}) => (Array.isArray(img) ? regridAll(img, gridFactor(grid), smooth) : regrid(img, gridFactor(grid), smooth))
+dog.grids = GRIDS
+
+const characters = createCharacters(looks)
+dog.char = Object.assign(gridded(characters, false), characters, {
+  frames: gridded(characters.frames, true),
+  walk: gridded(characters.walk, true),
+})
 
 /**
  * Situation effects - a character doing something, effects attached to hands / head / body.
  *   dog.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')   -> 8 frames, 32x32, .fps
  *   actions: attack hit heal levelup cast death   elements: fire ice poison holy dark
  */
-dog.action = createActions(dog, looks)
+dog.action = gridded(createActions(dog, looks), true)
 
 /**
  * Walk cycles: dog.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
@@ -111,6 +221,10 @@ const recipeById = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
 const fxMemo = new Map()
 const FX_MEMO_MAX = 300
 dog.fx = (name, opts = {}) => {
+  if (opts.grid != null) { // effects are code: a grid just means drawing them at another size
+    const { grid, smooth, ...rest } = opts
+    opts = { ...rest, size: (rest.size ?? 32) * gridFactor(grid) }
+  }
   const key = name + JSON.stringify(opts)
   let hit = fxMemo.get(key)
   if (!hit) {
@@ -141,16 +255,19 @@ dog.fxPack = createFxPack(dog, looks)
  *   dog.status({ body: 'hero', hat: 'crown' }, 'burning')
  *   dog.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
  */
-dog.status = (spec, name, { walk, element, size = 32 } = {}) => {
+dog.status = (spec, name, { walk, element, size = 32, grid, smooth } = {}) => {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`dog: no effect called "${name}"`)
-  const effect = dog.fx(recipe.id, { element, size })
-  const base = walk ? dog.walk(spec, walk) : dog.char.frames(spec)
+  const k = gridFactor(grid)
+  size *= k
+  const effect = dog.fx(recipe.id, { element, size }) // drawn natively at the new size
+  const base = regridAll(walk ? dog.walk(spec, walk) : dog.char.frames(spec), k, smooth)
+  const cs = base[0].w
   const gcd = (a, b) => (b ? gcd(b, a % b) : a)
   const lcm = (base.length * effect.length) / gcd(base.length, effect.length)
   const n = lcm <= 48 ? lcm : Math.max(base.length, effect.length)
   const out = Array.from({ length: n }, (_, i) => {
-    const body = new Pixmap(size, size).draw(base[i % base.length], (size - 24) >> 1, size - 24)
+    const body = new Pixmap(size, size).draw(base[i % base.length], (size - cs) >> 1, size - cs)
     const fx = effect[i % effect.length]
     return recipe.behind ? new Pixmap(size, size).draw(fx).draw(body) : body.draw(fx)
   })
@@ -234,6 +351,13 @@ dog.sfx.forEffect = (fx) => {
   const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
   return base ? EFFECT_SOUNDS[base] : null
 }
+
+/**
+ * Everything at one tile size, as a list of files to render one by one: [{ path, make }].
+ *   dog.bundle({ grid: 32, sprites: true, characters: true, effects: true, effectColors: false, sounds: true })
+ * make() returns a Pixmap (encode as PNG), WAV bytes or text. scripts/dog.js export and the web page zip it.
+ */
+dog.bundle = createBundle(dog, looks, new Set(RECIPES.map((r) => r.id)))
 
 /** Sounds (all, or the names you pass) as WAV files in one zip. Same options as dog.sfx apply to every sound. */
 dog.sfxPack = (names = dog.sfx.list, { name = 'sounds', ...opts } = {}) => {

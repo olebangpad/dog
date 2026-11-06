@@ -28,6 +28,7 @@
       <a href="fx.html">Effects</a>
       <a href="sfx.html">Sounds</a>
       <a href="#maker">Characters</a>
+      <a href="#download">Download</a>
       <a href="#studio">Studio</a>
       <a href="#gallery">Gallery</a>
       <a href="https://github.com/olebangpad/dog#readme">Docs</a>
@@ -51,7 +52,7 @@
         <p class="hint">Pick a body and gear: everything snaps into place by name. Then make it walk in 4 directions, or act: attack, get hit, heal, level up, cast or die, in any element.</p>
         <div id="pickers" class="pickers"></div>
         <div class="row wrap maker-out">
-          <div class="seg" id="maker-scale" role="group" aria-label="Download size"></div>
+          <div class="seg" id="maker-scale" role="group" aria-label="Tile size for downloads"></div>
           <button class="btn primary" id="mk-pack" title="Sprite sheet with idle, 4-way walk and 6 actions + Phaser/Aseprite JSON + Godot SpriteFrames">📦 Game pack (.zip)</button>
           <button class="btn" id="mk-png">PNG</button>
           <button class="btn" id="mk-anim">Animated PNG</button>
@@ -69,6 +70,29 @@
         <button class="btn small" id="mk-sheet">Download all as a sheet</button>
       </div>
       <div class="history-list" id="history-list"></div>
+    </div>
+  </section>
+
+  <section class="downloads" id="download" aria-labelledby="download-title">
+    <div class="downloads-head">
+      <h2 id="download-title" class="maker-title">Download everything, at your tile size</h2>
+      <p class="hint">Pick the grid your game uses (what people call 8-bit, 16-bit, 32-bit pixel art). Sprites are converted to fit it,
+        effects are drawn again at that size, and it all comes as one zip. CC0.</p>
+    </div>
+    <div class="downloads-body">
+      <div class="seg grid-pick" id="grid-pick" role="group" aria-label="Tile size"></div>
+      <div class="grid-preview" id="grid-preview" aria-label="Preview at this tile size"></div>
+      <div class="row wrap dl-opts" id="dl-opts">
+        <label><input type="checkbox" data-part="sprites" checked> Sprites</label>
+        <label><input type="checkbox" data-part="characters" checked> Characters</label>
+        <label><input type="checkbox" data-part="effects" checked> Effects</label>
+        <label><input type="checkbox" data-part="effectColors"> + every effect color</label>
+        <label><input type="checkbox" data-part="sounds" checked> Sounds</label>
+      </div>
+      <div class="row wrap">
+        <button class="btn primary" id="dl-bundle">📦 Download</button>
+        <span class="muted" id="dl-status" role="status"></span>
+      </div>
     </div>
   </section>
 
@@ -170,5 +194,6 @@
   </footer>
 
   <script type="module" src="web/app.js"></script>
+  <script type="module" src="web/downloads.js"></script>
 </body>
 </html>

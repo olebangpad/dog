@@ -609,3 +609,55 @@ test('Sound.toWAV writes a valid 16-bit mono WAV', () => {
   const pack = dog.sfxPack(['coin', 'hit'])
   assert.deepEqual(Object.keys(pack.files).sort(), ['README.txt', 'coin.wav', 'hit.wav'])
 })
+
+test('grid: every call delivers art for an 8, 16, 32 or 64 px tile grid', () => {
+  const size = (x) => (Array.isArray(x) ? [x[0].w, x[0].h] : [x.w, x.h])
+  for (const g of [8, 16, 32, 64]) {
+    const k = g / 16
+    assert.deepEqual(size(dog('sword', { grid: g })), [16 * k, 16 * k])
+    assert.deepEqual(size(dog.frames('coin', { grid: g })), [16 * k, 16 * k])
+    assert.deepEqual(size(dog.char('hero', { hat: 'crown', grid: g })), [24 * k, 24 * k])
+    assert.deepEqual(size(dog.char({ body: 'slime', grid: g })), [24 * k, 24 * k])
+    assert.deepEqual(size(dog.walk('heroine', 'left', { grid: g })), [24 * k, 24 * k])
+    assert.deepEqual(size(dog.action('hero', 'attack', { element: 'fire', grid: g })), [32 * k, 32 * k])
+    assert.deepEqual(size(dog.status('slime', 'frozen', { grid: g })), [32 * k, 32 * k])
+    assert.deepEqual(size(dog.fx('boom', { grid: g })), [32 * k, 32 * k])
+    assert.deepEqual(size(dog('fx-meteor-ice', { grid: g })), [32 * k, 32 * k])
+    const pack = dog.pack('hero', { grid: g, actions: ['attack'] })
+    assert.equal(pack.json.frames[0].frame.w, 32 * k)
+    assert.deepEqual(pack.json.meta.dog.origin, { x: 16 * k, y: 32 * k - 1 })
+    assert.equal(dog.fxPack(['meteor'], { grid: g }).json.frames[0].frame.w, 32 * k)
+  }
+  assert.equal(dog.walk('hero', 'down', { grid: 32 }).fps, dog.walk('hero', 'down').fps)
+  assert.throws(() => dog('sword', { grid: 24 }), /grid must be one of/)
+})
+
+test('grid: effects are redrawn natively, sprites smoothed or zoomed, 8 px keeps outlines and details', () => {
+  const same = (a, b) => a.w === b.w && a.h === b.h && a.data.every((v, i) => v === b.data[i])
+  // a grid-32 effect is the 64 px drawing, not a stretched 32 px one
+  assert.ok(same(dog('fx-meteor', { grid: 32, frame: 5 }), dog.fx('fx-meteor', { size: 64 })[5]))
+  assert.ok(!same(dog('fx-meteor', { grid: 32, frame: 5 }), dog('fx-meteor', { frame: 5 }).smooth()))
+  assert.ok(same(dog('sword', { grid: 32 }), dog('sword').smooth()))
+  assert.ok(same(dog('sword', { grid: 32, smooth: false }), dog('sword').scale(2)))
+  assert.ok(same(dog.toGrid(dog('sword'), 64), dog('sword').smooth(2)))
+  // 8 px: the silhouette edge is outline-colored wherever it meets transparency, and dark details inside survive
+  const OUT = [0x1b, 0x12, 0x25]
+  for (const id of ['potion', 'sword', 'slime', 'chest', 'skull']) {
+    const img = dog(id, { grid: 8 })
+    const at = (x, y) => (y * img.w + x) * 4
+    const clear = (x, y) => x >= 0 && y >= 0 && x < img.w && y < img.h && img.data[at(x, y) + 3] === 0
+    for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
+      if (!img.data[at(x, y) + 3]) continue
+      if (clear(x - 1, y) || clear(x + 1, y) || clear(x, y - 1) || clear(x, y + 1)) {
+        assert.deepEqual([...img.data.subarray(at(x, y), at(x, y) + 3)], OUT, `${id} edge at ${x},${y}`)
+      }
+    }
+  }
+  const slime = dog('slime', { grid: 8, frame: 0 })
+  let inner = 0 // the eyes: outline-colored pixels with no transparent neighbor
+  for (let y = 1; y < 7; y++) for (let x = 1; x < 7; x++) {
+    const i = (y * 8 + x) * 4, n = [-1, 1, -8, 8].map((d) => slime.data[i + d * 4 + 3])
+    if (slime.data[i] === 0x1b && slime.data[i + 2] === 0x25 && n.every(Boolean)) inner++
+  }
+  assert.ok(inner >= 1, 'slime keeps its eyes at 8 px')
+})

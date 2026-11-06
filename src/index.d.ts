@@ -10,6 +10,14 @@ export type RGBA = [number, number, number, number]
 
 export interface Ramps { A?: Color; B?: Color; C?: Color }
 
+/** The tile size of your game. DOG draws on 16; 8 halves (outline kept), 32 / 64 grow with Scale2x, effects are redrawn. */
+export type Grid = 8 | 16 | 32 | 64
+export interface GridOptions {
+  grid?: Grid
+  /** false: grow with plain zoom (fat pixels) instead of Scale2x. */
+  smooth?: boolean
+}
+
 /** An immutable RGBA image. Every method returns a new Pixmap, so calls chain. */
 export class Pixmap {
   constructor(w: number, h: number, data?: Uint8ClampedArray)
@@ -77,7 +85,7 @@ export class Pixmap {
 /** A list of frames with the speed they were made for. */
 export type Frames = Pixmap[] & { fps: number; loop?: boolean }
 
-export interface CharacterSpec extends Ramps {
+export interface CharacterSpec extends Ramps, GridOptions {
   /** Body id, e.g. 'hero', 'heroine-blonde', 'goblin', 'slime-pink'. See dog.char.parts.body. */
   body: string
   /** 'crown' or 'hat-crown' (variants: 'crown-silver'). */
@@ -95,7 +103,7 @@ export type AttackStyle = 'slash' | 'stab' | 'thrust' | 'whip' | 'smash' | 'burn
 export type ElementName = 'fire' | 'ice' | 'poison' | 'holy' | 'dark'
 export type FxColorName = ElementName | 'water' | 'nature' | 'blood' | 'arcane' | 'steel'
 
-export interface ActionOptions {
+export interface ActionOptions extends GridOptions {
   element?: ElementName | Color
   /** Damage / heal number, e.g. '-12'. */
   amount?: string
@@ -141,7 +149,7 @@ export interface SpriteDef {
 
 export interface Look { id: string; def: SpriteDef; variant: string | null; ramps: Required<Ramps> }
 
-export interface FxOptions extends Ramps {
+export interface FxOptions extends Ramps, GridOptions {
   /** Pixel size of the square frame (default 32). */
   size?: number
   seed?: number
@@ -204,8 +212,14 @@ export interface SoundPack {
 
 export interface Dog {
   /** Render any sprite or variant: dog('potion'), dog('potion-mana'), dog('potion', { A: '#ff4fd8' }). */
-  (id: string, opts?: Ramps & { frame?: number; outline?: string; white?: string }): Pixmap
-  frames(id: string, opts?: Ramps): Frames
+  (id: string, opts?: Ramps & GridOptions & { frame?: number; outline?: string; white?: string }): Pixmap
+  frames(id: string, opts?: Ramps & GridOptions): Frames
+  /** The tile sizes DOG delivers: [8, 16, 32, 64]. */
+  grids: Grid[]
+  /** Convert any DOG image (or frame list) drawn on the 16 px grid to another grid. */
+  toGrid<T extends Pixmap | Pixmap[]>(img: T, grid: Grid, opts?: { smooth?: boolean }): T
+  /** Everything at one tile size, as files to render one by one (see scripts/dog.js export). */
+  bundle(opts?: { grid?: Grid; sprites?: boolean; characters?: boolean; effects?: boolean; effectColors?: boolean; sounds?: boolean }): { path: string; make(): Pixmap | Uint8Array | string }[]
   list(filter?: { category?: string; tag?: string; variants?: boolean }): string[]
   info(id: string): Look
 
@@ -234,11 +248,11 @@ export interface Dog {
     size: number
   }
   /** Character + status effect, 32x32 frames, idle or walking. */
-  status(spec: string | CharacterSpec, effect: string, opts?: { walk?: WalkDir; element?: FxColorName | Color; size?: number }): Frames
+  status(spec: string | CharacterSpec, effect: string, opts?: GridOptions & { walk?: WalkDir; element?: FxColorName | Color; size?: number }): Frames
   /** Game pack: sheet + Aseprite/Phaser JSON + Godot .tres + README. */
-  pack(spec: string | CharacterSpec, opts?: { name?: string; element?: ElementName | Color; actions?: ActionName[]; deflate?: (b: Uint8Array) => Uint8Array }): Pack
+  pack(spec: string | CharacterSpec, opts?: GridOptions & { name?: string; element?: ElementName | Color; actions?: ActionName[]; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Every effect (or the ids given) as one pack. */
-  fxPack(ids?: string[], opts?: { name?: string; deflate?: (b: Uint8Array) => Uint8Array }): Pack
+  fxPack(ids?: string[], opts?: { name?: string; grid?: Grid; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Sound effects made by code: dog.sfx('coin').play(), dog.sfx('slash', { element: 'fire' }). */
   sfx: {
     (name: string, opts?: SfxOptions): Sound

@@ -19,7 +19,7 @@ export function createPack(dog, looks) {
   const slug = (s) => [s.body, s.hat, s.hand, s.offhand].filter(Boolean)
     .map((p) => p.replace(/^(hat|held)-/, '')).join('-').replace(/[^a-z0-9-]/g, '').slice(0, 60)
 
-  function pack(spec, { name, element, actions = dog.action.list, deflate } = {}) {
+  function pack(spec, { name, element, actions = dog.action.list, deflate, grid = 16, smooth } = {}) {
     const s = typeof spec === 'string' ? { body: spec } : { ...spec }
     for (const k of ['action', 'element', 'frame', 'dir']) delete s[k]
     const id = name ?? slug(s)
@@ -37,7 +37,11 @@ export function createPack(dog, looks) {
       rows.push({ tag: a, frames: f, fps: f.fps, loop: false })
     }
 
-    return writePack(id, rows, { readme: readmeFor(id, s, rows), meta: { spec: s, origin: ORIGIN }, deflate, extra: { spec: s } })
+    // another tile size: the same rows, converted (cell 32 -> 16 / 64 / 128, feet stay at the bottom center)
+    const k = grid / 16
+    if (k !== 1) for (const r of rows) r.frames = dog.toGrid(r.frames, grid, { smooth })
+    const origin = { x: ORIGIN.x * k, y: (ORIGIN.y + 1) * k - 1 }
+    return writePack(id, rows, { readme: readmeFor(id, s, rows, origin, PACK_CELL * k), meta: { spec: s, origin, grid }, deflate, extra: { spec: s } })
   }
 
   return pack
@@ -92,12 +96,12 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
  * One row per effect, same files as a character pack.
  */
 export function createFxPack(dog, looks) {
-  return function fxPack(ids = dog.fx.list, { name = 'effects', deflate } = {}) {
+  return function fxPack(ids = dog.fx.list, { name = 'effects', deflate, grid } = {}) {
     const rows = ids.map((raw) => {
       const id = looks[raw] ? raw : `fx-${raw}`
       if (!looks[id]) throw new Error(`dog: no effect called "${raw}"`)
       const { def } = looks[id]
-      return { tag: id.replace(/^fx-/, ''), frames: dog.frames(id), fps: def.fps, loop: def.tags.includes('loop') }
+      return { tag: id.replace(/^fx-/, ''), frames: dog.frames(id, { grid }), fps: def.fps, loop: def.tags.includes('loop') }
     })
     const readme = `DOG effects pack: ${name}
 Made with DOG - https://github.com/olebangpad/dog - CC0, use it anywhere.
@@ -136,15 +140,15 @@ function godot(id, rows, frames) {
   ].join('\n')
 }
 
-function readmeFor(id, spec, rows) {
+function readmeFor(id, spec, rows, origin = ORIGIN, cell = PACK_CELL) {
   const opts = ['hat', 'hand', 'offhand', 'A', 'B', 'C'].filter((k) => spec[k]).map((k) => `${k}: '${spec[k]}'`)
   return `DOG character pack: ${id}
 Made with DOG - https://github.com/olebangpad/dog
 The art is CC0 (public domain): use it in any game, commercial or not. Credit is welcome, not required.
 
 FILES
-  ${id}.png    sprite sheet: 32x32 cells, one animation per row.
-               Every cell has the character's feet at x=16, y=31 - use that as the sprite origin.
+  ${id}.png    sprite sheet: ${cell}x${cell} cells, one animation per row.
+               Every cell has the character's feet at x=${origin.x}, y=${origin.y} - use that as the sprite origin.
   ${id}.json   Aseprite / TexturePacker "JSON array" atlas with meta.frameTags (one tag per animation)
   ${id}.tres   Godot 4 SpriteFrames (expects the png at res://${id}.png - fix the path if you move it)
 
@@ -156,19 +160,19 @@ PHASER 3
   this.load.aseprite('${id}', '${id}.png', '${id}.json')
   // create()
   this.anims.createFromAseprite('${id}')
-  const hero = this.add.sprite(160, 120, '${id}').setOrigin(0.5, 31 / 32)
+  const hero = this.add.sprite(160, 120, '${id}').setOrigin(0.5, ${origin.y} / ${cell})
   hero.play({ key: 'walk-down', repeat: -1 })
   // pixel-perfect: new Phaser.Game({ pixelArt: true, ... })
 
 GODOT 4
   Copy ${id}.png and ${id}.tres into the project root, add an AnimatedSprite2D,
   set its Sprite Frames to ${id}.tres and pick an animation (walk_down, attack, ...).
-  Set the texture filter to Nearest for crisp pixels; offset.y = -15 puts the feet on the node position.
+  Set the texture filter to Nearest for crisp pixels; offset.y = -${origin.y - cell / 2} puts the feet on the node position.
 
 ANYTHING ELSE
   ${id}.json lists every frame's x / y / w / h and duration in milliseconds.
 
 REBUILD IT IN CODE
-  dog.pack({ body: '${spec.body}'${opts.length ? ', ' + opts.join(', ') : ''} })
+  dog.pack({ body: '${spec.body}'${opts.length ? ', ' + opts.join(', ') : ''} }${cell !== PACK_CELL ? `, { grid: ${cell / 2} }` : ''})
 `
 }

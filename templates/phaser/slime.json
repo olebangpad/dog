@@ -994,6 +994,7 @@
     "x": 16,
     "y": 31
    },
+   "grid": 16,
    "loops": {
     "idle": true,
     "walk-down": true,

@@ -31,6 +31,11 @@ Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): e
 4. Action frames face **right**. For a character facing left, mirror them (`frames.map(f => f.flipX())` or `ctx.scale(-1, 1)`).
    Walk cycles already exist for `left`.
 5. Every animation is an array of Pixmaps with a `.fps` property. Frame at time t: `frames[Math.floor(t * frames.fps) % frames.length]`.
+6. **Match the game's tile size with `grid`** (8, 16, 32 or 64; the art is drawn on 16). Every call takes it:
+   `dog('sword', { grid: 32 })`, `dog.char(spec, { grid: 32 })`, `dog.walk(spec, 'left', { grid: 32 })`,
+   `dog.action(spec, 'attack', { element: 'fire', grid: 32 })`, `dog.fx('boom', { grid: 32 })`, `dog.pack(spec, { grid: 32 })`.
+   Sizes and anchors scale with it: at grid 32, characters are 48×48 (feet at 24, 47), actions and packs 64×64 (feet at 32, 63).
+   Use one grid for the whole game; `smooth: false` gives plain zoom instead of Scale2x.
 
 ## Characters
 

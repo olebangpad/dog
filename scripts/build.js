@@ -332,10 +332,32 @@ function social() {
   return img.scale(4)
 }
 
+// The same art at every tile grid (8, 16, 32, 64), zoomed so each row is the same size on screen:
+// what changes is how many pixels draw it.
+function gridsShowcase() {
+  const BOX = 136, PAD = 8, BG = '#16201a'
+  const items = [
+    (g) => dog('sword', { grid: g }), (g) => dog('potion-mana', { grid: g }), (g) => dog('slime-pink', { grid: g, frame: 0 }),
+    (g) => dog('chest-gold', { grid: g }), (g) => dog.char({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', grid: g }),
+    (g) => dog('fx-meteor', { grid: g, frame: 7 }),
+  ]
+  const rows = dog.grids.map((g) => {
+    const zoom = 64 / g // a 16 px tile always shows 64 px wide
+    const tiles = items.map((make) => {
+      const img = make(g).scale(zoom)
+      return Pixmap.create(BOX, BOX, BG).draw(img, (BOX - img.w) >> 1, (BOX - img.h) >> 1)
+    })
+    const row = sheet(tiles, { columns: items.length, gap: PAD }).image
+    const tag = text(`${g}X${g}`, { color: '#a8e05a' }).scale(4)
+    return new Pixmap(row.w + 132, row.h).draw(tag, 8, (row.h - tag.h) >> 1).draw(row, 132, 0)
+  })
+  return sheet(rows, { columns: 1, gap: PAD, padding: 12, background: '#0f1712' }).image
+}
+
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   if (process.env.DOG_PROFILE) {
-    for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase })) {
+    for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase, gridsShowcase })) {
       const s = Date.now(); const r = fn(); const m = Date.now() - s
       const e = Date.now(); Array.isArray(r) ? apng(r, 8) : png(r)
       console.log(`  ${name}: render ${m}ms, encode ${Date.now() - e}ms`)
@@ -352,6 +374,7 @@ async function buildShowcase() {
   await write(join(dir, 'walk.png'), apng(walks(), 6))
   await write(join(dir, 'social.png'), png(social()))
   await write(join(dir, 'fx.png'), apng(fxShowcase(), 12))
+  await write(join(dir, 'grids.png'), png(gridsShowcase()))
 }
 
 // Packs used by templates/phaser, regenerated so they always match the library.

@@ -1,5 +1,5 @@
 // Compiled with tsc (noEmit, strict) to check src/index.d.ts against real usage.
-import { dog, compose, sheet, text, Pixmap, Sound, MATERIALS, type CharacterSpec, type Frames, type SoundPack } from '../../src/index.js'
+import { dog, compose, sheet, text, Pixmap, Sound, MATERIALS, type CharacterSpec, type Frames, type SoundPack, type Pack } from '../../src/index.js'
 
 const knight: CharacterSpec = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', A: 'red' }
 const img: Pixmap = dog('potion', { A: '#ff4fd8' }).scale(8).outline('#fff').hue(30)
@@ -31,6 +31,12 @@ const soundFor: string | null = dog.sfx.forEffect('fx-meteor')
 const sounds: SoundPack = dog.sfxPack(['coin', 'hit'])
 console.log(coin.duration, fireSlash.loop, wav.length, soundFor, sounds.zip().length, dog.sfx.list.length, dog.sfx.elements[0])
 
+const tiny: Pixmap = dog('sword', { grid: 8 })
+const big: Frames = dog.walk(knight, 'up', { grid: 64 })
+const bigPack: Pack = dog.pack(knight, { grid: 32 })
+const regridded: Pixmap[] = dog.toGrid(dog.frames('coin'), 32)
+const files = dog.bundle({ grid: 32, sounds: false })
+console.log(tiny.w, big.fps, bigPack.id, regridded.length, files[0].path, dog.grids, dog.fx('boom', { grid: 8 }).length, dog.action(knight, 'cast', { grid: 32 }).length)
 // @ts-expect-error: walk direction must be one of the four
 dog.walk(knight, 'diagonal')
 // @ts-expect-error: unknown action
@@ -40,3 +46,5 @@ const bad: CharacterSpec = { hat: 'crown' }
 console.log(bad)
 // @ts-expect-error: element must be an effect color name
 dog.sfx('hit', { element: 'lava' })
+// @ts-expect-error: 24 is not a tile grid DOG delivers
+dog('sword', { grid: 24 })

@@ -15,7 +15,7 @@
 [효과음](#-코드로-만든-효과음-66개) ·
 [상황 이펙트](#%EF%B8%8F-상황-이펙트) ·
 [걷기](#-4방향-걷기) ·
-[PNG 바로 받기](#-png만-필요하다면) ·
+[비트별 다운로드 (8/16/32/64)](#-png만-필요하다면) ·
 [코드에서 쓰기](#-코드에서-쓰기) ·
 [스프라이트 추가하기](CONTRIBUTING.md) ·
 [English](README.md)
@@ -200,7 +200,22 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 
 ## 📦 PNG만 필요하다면
 
-[`assets/`](assets) 폴더에 모두 미리 뽑아 두었습니다. 빌드할 필요가 없습니다.
+**원하는 비트(타일 크기)를 골라 전부 zip 하나로 받으세요:** [**다운로드 페이지**](https://olebangpad.github.io/dog/#download).
+8×8, 16×16, 32×32, 64×64 중에 고르면 스프라이트, 걷기 스트립이 있는 캐릭터, 이펙트, 효과음이 그 크기에 맞춰 나옵니다.
+
+| 타일 | 만드는 방법 |
+| --- | --- |
+| **8×8** (8비트 느낌) | 반으로 줄인 뒤 1픽셀 외곽선을 다시 그림 (눈, 이음선 같은 디테일은 유지) |
+| **16×16** | 원본 그대로 |
+| **32×32** · **64×64** | Scale2x를 한두 번: 픽셀이 뚱뚱해지는 확대가 아니라 계단이 둥글게, 그 크기로 그린 것처럼 |
+| 이펙트 | 레시피로 그 크기에 맞게 새로 그림 (64×64 타일이면 진짜 128픽셀 이펙트) |
+
+<img src="docs/img/grids.png" alt="같은 스프라이트, 캐릭터, 이펙트를 8, 16, 32, 64픽셀 타일로" width="100%">
+
+코드에서는 옵션 하나입니다: `dog('sword', { grid: 32 })`, `dog.char(spec, { grid: 8 })`, `dog.pack(spec, { grid: 64 })`.
+명령어로는 `node scripts/dog.js export --grid 32` 하면 `dog-32px.zip`이 만들어집니다.
+
+16픽셀 원본은 [`assets/`](assets) 폴더에도 미리 뽑아 두었습니다. 빌드할 필요가 없습니다.
 
 | 폴더 | 내용 |
 | --- | --- |
@@ -254,6 +269,8 @@ node scripts/dog.js fx burning --on slime --strip -o burning.png        # 캐릭
 node scripts/dog.js fxpack meteor poof crit -o effects.zip              # 이펙트 게임 팩
 node scripts/dog.js sfx slash --element fire -o slash.wav              # 효과음 (dog.js sfx만 치면 목록)
 node scripts/dog.js sfxpack -o sounds.zip                              # 전체 효과음 WAV
+node scripts/dog.js export --grid 32                                   # 32x32 타일용 전체를 zip 하나로
+node scripts/dog.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid는 render, char, fx, pack에 다 됨
 ```
 
 TypeScript와 에디터 자동완성: 타입이 [`src/index.d.ts`](src/index.d.ts)에 들어 있습니다.
@@ -289,6 +306,8 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `dog.pack(spec)` · `dog.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
 | `dog.sfx(name, { element, pitch, seed })` | 효과음: `.play()`, `.toWAV()`, `.save(path)`. 목록은 `dog.sfx.list`, 이펙트 소리는 `dog.sfx.forEffect(fx)` |
 | `dog.sfxPack(names)` | 효과음 WAV 묶음 zip |
+| `{ grid: 8 \| 16 \| 32 \| 64 }` | 위 모든 호출에 붙는 옵션: 그 타일 크기용 그림 (`smooth: false`면 단순 확대) |
+| `dog.toGrid(img, grid)` · `dog.bundle({ grid })` | 아무 DOG 이미지나 변환 · 한 타일 크기의 전체 파일 목록 |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |
 | `sheet(images, { columns, gap })` | 스프라이트 시트로 묶기 |
 | `text('SCORE 9', { color })` | 내장 3×5 도트 폰트 |

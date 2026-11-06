@@ -4,7 +4,9 @@ import { $, $$, h, download, copy, toast } from './ui.js'
 
 const KINDS = ['all', 'burst', 'magic', 'element', 'projectile', 'beam', 'weather', 'environment', 'status', 'combat', 'reward', 'spectacle', 'loop']
 const ids = dog.fx.list
-const state = { kind: 'all', color: null, bg: 'dark' }
+const state = { kind: 'all', color: null, bg: 'dark', grid: 16 }
+try { state.grid = [8, 16, 32, 64].includes(Number(localStorage.getItem('dog-grid'))) ? Number(localStorage.getItem('dog-grid')) : 16 } catch {}
+const fxSize = () => state.grid * 2 // effects are 2 tiles wide: 16 px on an 8 px grid ... 128 px on a 64 px grid
 
 // how many effects people can actually pick: every fx look plus the hand-drawn effects and their variants
 const effectLooks = Object.values(looks).filter((l) => l.def.category === 'effects')
@@ -54,27 +56,26 @@ function filter() {
     if (show) n++
   }
   $$('#kinds button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === state.kind)))
-  $('#dl-all').textContent = `📦 Download these ${n} as one pack`
+  $('#dl-all').textContent = `📦 Download these ${n} as one pack (${state.grid}px tiles)`
 }
 
 // ---------------------------------------------------------------- detail
 let detail = null
 function openDetail(id) {
-  detail = { id, size: 32 }
+  detail = { id }
   renderDetail()
   $('#detail').showModal()
 }
 function renderDetail() {
-  const { id, size } = detail
+  const { id } = detail
+  const size = fxSize()
   const r = framesFor(id, state.color, size)
   const def = looks[id].def
   const short = id.replace(/^fx-/, '')
   $('#detail-title').textContent = short
   $('#detail-meta').textContent = `${r.frames.length} frames · ${r.fps} fps · ${r.loop ? 'loops' : 'plays once'} · ${size}×${size} · ${def.tags.filter((t) => !['effect', 'fx', 'animated'].includes(t)).join(', ')}`
-  $('#detail-sizes').replaceChildren(...[16, 32, 48, 64].map((s) => h('button', {
-    'aria-pressed': String(s === size), onclick: () => { detail.size = s; renderDetail() },
-  }, `${s}px`)))
-  const opts = [state.color && `element: '${state.color}'`, size !== 32 && `size: ${size}`].filter(Boolean)
+  $('#detail-sizes').replaceChildren(gridButtons())
+  const opts = [state.color && `element: '${state.color}'`, state.grid !== 16 && `grid: ${state.grid}`].filter(Boolean)
   const lookId = state.color ? `${id}-${state.color}` : id
   const lines = [
     `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'`,
@@ -88,21 +89,35 @@ function renderDetail() {
   if (sfx) lines.push(`dog.sfx('${sfx}'${state.color ? `, { element: '${state.color}' }` : ''}).play()   // its sound`)
   $('#detail-code').textContent = lines.join('\n')
 }
+const fileName = (id) => `${id}${state.color ? '-' + state.color : ''}-${state.grid}px`
 $('#detail-anim').addEventListener('click', () => {
-  const r = framesFor(detail.id, state.color, detail.size)
-  download(`${detail.id}${state.color ? '-' + state.color : ''}.png`, encodeAPNG(r.frames.map((f) => f.scale(4)), { fps: r.fps }))
+  const r = framesFor(detail.id, state.color, fxSize())
+  download(`${fileName(detail.id)}.png`, encodeAPNG(r.frames, { fps: r.fps }))
 })
 $('#detail-strip').addEventListener('click', () => {
-  const r = framesFor(detail.id, state.color, detail.size)
-  download(`${detail.id}${state.color ? '-' + state.color : ''}-strip.png`, sheet(r.frames).image.toPNG())
+  const r = framesFor(detail.id, state.color, fxSize())
+  download(`${fileName(detail.id)}-strip.png`, sheet(r.frames).image.toPNG())
 })
+
+// tile size: one choice for the whole page (and shared with the main page through localStorage)
+function gridButtons() {
+  return h('span', { class: 'seg', role: 'group', 'aria-label': 'Tile size' }, h('span', { class: 'seg-label' }, 'Tile'),
+    ...[8, 16, 32, 64].map((g) => h('button', { 'data-grid': g, 'aria-pressed': String(g === state.grid), title: `${g * 2}×${g * 2} effects for ${g} px tiles`, onclick: () => setGrid(g) }, `${g}px`)))
+}
+function setGrid(g) {
+  state.grid = g
+  try { localStorage.setItem('dog-grid', g) } catch {}
+  $('#fx-grid-pick').replaceChildren(gridButtons())
+  if ($('#detail').open) renderDetail()
+  filter()
+}
 $('#detail-pack').addEventListener('click', () => downloadPack([detail.id], detail.id.replace(/^fx-/, '')))
 $('#detail-copy').addEventListener('click', () => copy($('#detail-code').textContent, 'Code copied'))
 $('#detail-sound').addEventListener('click', () => dog.sfx(dog.sfx.forEffect(detail.id), { element: state.color ?? undefined }).play())
 
 async function downloadPack(list, name) {
   const lookIds = list.map((id) => (state.color && looks[`${id}-${state.color}`] ? `${id}-${state.color}` : id))
-  const pack = dog.fxPack(lookIds, { name })
+  const pack = dog.fxPack(lookIds, { name, grid: state.grid })
   // let the browser compress the sheet (the built-in PNG writer stores it uncompressed)
   const blob = await new Promise((resolve) => pack.image.toCanvas().toBlob(resolve, 'image/png'))
   const bytes = zip({ ...pack.files, [`${name}.png`]: new Uint8Array(await blob.arrayBuffer()) })
@@ -154,7 +169,7 @@ function loop(now) {
     if (i < r.imgs.length) ctx.drawImage(r.imgs[i], 0, 0)
   }
   if ($('#detail').open) {
-    const r = framesFor(detail.id, state.color, detail.size)
+    const r = framesFor(detail.id, state.color, fxSize())
     const view = $('#detail-view')
     if (view.width !== r.frames[0].w) { view.width = r.frames[0].w; view.height = r.frames[0].h }
     const i = Math.floor(t * r.fps) % (r.imgs.length + (r.loop ? 0 : 4))
@@ -165,6 +180,7 @@ function loop(now) {
   requestAnimationFrame(loop)
 }
 
+$('#fx-grid-pick').replaceChildren(gridButtons())
 $('#favicon').href = dog('fx-burst', { frame: 3 }).toDataURL()
 buildGrid()
 filter()

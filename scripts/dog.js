@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { deflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, sheet, encodeAPNG, MATERIAL_NAMES } from '../src/index.js'
+import { dog, looks, sprites, compose, sheet, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
 
 const HELP = `dog - pixel art as code
 
@@ -33,10 +33,13 @@ usage:
   dog sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
                                            a sound effect as a WAV file (dog sfx alone lists them)
   dog sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
+  dog export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o dog-32px.zip
+                                           everything for one tile size in one zip
   dog outline                              read text art on stdin, add # outlines
   dog materials                            list named materials
 
 options:
+  --grid <8|16|32|64>          tile size of your game: art is converted to fit it (render, char, fx, pack, fxpack)
   -A, -B, -C <material|#hex>   recolor a ramp slot
   --scale <n>                  4 = 4x bigger, 0.5 = half size
   --smooth                     Scale2x smoothing (doubles size)
@@ -81,6 +84,10 @@ function parse(argv) {
     else if (a === '--seed') opts.seed = Number(next())
     else if (a === '--on') opts.on = next()
     else if (a === '--pitch') opts.pitch = Number(next())
+    else if (a === '--grid') opts.grid = Number(next())
+    else if (a === '--no-effects') opts.noEffects = true
+    else if (a === '--no-sounds') opts.noSounds = true
+    else if (a === '--all-colors') opts.allColors = true
     else if (a === '--volume') opts.volume = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
     else opts._.push(a)
@@ -135,10 +142,10 @@ if (!cmd || o.help) {
   if (!looks[id]) throw new Error(`unknown sprite "${id}" - run: dog list`)
   const out = o.out ?? `${id}.png`
   if (o.anim) {
-    const frames = dog.frames(id, ramps(o)).map((f) => finish(f, o))
+    const frames = dog.frames(id, { ...ramps(o), grid: o.grid }).map((f) => finish(f, o))
     save(out, encodeAPNG(frames, { fps: looks[id].def.fps, deflate }))
   } else {
-    save(out, finish(dog(id, { ...ramps(o), frame: o.frame ?? looks[id].def.cover }), o).toPNG({ deflate }))
+    save(out, finish(dog(id, { ...ramps(o), grid: o.grid, frame: o.frame ?? looks[id].def.cover }), o).toPNG({ deflate }))
   }
 } else if (cmd === 'combine') {
   const layers = args.map((spec) => {
@@ -152,16 +159,17 @@ if (!cmd || o.help) {
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
   console.log(spec)
   const name = o.out ?? `${spec.body}${o.walk ? '-walk-' + o.walk : o.action ? '-' + o.action : ''}.png`
-  const frames = o.walk ? dog.walk(spec, o.walk) : o.action ? dog.action(spec, o.action, o.element) : dog.char.frames(spec)
+  const g = { grid: o.grid }
+  const frames = o.walk ? dog.walk(spec, o.walk, g) : o.action ? dog.action(spec, o.action, { element: o.element, grid: o.grid }) : dog.char.frames(spec, g)
   const fps = frames.fps ?? looks[spec.body].def.fps
   if (o.anim) save(name, encodeAPNG(frames.map((f) => finish(f, o)), { fps, deflate }))
   else if (o.strip || o.action || o.walk) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
-  else save(name, finish(dog.char(spec), o).toPNG({ deflate }))
+  else save(name, finish(dog.char(spec, g), o).toPNG({ deflate }))
 } else if (cmd === 'pack') {
   const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
   for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
-  const pack = dog.pack(spec, { element: o.element, deflate })
+  const pack = dog.pack(spec, { element: o.element, deflate, grid: o.grid })
   if (o.dir) {
     mkdirSync(o.dir, { recursive: true })
     for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
@@ -172,15 +180,15 @@ if (!cmd || o.help) {
 } else if (cmd === 'fx') {
   const name = args[0]
   if (!name) throw new Error(`which effect? one of:\n${dog.fx.list.map((id) => id.replace(/^fx-/, '')).join(' ')}`)
-  const fxOpts = { element: o.element, size: o.size, seed: o.seed, ...ramps(o) }
-  const frames = o.on ? dog.status(o.on, name, { element: o.element, size: o.size }) : dog.fx(name, fxOpts)
+  const fxOpts = { element: o.element, size: o.size, seed: o.seed, grid: o.grid, ...ramps(o) }
+  const frames = o.on ? dog.status(o.on, name, { element: o.element, size: o.size, grid: o.grid }) : dog.fx(name, fxOpts)
   const out = o.out ?? `${name.replace(/^fx-/, '')}${o.element ? '-' + o.element : ''}.png`
   if (o.frame != null) save(out, finish(frames[o.frame % frames.length], o).toPNG({ deflate }))
   else if (o.strip) save(out, finish(sheet(frames).image, o).toPNG({ deflate }))
   else save(out, encodeAPNG(frames.map((f) => finish(f, o)), { fps: frames.fps, deflate }))
   console.log(`${frames.length} frames @ ${frames.fps}fps, ${frames.loop ? 'loops' : 'plays once'}`)
 } else if (cmd === 'fxpack') {
-  const pack = dog.fxPack(args.length ? args : undefined, { deflate })
+  const pack = dog.fxPack(args.length ? args : undefined, { deflate, grid: o.grid })
   if (o.dir) {
     mkdirSync(o.dir, { recursive: true })
     for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
@@ -207,6 +215,18 @@ if (!cmd || o.help) {
     save(o.out ?? `${pack.id}.zip`, pack.zip())
   }
   console.log(`${pack.sounds.length} sounds`)
+} else if (cmd === 'export') {
+  const grid = o.grid ?? 16
+  const items = dog.bundle({ grid, effects: !o.noEffects, sounds: !o.noSounds, effectColors: Boolean(o.allColors) })
+  const files = {}, root = `dog-${grid}px/`
+  items.forEach((it, i) => {
+    const r = it.make()
+    files[root + it.path] = r.toPNG ? r.toPNG({ deflate }) : r
+    if (i % 100 === 0) process.stderr.write(`\r${i}/${items.length}`)
+  })
+  process.stderr.write('\r')
+  save(o.out ?? `dog-${grid}px.zip`, zip(files))
+  console.log(`${items.length} files for ${grid}x${grid} tiles`)
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {

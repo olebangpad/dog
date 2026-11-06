@@ -9,7 +9,7 @@ const KINDS = [
   { key: 'hand', label: 'Hand', kind: 'hand' },
   { key: 'offhand', label: 'Off-hand', kind: 'offhand' },
 ]
-const SCALES = [1, 4, 8]
+const GRIDS = [8, 16, 32, 64] // tile size of your game: downloads are converted to it (dog.toGrid)
 const ACTION_LABELS = { attack: 'Attack', hit: 'Hit', heal: 'Heal', levelup: 'Level up', cast: 'Cast', death: 'Death' }
 const ELEMENT_ICONS = { fire: '🔥', ice: '❄', poison: '☠', holy: '✦', dark: '☾' }
 const WALK_ARROWS = { down: '↓', up: '↑', left: '←', right: '→' }
@@ -18,7 +18,10 @@ const walkDir = () => (action?.startsWith('walk-') ? action.slice(5) : null)
 let spec = { body: 'hero', hat: 'hat-crown', hand: 'held-sword', offhand: 'held-shield' }
 let frames = []
 let fps = 6
-let scale = 4
+let grid = 32
+try { grid = Number(localStorage.getItem('dog-grid')) || 32 } catch {}
+if (!GRIDS.includes(grid)) grid = 32
+const atGrid = (img) => dog.toGrid(img, grid)
 let history = []
 let seed = null
 let action = null // null = idle
@@ -180,18 +183,21 @@ export function initMaker({ openInStudio }) {
 
   $('#roll').addEventListener('click', () => roll(1))
   $('#roll-16').addEventListener('click', () => roll(16))
-  $('#maker-scale').append(...SCALES.map((s) => h('button', {
-    'aria-pressed': String(s === scale), 'data-s': s,
-    onclick: (e) => {
-      scale = s
-      for (const b of $('#maker-scale').children) b.setAttribute('aria-pressed', String(Number(b.dataset.s) === s))
-    },
-  }, `${s}x`)))
+  $('#maker-scale').append(h('span', { class: 'seg-label' }, 'Tile'), ...GRIDS.map((g) => h('button', {
+    'aria-pressed': String(g === grid), 'data-s': g, title: `Downloads for a ${g}×${g} px tile grid`,
+    onclick: () => { pickGrid(g); dispatchEvent(new CustomEvent('dog-grid', { detail: g })) },
+  }, `${g}px`)))
+  function pickGrid(g) {
+    grid = g
+    try { localStorage.setItem('dog-grid', g) } catch {}
+    for (const b of $('#maker-scale').querySelectorAll('button')) b.setAttribute('aria-pressed', String(Number(b.dataset.s) === g))
+  }
+  addEventListener('dog-grid', (e) => { if (e.detail !== grid) pickGrid(e.detail) }) // the download panel picked one
   const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element && !walkDir() ? '-' + element : ''}` : '')
-  $('#mk-png').addEventListener('click', () => download(`${name()}.png`, frames[action && !walkDir() ? 2 : 0].scale(scale).toPNG()))
-  $('#mk-anim').addEventListener('click', () => download(`${name()}-anim.png`, encodeAPNG(frames.map((f) => f.scale(scale)), { fps })))
+  $('#mk-png').addEventListener('click', () => download(`${name()}-${grid}px.png`, atGrid(frames[action && !walkDir() ? 2 : 0]).toPNG()))
+  $('#mk-anim').addEventListener('click', () => download(`${name()}-${grid}px-anim.png`, encodeAPNG(atGrid(frames), { fps })))
   $('#mk-pack').addEventListener('click', async () => {
-    const pack = dog.pack(spec, { element: element ?? undefined })
+    const pack = dog.pack(spec, { element: element ?? undefined, grid })
     // let the browser's PNG encoder compress the sheet (the built-in encoder writes uncompressed PNGs)
     const blob = await new Promise((resolve) => pack.image.toCanvas().toBlob(resolve, 'image/png'))
     const bytes = zip({ ...pack.files, [`${pack.id}.png`]: new Uint8Array(await blob.arrayBuffer()) })
@@ -199,10 +205,10 @@ export function initMaker({ openInStudio }) {
     const link = h('a', { href: url, download: `${pack.id}.zip` })
     document.body.append(link); link.click(); link.remove()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
-    toast(`${pack.id}.zip: ${pack.animations.length} animations for Phaser, Godot or any engine`)
+    toast(`${pack.id}.zip: ${pack.animations.length} animations, ${grid * 2}px cells, for Phaser, Godot or any engine`)
   })
-  $('#mk-strip').addEventListener('click', () => download(`${name()}-strip.png`, sheet(frames).image.scale(scale).toPNG()))
-  $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}.png`, sheet(history.map((s) => dog.char(s)), { columns: 8 }).image.scale(scale).toPNG()))
+  $('#mk-strip').addEventListener('click', () => download(`${name()}-${grid}px-strip.png`, sheet(atGrid(frames)).image.toPNG()))
+  $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}-${grid}px.png`, sheet(history.map((s) => atGrid(dog.char(s))), { columns: 8 }).image.toPNG()))
   $('#mk-code-copy').addEventListener('click', () => copy(codeFor(spec), 'Code copied'))
   $('#mk-link').addEventListener('click', () => { writeHash('c', encode({ ...spec, action, element })); copy(location.href, 'Link copied') })
   $('#mk-studio').addEventListener('click', () => {

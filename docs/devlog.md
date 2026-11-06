@@ -477,3 +477,107 @@ sounds should be code too.
     remembered.
   - Phaser template with its WAVs.
   - The full suite from earlier rounds.
+
+---
+
+## Round 7 · Pick your "bit": every download in 8, 16, 32 or 64 px tiles
+
+### Plan
+
+**Problem.** Games are built on a tile size: 8×8, 16×16, 32×32 or 64×64 (often called "8-bit / 16-bit / 32-bit"
+pixel art). DOG draws on a 16 px grid. Its download buttons only *zoom* (1×, 4×, 8×), which gives big blocky pixels,
+not art that sits on a 32 or 64 grid. People should be able to pick the size their game uses and get everything at it.
+
+- **One option everywhere: `grid: 8 | 16 | 32 | 64`.** It's the tile size of your game. Each kind of art is
+  converted the best way for it:
+  - Hand-drawn sprites (16 px):
+    - 8 halves them by majority vote, so outlines survive.
+    - 32 and 64 use Scale2x once or twice, which rounds stair steps instead of fat pixels.
+    - `smooth: false` gives plain crisp zoom instead.
+  - Characters, walks, actions and statuses scale by the same factor (a 24 px character becomes 48 at grid 32).
+  - **Effects are code, so they are redrawn natively** at the new size (a grid-32 effect is a real 64 px drawing),
+    not stretched.
+  - Applies to `dog()`, `dog.frames`, `dog.char` / `walk` / `action` / `status`, `dog.fx`, `dog.pack`, `dog.fxPack`.
+- **Download everything at one size.**
+  - A panel on the main page: pick 8 / 16 / 32 / 64, preview real sprites at that size, pick sprites / effects /
+    sounds, get one zip. It's built in the browser, so the repo doesn't carry four copies of every asset.
+  - CLI: `dog export --grid 32` writes the same zip.
+- **Size controls where people download.** The character maker's size buttons become tile sizes (the game pack
+  follows). The effects page uses the same 8 / 16 / 32 / 64 choice.
+- **Checks.**
+  - Tests: every grid gives the right pixel sizes for sprites, characters, actions, effects and packs.
+  - Grid-8 sprites keep an outline.
+  - Grid effects are native renders, not scaled copies.
+  - Contact sheet comparing the four sizes.
+  - A browser test of the panel (preview, zip contents, timing).
+
+### Shipped
+
+- **`grid: 8 | 16 | 32 | 64` on every call.**
+  - Covers `dog()`, `dog.frames`, `dog.char` / `walk` / `action` / `status`, `dog.fx`, `dog.pack` and `dog.fxPack`.
+    `smooth: false` gives plain zoom.
+  - Sizes and anchors follow: at grid 32, a pack has 64 px cells with the feet at (32, 63), and its README, Phaser
+    origin and Godot offset say so.
+  - `dog.toGrid(img, grid)` converts any DOG image; `dog.grids` lists the sizes.
+- **Effects at another grid are native renders.** `dog('fx-meteor', { grid: 32 })` is the recipe drawn at 64 px
+  (a test checks it is *not* a stretched 32 px image).
+- **8 px that still looks like pixel art.** Halving votes among the inside colors only, then redraws a 1px outline
+  around the smaller shape. Dark details inside the shape (eyes, lid seams) get extra weight so they survive.
+- **`dog.bundle({ grid })`**: everything for one tile size as a list of files to render one by one. That's 951 files:
+  - sprites with animation strips
+  - gear
+  - every body with 4-direction walk strips
+  - the 80 effects (or every color)
+  - the 66 sounds
+  - a README explaining how that size was made
+- **Download panel** on the main page (`#download`):
+  - tile-size buttons with a live preview
+  - checkboxes for what to include
+  - one zip, with progress
+
+  It uses the browser's PNG compressor:
+
+  | tile | zip | made in (browser) |
+  | --- | ---: | ---: |
+  | 8×8 | 2.0 MB | 1.9 s |
+  | 32×32 | 2.8 MB | 2.8 s |
+  | 64×64 | 4.2 MB | 6.2 s |
+
+  CLI: `dog export --grid 32` writes the same zip in 2.4 s. `--grid` works on `render`, `char`, `fx`, `pack` and `fxpack`.
+- The character maker's 1× / 4× / 8× zoom became **tile 8 / 16 / 32 / 64 px** for PNG, animated PNG, strip and game
+  pack. It stays in sync with the download panel, and the choice is remembered. The effects page uses the same choice
+  for its previews, downloads and packs, and its code samples show `grid:`.
+- `docs/img/grids.png`: the same art at the four sizes, zoomed to the same size on screen.
+  README (EN/KO) "Just want the PNGs?" now leads with the tile-size download; there are also API rows, CLI lines,
+  a SKILL.md rule ("match the game's tile size") and llms.txt.
+
+### What the review caught
+
+- **The plan said "outlines survive" at 8 px; the first contact sheet said they didn't.** A plain majority vote never
+  keeps a 1px outline, because it loses every 2×2 block. Even judging that took a second look: the sheet's dark
+  background was almost the outline color, so it was re-rendered on a light one. Fixed by voting without the edge
+  outline and drawing it again. The next sheet showed the slime had lost its eyes (dark pixels *inside* the shape),
+  so inner dark pixels now count triple. A test checks both: every pixel on a silhouette edge is outline-colored, and
+  the slime keeps its eyes.
+- The first grid showcase zoomed each row by a whole-number factor that fitted the box, so the 64 px row came out
+  *smaller* than the 32 px row. Each row now zooms by 64 / grid, so a tile is the same size in every row.
+- The download panel's size control stretched across the whole page; it now keeps its own width.
+- Moving the effects page from pixel sizes to tile sizes left one reader of the old `detail.size` (the preview
+  loop). A grep found it before it shipped.
+
+### Checks
+
+- 56 tests:
+  - Every grid gives the right sizes for sprites, frames, characters (as an option and inside the spec), walks,
+    actions, statuses, effects, effect looks, packs (cell and origin) and effect packs.
+  - Effects are native, sprites use Scale2x or zoom, and `toGrid` matches.
+  - 8 px edges are outline-colored and the slime keeps its eyes.
+  - A bad grid is rejected.
+- 1,302 snapshot hashes, including halved, Scale2x and native-effect renders and a grid-32 pack.
+- `tsc` with a deliberate `grid: 24` error.
+- Browser:
+  - Panel preview at every size, three real zip downloads with their contents checked, and maker ↔ panel sync.
+  - A maker pack at 32 (64 px cells, feet at 32, 63).
+  - The effects page at 64 (128 px strip, `grid: 64` in its code).
+  - Mobile with no overflow.
+  - The whole earlier suite.
