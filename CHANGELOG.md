@@ -22,4 +22,4 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Game packs** for Phaser (Aseprite JSON) and Godot 4 (`SpriteFrames`); canvas and Phaser starter templates.
 - **For AI coding agents:** `SKILL.md` (also a Claude Code plugin), `llms.txt`, a generated sprite catalog,
   TypeScript types.
-- CLI: `dog render | combine | char | pack | fx | fxpack | sfx | sfxpack | export`.
+- CLI: `pixspell render | combine | char | pack | fx | fxpack | sfx | sfxpack | export` (`npx pixspell ...`).
