@@ -5,7 +5,9 @@
 export type Color = MaterialName | `#${string}` | [string, string, string, string]
 export type MaterialName =
   | 'red' | 'orange' | 'gold' | 'lime' | 'green' | 'mint' | 'ice' | 'blue' | 'purple' | 'pink'
-  | 'wood' | 'leather' | 'skin' | 'sand' | 'iron' | 'stone' | 'bone' | 'shadow'
+  | 'wood' | 'leather' | 'skin' | 'sand' | 'iron' | 'stone' | 'bone' | 'shadow' | SkinTone
+/** Skin tones, light to deep (the C slot of humanoid bodies). */
+export type SkinTone = 'skin-light' | 'skin' | 'skin-olive' | 'skin-tan' | 'skin-brown' | 'skin-dark'
 export type RGBA = [number, number, number, number]
 
 export interface Ramps { A?: Color; B?: Color; C?: Color }
@@ -322,6 +324,10 @@ export interface PixSpell {
     parts: { body: string[]; head: string[]; hand: string[]; offhand: string[] }
     count(): number
     size: number
+    /** Skin tones, light to deep: pass one as C. */
+    skins: SkinTone[]
+    /** Characters from around the world: traditional clothing with hats and weapons from the same place. */
+    world: { id: string; name: string; region: string; spec: CharacterSpec }[]
   }
   /** Walk cycle: 24x24 frames with .fps. 'left' mirrors 'right'. */
   /** dirs: the 4 straight directions; diagonals: the other 4 (a 3/4 view of humanoids). spell.walk takes all 8. */

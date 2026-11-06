@@ -19,6 +19,12 @@ export const MATERIALS = {
   wood:   ['#2e1a14', '#5e3420', '#9a5c30', '#d09a5a'],
   leather:['#2a1418', '#5a2a24', '#8a4a34', '#c07a52'],
   skin:   ['#5a2e24', '#a65a40', '#e0966a', '#ffd0a6'],
+  // more skin tones, light to deep: any character can be any of them (C is the skin slot of every humanoid body)
+  'skin-light': ['#6a3a40', '#b87870', '#eeb4a4', '#ffe6da'],
+  'skin-olive': ['#4a3020', '#946240', '#d29c6a', '#f2cc9a'],
+  'skin-tan':   ['#3e2216', '#80482c', '#be7c4a', '#e6aa74'],
+  'skin-brown': ['#2e1810', '#5e3420', '#985a34', '#c68652'],
+  'skin-dark':  ['#1c0e0c', '#3e2016', '#6c3c26', '#966242'],
   sand:   ['#5a4224', '#a07a44', '#dcb872', '#fff0b8'],
   iron:   ['#2a2a3e', '#5a6078', '#9aa4b8', '#e6eef6'],
   stone:  ['#2a2630', '#4e4854', '#7e7682', '#b4acb0'],

@@ -25,6 +25,7 @@ import { createAutotile } from './autotile.js'
 import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './palette.js'
 import { decodePNG, spriteFromImage } from './import.js'
 import { framed, asFrames, originKind } from './frames.js'
+import { WORLD } from './world.js'
 import { didYouMean } from './suggest.js'
 
 /** Every sprite definition, keyed by id. */
@@ -216,6 +217,8 @@ spell.char = Object.assign(gridded(characters, false), characters, {
   frames: framed(gridded(characters.frames, true), 'feet'),
   walk: framed(gridded(characters.walk, true), 'feet'),
 })
+/** Characters from around the world: [{ id, name, region, spec }] (traditional clothing with hats and weapons from the same place). */
+spell.char.world = WORLD
 
 /**
  * Situation effects - a character doing something, effects attached to hands / head / body.

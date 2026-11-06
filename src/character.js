@@ -17,6 +17,9 @@ export const BODY_AT = [4, 8] // where the 16x16 body sits inside the 24x24 char
 const KINDS = ['hand', 'offhand', 'head'] // draw order: hats end up on top
 const PREFIX = { head: 'hat', hand: 'held', offhand: 'held' }
 export const WALK_DIRS = ['down', 'up', 'left', 'right']
+/** Skin tones, light to deep: materials for the C slot of every humanoid body. */
+export const SKIN_TONES = ['skin-light', 'skin', 'skin-olive', 'skin-tan', 'skin-brown', 'skin-dark']
+const OUTFITS = MATERIAL_NAMES.filter((m) => !SKIN_TONES.includes(m))
 export const WALK_DIAGONALS = ['down-right', 'down-left', 'up-right', 'up-left']
 
 // A 3/4 pose from a front or back pose: the head turns one pixel toward the right (the far side of the head shows
@@ -178,11 +181,14 @@ export function createCharacters(looks) {
     if (r() < 0.85) spec.hat = pick(parts.head)
     if (anchors.hand && r() < 0.8) spec.hand = pick(parts.hand)
     if (anchors.offhand && r() < 0.45) spec.offhand = pick(parts.offhand)
-    if (r() < outfit) spec.A = pick(MATERIAL_NAMES)
+    if (r() < outfit) spec.A = pick(OUTFITS)
+    // people come in every skin tone (bodies whose C slot is skin)
+    if (SKIN_TONES.includes(looks[body].ramps.C) && r() < 0.7) spec.C = pick(SKIN_TONES)
     return spec
   }
 
   char.parts = parts
+  char.skins = SKIN_TONES
   char.size = CHAR_SIZE
 
   /** Number of distinct gear combinations (before recoloring). */

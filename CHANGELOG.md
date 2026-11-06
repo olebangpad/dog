@@ -16,6 +16,11 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **People from around the world:** 14 bodies in traditional clothing (hanbok, seonbi dopo, kimono, kamishimo, hanfu,
+  áo dài, sari, thobe, kente, toga, kilt, dirndl, poncho, deel), 14 hats from the same places, 8 weapons with their own
+  attack styles and 3 shields; `spell.char.world` (26 ready-made people) and 6 skin tones (`spell.char.skins`) for any
+  humanoid. Random characters now vary skin tone. The maker has "Around the world" and "Skin" rows. 23,279,919
+  combinations. Random seeds give different characters than before (more bodies to draw from).
 - **Animations are easy to save:** every frame list (`walk`, `action`, `status`, `fx`, `frames`, `char.frames`) has
   `.save(path)` (an animated PNG at its own speed), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()` and
   `.scale(n)`, and `spell.frames()` / `spell.char.frames()` now carry `.fps` and `.loop` too.
@@ -45,10 +50,10 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Monsters:** 25 new ones (spider, snake, rat, wolf, mushroom monster, crab, beetle, golem, imp, will-o-wisp,
   jellyfish, biting plant, mimic, bee, baby dragon, owl, penguin, bunny, octopus, mummy, yeti, boar, piranha, sand worm,
   scorpion), 31 in all, each a character body: hats, walks and actions work on
-  every monster. `spell.char.random(seed)` now draws from 37 bodies, so a seed gives a different character than it did
+  every monster. `spell.char.random(seed)` now draws from 51 bodies, so a seed gives a different character than it did
   before this change.
 - **Characters:**
-  - 12 bodies and 2.7 million combinations of hats, held items and off-hand items, snapped on by name.
+  - 51 bodies and 23 million combinations of hats, held items and off-hand items, snapped on by name.
   - 8-direction walk cycles: drawn front, back and side poses, and 3/4 diagonals turned from them (`spell.walk.diagonals`,
     `spell.pack(spec, { diagonals: true })`).
   - 6 actions (attack, hit, heal, level up, cast, death) in 5 elements, with attacks that follow the weapon.

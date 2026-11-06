@@ -1,6 +1,6 @@
 ---
 name: pixspell
-description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 8-direction walk cycles, attack/hit/heal/level-up/death animations, 600+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 100+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and every asset they need with PixSpell, a zero-dependency JavaScript library of CC0 sprites, characters, effects and sounds. Use when the user wants pixel-art sprites, game characters (23M combinations of bodies, hats and weapons), 8-direction walk cycles, attack/hit/heal/level-up/death animations, 600+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 100+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # PixSpell: pixel art as code
@@ -55,6 +55,14 @@ A character is a spec: `{ body, hat?, hand?, offhand?, A?, B?, C? }`.
   `owl` `penguin` `bunny` `octopus` `mummy` `yeti` `boar` `piranha` `worm` `scorpion`,
   each with color variants like `wolf-fox` or `golem-lava`). They all walk and do actions, so any monster can be an enemy.
 - `A`, `B`, `C` recolor the body's ramps (A is usually the outfit): a material name or any hex color.
+- People in traditional clothing (humanoids too): `hanbok` `seonbi` (Korea), `kimono` `samurai` (Japan), `hanfu` (China),
+  `aodai` (Vietnam), `sari` (India), `thobe` (Arabia), `kente` (Ghana), `toga` (Rome), `kilt` (Scotland), `dirndl` (Alps),
+  `poncho` (Andes), `deel` (Mongolia). Hats from the same places: `gat` `kabuto` `conical` `nemes` `galea` `laurel` `fez`
+  `keffiyeh` `turban` `chullo` `kokoshnik` `ushanka` `beret` `tam`; weapons `katana` `gladius` `khopesh` `scimitar` `jian`
+  `claymore` `fan` `boomerang`; shields `scutum` `aspis` `hide-shield`. `spell.char.world` has 26 ready-made people
+  (`{ id, name, region, spec }`).
+- Skin: `C` is the skin slot of every humanoid body; `spell.char.skins` lists 6 tones, light to deep (`skin-light` `skin`
+  `skin-olive` `skin-tan` `skin-brown` `skin-dark`). Random characters already vary it.
 
 ```js
 const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', A: 'red' }
@@ -66,6 +74,8 @@ spell.action(knight, 'attack', 'fire')     // 8 frames (32x32) + .fps
 spell.action(knight, 'hit', { element: 'ice', amount: '-12' })
 spell.char.random(42)                      // a reproducible random spec, great for NPCs
 spell.char.parts                           // { body, head, hand, offhand }: every valid id
+spell.char({ body: 'samurai', hat: 'kabuto', hand: 'katana', C: 'skin-tan' })
+spell.char(spell.char.world.find((w) => w.region === 'Korea').spec)   // a ready-made person
 ```
 
 Actions: `attack` (lunge + slash at the weapon hand), `hit` (flash, knock-back, damage number), `heal` (+number, sparkles),

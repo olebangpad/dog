@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **887** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
+**23 million** characters with walk cycles and actions · **1,056** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -24,11 +24,11 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-234_base_·_887_looks-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-315_base_·_1%2C056_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-110_designs_·_665_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-103_×_10_elements-a8e05a?style=flat-square)
 ![music](https://img.shields.io/badge/music-17_tracks-a8e05a?style=flat-square)
-![characters](https://img.shields.io/badge/characters-2%2C763%2C928-a8e05a?style=flat-square)
+![characters](https://img.shields.io/badge/characters-23%2C279%2C919-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
 ![tiles](https://img.shields.io/badge/tiles-8_·_16_·_32_·_64_px-a8e05a?style=flat-square)
@@ -52,7 +52,7 @@ document.body.append(knight.scale(8).toCanvas())
 
 <table>
   <tr>
-    <td align="center"><img src="docs/img/show/characters.png" width="240" alt="Random characters with different bodies, hats and weapons"><br><sub><code>spell.char.random(seed)</code><br>2.7 million characters</sub></td>
+    <td align="center"><img src="docs/img/show/characters.png" width="240" alt="Random characters with different bodies, hats and weapons"><br><sub><code>spell.char.random(seed)</code><br>23 million characters</sub></td>
     <td align="center"><img src="docs/img/show/attack.png" width="240" alt="A knight swinging a fire sword"><br><sub><code>spell.action(knight, 'attack', 'fire')</code><br>6 actions × 5 elements</sub></td>
     <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="A glowing ice meteor falling and bursting"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>665 effects that glow</sub></td>
   </tr>
@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -220,8 +220,9 @@ spell.char('slime-pink', { hat: 'wizard' })
 spell.char(spell.char.random(42))                     // same seed → same character, great for NPCs
 ```
 
-37 bodies × 18 hats × 15 held items × 6 off-hand items, with color variants: **2,763,928 combinations** before you even
-change the outfit color. Bodies are people (hero, heroine, skeleton, goblin, robot), animals (dog, cat, chick) and every monster.
+51 bodies × 32 hats × 23 held items × 9 off-hand items, with color variants: **23,279,919 combinations** before you even
+change the outfit color or [skin tone](#-people-from-around-the-world). Bodies are people (hero, heroine, skeleton, goblin, robot,
+and [14 in traditional clothing](#-people-from-around-the-world)), animals (dog, cat, chick) and every monster.
 
 <img src="docs/img/characters.png" alt="24 random characters made with spell.char.random()" width="654">
 
@@ -232,6 +233,24 @@ mummy, yeti, boar, piranha, sand worm and scorpion, each in 3 to 6 colors
 die like any character: `spell.walk('golem', 'left')`, `spell.action({ body: 'mimic', hat: 'pirate' }, 'attack')`.
 
 <img src="docs/img/monsters.png" alt="All 31 monsters, idling, with their names" width="672">
+
+### 🌏 People from around the world
+
+<img src="docs/img/people.png" alt="26 characters from around the world walking toward you, labelled Korea, Japan, China, Vietnam, India, Arabia, Morocco, Egypt, Ghana, East Africa, Rome, Greece, Scotland, Norse, France, Alps, Russia, Mongolia, Andes and Australia" width="810">
+
+14 bodies in traditional clothing: hanbok and the scholar's dopo (Korea), kimono and kamishimo (Japan), hanfu (China),
+áo dài (Vietnam), sari (India), thobe and bisht (Arabia), kente (Ghana), toga (Rome), kilt (Scotland), dirndl (the Alps),
+poncho (the Andes) and deel (Mongolia). With them come 14 hats (gat, kabuto, conical straw hat, nemes, galea, laurel, fez,
+keffiyeh, turban, chullo, kokoshnik, ushanka, beret, tam o' shanter), 8 weapons (katana, gladius, khopesh, scimitar, jian,
+claymore, folding fan, boomerang) and 3 shields (scutum, aspis, hide shield). Everyone walks in 8 directions and does every
+action, and 6 skin tones work on every person.
+
+```js
+spell.char('seonbi', { hat: 'gat', offhand: 'book' })                    // a Joseon scholar
+spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana' }, 'left')
+spell.char({ ...spell.char.world[0].spec, C: 'skin-dark' })               // 26 ready-made people: spell.char.world
+spell.char.skins                                                         // skin-light skin skin-olive skin-tan skin-brown skin-dark
+```
 
 ### ⚔️ Actions & effects
 
@@ -247,7 +266,7 @@ spell.action('slime', 'hit', { element: 'ice', amount: '-12' })
 spell.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as an element
 ```
 
-**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 2.7 million characters.
+**6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 23 million characters.
 
 <img src="docs/img/actions.png" alt="Every action in every element, animated" width="672">
 
@@ -359,7 +378,7 @@ torches, pillars, spike traps, stairs, cobwebs, bones, tombstones, mine carts an
 mushrooms, crystals and lily pads, plus seamless cobblestone, roof tiles, carpet, checkered floors, bridges and
 flowing lava. Each comes in several materials (`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-234 base sprites in 7 categories, **887 looks** with variants, 64 of them animated.
+315 base sprites in 7 categories, **1,056 looks** with variants, 106 of them animated.
 Characters, wearable gear, weapons (dagger, spear, hammer, wand...), armor, boots, amulets, potions, gems, food (bread, cheese, cake, carrot, egg, grapes...),
 treasure and quest items (gold bars, trophy, map, compass, hourglass, letter, runes...), monsters, seamless tiles, props, furniture, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [110 procedural effects](#-665-game-effects)
@@ -570,6 +589,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.list({ category, tag, variants })` | ids of all looks |
 | `spell.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | animation frames · a reproducible random character |
+| `spell.char.world` · `spell.char.skins` | 26 ready-made people from around the world (`{ id, name, region, spec }`) · the 6 skin tones for `C` |
 | `spell.char.parts` · `spell.char.count()` | every body / hat / hand / off-hand id · number of combinations |
 | `spell.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
 | `spell.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |

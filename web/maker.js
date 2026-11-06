@@ -34,16 +34,25 @@ const fits = (kind) => kind === 'body' || !!anchorsOf(spec.body)[kind]
 
 function cleanSpec(s) {
   const out = { body: s.body }
-  for (const k of ['hat', 'hand', 'offhand', 'A']) if (s[k]) out[k] = s[k]
+  for (const k of ['hat', 'hand', 'offhand', 'A', 'B', 'C']) if (s[k]) out[k] = s[k]
+  if (out.C && SKINS.includes(out.C) && !hasSkin(out.body)) delete out.C // a skin tone means nothing on a slime
   return out
 }
+// presets use short names ('gat', 'katana'); the pickers use full ids ('hat-gat', 'held-katana')
+function fullSpec(s) {
+  const out = { ...s }
+  for (const [key, prefix] of [['hat', 'hat'], ['hand', 'held'], ['offhand', 'held']]) if (s[key] && !looks[s[key]]) out[key] = `${prefix}-${s[key]}`
+  return out
+}
+const SKINS = spell.char.skins
+const hasSkin = (body) => SKINS.includes(looks[body].ramps.C)
 
 function codeFor(s) {
   const opts = []
   if (s.hat) opts.push(`hat: '${short(s.hat, 'head')}'`)
   if (s.hand && anchorsOf(s.body).hand) opts.push(`hand: '${short(s.hand, 'hand')}'`)
   if (s.offhand && anchorsOf(s.body).offhand) opts.push(`offhand: '${short(s.offhand, 'offhand')}'`)
-  if (s.A) opts.push(`A: '${s.A}'`)
+  for (const k of ['A', 'B', 'C']) if (s[k]) opts.push(`${k}: '${s[k]}'`)
   const imp = `import { spell } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\n`
   if (walkDir()) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
@@ -107,7 +116,8 @@ function renderPickers() {
       h('span', { class: 'muted' }, ok ? (current ? (kind === 'body' ? current : short(current, kind)) : 'none') : `${spec.body} can't hold items`),
     )
     return h('div', { class: `picker${ok ? '' : ' off'}` }, head, strip)
-  }), outfitPicker(), actionPicker())
+  }), outfitPicker(), skinPicker(), actionPicker())
+  box.prepend(worldPicker())
   // keep the selected thumbnail in view by scrolling its strip sideways only (never the page)
   requestAnimationFrame(() => box.querySelectorAll('.strip').forEach((strip) => {
     const sel = strip.querySelector('.pick[aria-pressed="true"]')
@@ -129,7 +139,35 @@ function outfitPicker() {
     h('div', { class: 'picker-head' }, h('b', {}, 'Outfit'), h('span', { class: 'muted' }, spec.A ?? 'original')),
     h('div', { class: 'swatches' },
       h('button', { class: 'pick none small', 'aria-pressed': String(!spec.A), title: 'Original colors', onclick: () => { delete spec.A; seed = null; refresh() } }, '↺'),
-      MATERIAL_NAMES.map(swatch), custom),
+      MATERIAL_NAMES.filter((m) => !SKINS.includes(m)).map(swatch), custom),
+  )
+}
+
+// people from around the world: traditional clothing with hats and weapons from the same place
+function worldPicker() {
+  const strip = h('div', { class: 'strip' }, spell.char.world.map((w) => {
+    const full = fullSpec(w.spec)
+    const on = JSON.stringify(cleanSpec(full)) === JSON.stringify(cleanSpec(spec))
+    return tile(spell.char(w.spec), `${w.name} (${w.region})`, on, () => { spec = full; seed = null; refresh() })
+  }))
+  const now = spell.char.world.find((w) => JSON.stringify(cleanSpec(fullSpec(w.spec))) === JSON.stringify(cleanSpec(spec)))
+  return h('div', { class: 'picker' },
+    h('div', { class: 'picker-head' }, h('b', {}, 'Around the world'), h('span', { class: 'muted' }, now ? `${now.name} · ${now.region}` : `${spell.char.world.length} ready-made`)),
+    strip)
+}
+
+function skinPicker() {
+  const ok = hasSkin(spec.body)
+  const swatch = (name) => h('button', {
+    class: 'swatch', title: name, 'aria-label': `Skin ${name}`, 'aria-pressed': String(spec.C === name), disabled: !ok,
+    style: { '--sw': `linear-gradient(135deg, ${MATERIALS[name][3]} 0 45%, ${MATERIALS[name][2]} 45% 80%, ${MATERIALS[name][1]} 80%)` },
+    onclick: () => { spec.C = name; seed = null; refresh() },
+  })
+  return h('div', { class: `picker${ok ? '' : ' off'}` },
+    h('div', { class: 'picker-head' }, h('b', {}, 'Skin'), h('span', { class: 'muted' }, ok ? spec.C ?? 'original' : `${spec.body} has no skin tone`)),
+    h('div', { class: 'swatches' },
+      h('button', { class: 'pick none small', 'aria-pressed': String(!spec.C), title: 'Original', disabled: !ok, onclick: () => { delete spec.C; seed = null; refresh() } }, '↺'),
+      SKINS.map(swatch)),
   )
 }
 
@@ -213,7 +251,7 @@ export function initMaker({ openInStudio }) {
   $('#mk-link').addEventListener('click', () => { writeHash('c', encode({ ...spec, action, element })); copy(location.href, 'Link copied') })
   $('#mk-studio').addEventListener('click', () => {
     const body = looks[spec.body].def
-    const layers = [{ id: spec.body, x: 0, y: 0, ramps: spec.A ? { A: spec.A } : {} }]
+    const layers = [{ id: spec.body, x: 0, y: 0, ramps: Object.fromEntries(['A', 'B', 'C'].filter((k) => spec[k]).map((k) => [k, spec[k]])) }]
     for (const [key, kind] of [['hand', 'hand'], ['offhand', 'offhand'], ['hat', 'head']]) {
       if (!spec[key] || !body.anchors[kind]) continue
       const part = looks[spec[key]].def
@@ -223,7 +261,7 @@ export function initMaker({ openInStudio }) {
     openInStudio(layers)
     toast('Opened in the studio - every piece is its own layer now')
   })
-  $('#maker-count').textContent = `${spell.char.count().toLocaleString('en-US')} gear combinations × any outfit color`
+  $('#maker-count').textContent = `${spell.char.count().toLocaleString('en-US')} gear combinations × any outfit color and skin tone`
 
   refresh()
   renderHistory()

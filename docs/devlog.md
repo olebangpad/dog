@@ -1190,3 +1190,48 @@ AI agents guess names all day (`sowrd`, `fiire`, `crwn`), so I tried the wrong n
 - **SKILL.md** tells agents the errors name the closest real names, so they read the suggestion instead of guessing again.
 - **Checked and fine:** importing the library takes about 45 ms in Node.
 
+## Round 15: people from around the world
+
+The ask: more varied characters, especially ones with the look of different countries.
+
+- **Skin tones first.** Every humanoid paints its skin with ramp C, but there was only one skin material, so nearly
+  everyone was light-skinned. There are now 6 tones, light to deep (`spell.char.skins`). Random characters pick one 70% of
+  the time, and the maker has a Skin row.
+- **14 bodies in traditional clothing:** hanbok, the seonbi's dopo, kimono, kamishimo, hanfu, áo dài, sari, thobe and
+  bisht, kente, toga, kilt, dirndl, poncho and deel.
+  - **How they're built:** a small generator (`people.js` is its output) combines 5 hair styles (short, long, topknot,
+    low bun with a pin, braids) with outfit rows for the front, back and side views. Front and back are written as
+    mirrored halves. Walk frames are derived: legs lift one foot at a time, while robes and skirts sway the hem a pixel.
+    Each body is 4 sprites (front plus 3 walk poses), and all of them wear any hat and hold any item.
+  - **Colors:** A is the garment, B is the hair and trims, C is the skin, and `w` is white cloth.
+- **What I fixed after looking at them:**
+  - Garments painted in the lightest shade read as pastel (the red hanbok looked peach), so most use the mid shade now.
+  - The seonbi's sash read as a necktie, so it became a band with a tie at the side.
+  - Kente was noise, so it became clean stripes over one shoulder.
+  - The default hanfu was red, like the hanbok, so it's jade now.
+  - The turban looked like bread until it went white with a red jewel.
+  - The kokoshnik looked like a red-and-white mushroom until the white dots became gold.
+  - The hide shield's spots happened to spell "25".
+- **Gear:** 14 hats, 8 weapons and 3 shields.
+  - The weapons bring their own attack styles: the katana and scimitar slash, the gladius and jian stab, the claymore
+    smashes and the fan casts. The boomerang slashes, because "shoot" fires an arrow.
+  - The clipping test caught 474 placements where the scimitar, fan, boomerang, khopesh or a long headcloth left the
+    24×24 frame. The rule it taught: an item must stay within 5 pixels of its grip. The nemes and keffiyeh drapes are two
+    rows shorter so they fit on a slime.
+- **Approach:** clothing and headwear show where someone is from; faces are the same for everyone, with no features
+  drawn as a caricature. Every part recolors, and any skin tone goes with any outfit.
+- **Presets:** `spell.char.world` has 26 people with a name and region each. The maker shows them as an "Around the
+  world" row, and `docs/img/people.png` shows them all walking.
+- **Numbers:**
+
+  | | before | after |
+  | --- | --- | --- |
+  | bodies | 37 | 51 |
+  | hats | 18 | 32 |
+  | held items | 15 | 23 |
+  | off-hand items | 6 | 9 |
+  | combinations | 2.76 million | 23.3 million |
+  | sprite looks | 887 | 1,056 |
+
+  The snapshots for the 12 random characters changed, as expected, because there are more bodies and tones to draw from.
+

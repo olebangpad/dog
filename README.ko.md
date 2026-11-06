@@ -7,7 +7,7 @@
 **2D 게임에 필요한 에셋 전부를 코드로.** 걷고 싸우는 캐릭터, 아이템과 타일, 빛나는 이펙트, 효과음까지
 자바스크립트 한 줄로 만들고, 색과 크기를 바꿉니다. AI 코딩 에이전트에게 시켜도 됩니다. 그림은 CC0, 의존성 0개.
 
-걷기·행동 애니메이션이 있는 캐릭터 **275만** 가지 · 스프라이트 **887**개 · 이펙트 **665**종 · 효과음 **103**개 · 음악 **17**곡 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
+걷기·행동 애니메이션이 있는 캐릭터 **2,300만** 가지 · 스프라이트 **1,056**개 · 이펙트 **665**종 · 효과음 **103**개 · 음악 **17**곡 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
 
 [**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
@@ -44,7 +44,7 @@ document.body.append(knight.scale(8).toCanvas())
 
 <table>
   <tr>
-    <td align="center"><img src="docs/img/show/characters.png" width="240" alt="몸, 모자, 무기가 다른 랜덤 캐릭터들"><br><sub><code>spell.char.random(seed)</code><br>캐릭터 275만 가지</sub></td>
+    <td align="center"><img src="docs/img/show/characters.png" width="240" alt="몸, 모자, 무기가 다른 랜덤 캐릭터들"><br><sub><code>spell.char.random(seed)</code><br>캐릭터 2,300만 가지</sub></td>
     <td align="center"><img src="docs/img/show/attack.png" width="240" alt="불꽃 검을 휘두르는 기사"><br><sub><code>spell.action(knight, 'attack', 'fire')</code><br>행동 6가지 × 속성 5가지</sub></td>
     <td align="center"><img src="docs/img/show/meteor.png" width="240" alt="빛나는 얼음 운석이 떨어져 터지는 모습"><br><sub><code>spell.fx('meteor', { element: 'ice', size: 64 })</code><br>빛나는 이펙트 665종</sub></td>
   </tr>
@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -214,7 +214,7 @@ spell.char('slime-pink', { hat: 'wizard' })
 spell.char(spell.char.random(42))                     // 같은 시드 → 같은 캐릭터 (NPC 만들 때 좋아요)
 ```
 
-몸 37종 × 모자 18종 × 무기 15종 × 보조 장비 6종, 색 변형까지 합치면 옷 색을 바꾸기 전에도 **2,763,928가지** 조합이 나옵니다.
+몸 51종 × 모자 32종 × 무기 23종 × 보조 장비 9종, 색 변형까지 합치면 옷 색을 바꾸기 전에도 **23,279,919가지** 조합이 나옵니다.
 몸은 사람(영웅, 여자 영웅, 해골, 고블린, 로봇), 동물(강아지, 고양이, 병아리), 그리고 모든 몬스터입니다.
 
 <img src="docs/img/characters.png" alt="spell.char.random()으로 만든 랜덤 캐릭터 24명" width="654">
@@ -225,6 +225,23 @@ spell.char(spell.char.random(42))                     // 같은 시드 → 같�
 `spell.walk('golem', 'left')`, `spell.action({ body: 'mimic', hat: 'pirate' }, 'attack')`.
 
 <img src="docs/img/monsters.png" alt="몬스터 31종이 이름과 함께 움직이는 모습" width="672">
+
+### 🌏 세계의 사람들
+
+<img src="docs/img/people.png" alt="세계 여러 곳의 전통 옷을 입은 캐릭터 26명이 걸어오는 모습. 한국, 일본, 중국, 베트남, 인도, 아라비아, 모로코, 이집트, 가나, 동아프리카, 로마, 그리스, 스코틀랜드, 북유럽, 프랑스, 알프스, 러시아, 몽골, 안데스, 호주" width="810">
+
+전통 옷을 입은 몸 14종: 한복과 선비의 도포(한국), 기모노와 가미시모(일본), 한푸(중국), 아오자이(베트남), 사리(인도),
+토브와 비시트(아라비아), 켄테(가나), 토가(로마), 킬트(스코틀랜드), 디른들(알프스), 판초(안데스), 델(몽골).
+함께 모자 14종(갓, 가부토, 삿갓, 네메스, 갈레아, 월계관, 페즈, 케피예, 터번, 츄요, 코코시닉, 우샨카, 베레모, 탐오섄터),
+무기 8종(카타나, 글라디우스, 코페시, 시미터, 검(劍), 클레이모어, 부채, 부메랑), 방패 3종(스쿠툼, 아스피스, 가죽 방패)이 들어왔습니다.
+모두 8방향으로 걷고 모든 행동을 하며, 피부색 6가지를 누구에게나 입힐 수 있습니다.
+
+```js
+spell.char('seonbi', { hat: 'gat', offhand: 'book' })                    // 조선 선비
+spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana' }, 'left')
+spell.char({ ...spell.char.world[0].spec, C: 'skin-dark' })               // 미리 만든 26명: spell.char.world
+spell.char.skins                                                         // skin-light skin skin-olive skin-tan skin-brown skin-dark
+```
 
 ### ⚔️ 상황 이펙트
 
@@ -241,7 +258,7 @@ spell.action('hero-mage', 'cast', '#00ffcc')      // 재질 이름이나 hex 색
 ```
 
 **행동 6종**(`attack` 공격, `hit` 피격, `heal` 회복, `levelup` 레벨업, `cast` 시전, `death` 사망) ×
-**속성 5종**(`fire` 불, `ice` 얼음, `poison` 독, `holy` 빛, `dark` 어둠)을 275만 가지 캐릭터 누구에게나 쓸 수 있습니다.
+**속성 5종**(`fire` 불, `ice` 얼음, `poison` 독, `holy` 빛, `dark` 어둠)을 2,300만 가지 캐릭터 누구에게나 쓸 수 있습니다.
 
 <img src="docs/img/actions.png" alt="모든 행동과 속성 조합 애니메이션" width="672">
 
@@ -347,7 +364,7 @@ spell.pack(knight, { diagonals: true })                                // 8방�
 광차와 레일, 선인장, 전나무, 큰 버섯, 수정, 연잎, 그리고 이어 붙일 수 있는 자갈길, 지붕 기와, 카펫, 체크 바닥, 다리,
 흐르는 용암까지. 모두 재질 변형이 있습니다(`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-7개 카테고리, 기본 234종, 변형 포함 **887가지**, 이 중 64종은 애니메이션입니다. 아이템도 단검, 창, 망치, 지팡이, 갑옷, 장화, 목걸이, 빵, 치즈, 케이크, 당근, 달걀, 포도, 금괴, 트로피, 지도, 나침반, 모래시계, 편지, 룬 등 26종이 늘었습니다.
+7개 카테고리, 기본 315종, 변형 포함 **1,056가지**, 이 중 106종은 애니메이션입니다. 아이템도 단검, 창, 망치, 지팡이, 갑옷, 장화, 목걸이, 빵, 치즈, 케이크, 당근, 달걀, 포도, 금괴, 트로피, 지도, 나침반, 모래시계, 편지, 룬 등 26종이 늘었습니다.
 캐릭터, 착용 장비, 무기, 방어구, 포션, 보석, 음식, 몬스터, 이어 붙일 수 있는 타일, 소품, UI 아이콘, 말풍선 이모트,
 이펙트(폭발, 반짝임, 연기, 타격, 베기)가 들어 있습니다. 여기에 [코드로 만든 이펙트 110종](#-이펙트-665종)이
 애니메이션 525가지를 더하고, 이것도 전부 `assets/`에 PNG로 들어 있습니다.
@@ -529,6 +546,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.list({ category, tag, variants })` | 전체 id 목록 |
 | `spell.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
+| `spell.char.world` · `spell.char.skins` | 미리 만든 세계의 사람들 26명(`{ id, name, region, spec }`) · `C`에 쓰는 피부색 6가지 |
 | `spell.walk(spec, dir)` | 걷기 `down` `up` `left` `right` (24×24 프레임, `.fps`) |
 | `spell.action(spec, name, element)` | 행동 애니메이션 8프레임 (32×32, `.fps`) |
 | `spell.fx(name, { element, size, seed, light })` | 코드로 만든 이펙트: `.fps`, `.loop`가 붙은 프레임 배열, 은은하게 빛남(`light: false`면 빛 없음). 전체 이름은 `spell.fx.list` |

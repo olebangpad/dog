@@ -13,6 +13,7 @@ import { text } from './font.js'
 import { OUTLINE } from './materials.js'
 import { resolveRamp } from './sprite.js'
 import { BODY_AT } from './character.js'
+import { STYLES as WORLD_STYLES } from './sprites/gear-world.js'
 import { didYouMean } from './suggest.js'
 import { isColor } from './color.js'
 import { MATERIALS } from './materials.js'
@@ -84,6 +85,7 @@ export function createActions(spell, looks) {
     sword: 'slash', scythe: 'slash', dagger: 'stab', axe: 'smash', hammer: 'smash', pickaxe: 'smash',
     spear: 'thrust', trident: 'thrust', bow: 'shoot', staff: 'magic', wand: 'magic', rod: 'whip',
     torch: 'burn', lollipop: 'bonk', flower: 'bonk',
+    ...WORLD_STYLES, // katana, gladius, fan...
   }
   /** Weapon style for a spec: from the held item's base id ('held-sword-gold' -> 'sword'). */
   function styleOf(s) {

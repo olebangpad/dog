@@ -1,0 +1,33 @@
+// Characters from around the world: ready-made specs that pair traditional clothing (sprites/people.js) with hats,
+// weapons and shields from the same place (sprites/gear-world.js). Any of them works with walk, action, status and pack,
+// and every part can be swapped or recolored: { ...spell.char.world[0].spec, C: 'skin-dark' }.
+
+/** [{ id, name, region, spec }] */
+export const WORLD = [
+  { id: 'seonbi', name: 'Joseon scholar', region: 'Korea', spec: { body: 'seonbi', hat: 'gat', offhand: 'book' } },
+  { id: 'hanbok', name: 'Hanbok dancer', region: 'Korea', spec: { body: 'hanbok', hand: 'fan' } },
+  { id: 'samurai', name: 'Samurai', region: 'Japan', spec: { body: 'samurai', hat: 'kabuto', hand: 'katana' } },
+  { id: 'kimono', name: 'Kimono', region: 'Japan', spec: { body: 'kimono', hand: 'fan-blue' } },
+  { id: 'wuxia', name: 'Swordswoman', region: 'China', spec: { body: 'hanfu', hand: 'jian' } },
+  { id: 'aodai', name: 'Áo dài and nón lá', region: 'Vietnam', spec: { body: 'aodai', hat: 'conical' } },
+  { id: 'farmer', name: 'Rice farmer', region: 'East Asia', spec: { body: 'hero-green', hat: 'conical', hand: 'pickaxe', C: 'skin-olive' } },
+  { id: 'sari', name: 'Sari', region: 'India', spec: { body: 'sari', hand: 'flower' } },
+  { id: 'maharaja', name: 'Prince', region: 'India', spec: { body: 'hero-royal', hat: 'turban', hand: 'scimitar', C: 'skin-tan' } },
+  { id: 'bedouin', name: 'Desert traveller', region: 'Arabia', spec: { body: 'thobe', hat: 'keffiyeh', hand: 'scimitar' } },
+  { id: 'fez', name: 'Merchant', region: 'Morocco', spec: { body: 'thobe-camel', hat: 'fez', offhand: 'lantern' } },
+  { id: 'pharaoh', name: 'Pharaoh', region: 'Egypt', spec: { body: 'toga-plain', hat: 'nemes', hand: 'khopesh', C: 'skin-tan' } },
+  { id: 'kente', name: 'Kente', region: 'Ghana', spec: { body: 'kente', hand: 'staff' } },
+  { id: 'herder', name: 'Herder with hide shield', region: 'East Africa', spec: { body: 'hero-red', hand: 'spear', offhand: 'hide-shield', C: 'skin-dark' } },
+  { id: 'senator', name: 'Senator', region: 'Rome', spec: { body: 'toga', hat: 'laurel' } },
+  { id: 'legionary', name: 'Legionary', region: 'Rome', spec: { body: 'hero-red', hat: 'galea', hand: 'gladius', offhand: 'scutum', C: 'skin-olive' } },
+  { id: 'hoplite', name: 'Hoplite', region: 'Greece', spec: { body: 'toga-greek', hat: 'laurel-gold', hand: 'spear', offhand: 'aspis' } },
+  { id: 'highlander', name: 'Highlander', region: 'Scotland', spec: { body: 'kilt', hat: 'tam', hand: 'claymore' } },
+  { id: 'viking', name: 'Viking', region: 'Scandinavia', spec: { body: 'hero', hat: 'viking', hand: 'axe', offhand: 'shield-wood', B: 'gold', C: 'skin-light' } },
+  { id: 'musketeer', name: 'Musketeer', region: 'France', spec: { body: 'hero-mage', hat: 'beret', hand: 'sword', C: 'skin-light' } },
+  { id: 'dirndl', name: 'Dirndl', region: 'Austria and Bavaria', spec: { body: 'dirndl', hat: 'flowers' } },
+  { id: 'kokoshnik', name: 'Kokoshnik', region: 'Russia', spec: { body: 'heroine-blonde', hat: 'kokoshnik', A: 'red', C: 'skin-light' } },
+  { id: 'ushanka', name: 'Winter traveller', region: 'Russia', spec: { body: 'hero', hat: 'ushanka', offhand: 'lantern', A: 'leather', C: 'skin-light' } },
+  { id: 'deel', name: 'Horse archer', region: 'Mongolia', spec: { body: 'deel', hand: 'bow' } },
+  { id: 'poncho', name: 'Poncho and chullo', region: 'Peru and the Andes', spec: { body: 'poncho', hat: 'chullo' } },
+  { id: 'outback', name: 'Outback ranger', region: 'Australia', spec: { body: 'hero-green', hat: 'cowboy-sand', hand: 'boomerang', C: 'skin-brown' } },
+]

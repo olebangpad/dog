@@ -54,6 +54,10 @@ townMusic.stop(0.5)
 const musicLevel: number = spell.volume('music', 0.4) + spell.volume(0.8) + spell.volume()
 const isMuted: boolean = spell.mute(true)
 console.log(now.w, ox, oy, swingSeconds, musicLevel, isMuted, spell.music.playing(), spell.sfx('coin').kind)
+const samurai = spell.char.world.find((w) => w.region === 'Japan')!.spec
+const deepSkin: Pixmap = spell.char({ ...samurai, C: spell.char.skins[5] })
+const scholar: Pixmap = spell.char('seonbi', { hat: 'gat', C: 'skin-olive' })
+console.log(deepSkin.w, scholar.h)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

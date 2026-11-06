@@ -39,7 +39,7 @@ const wave = (() => {
 
 const STEPS = [
   { code: `const ground = spell('grass')`, label: 'tiles and props' },
-  { code: `const mage = { body: 'heroine', hat: 'wizard' }`, label: '2.7 million characters' },
+  { code: `const mage = { body: 'heroine', hat: 'wizard' }`, label: '23 million characters' },
   { code: `spell.walk(mage, 'right')`, label: 'walk cycles' },
   { code: `spell.walk('slime-pink', 'left')`, label: 'monsters in any color' },
   { code: `spell.action(mage, 'cast', 'fire')`, label: 'attack, cast, level up' },

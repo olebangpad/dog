@@ -1253,3 +1253,36 @@ test('CLI: typos in commands, options and names fail in one line with a suggesti
     assert.doesNotMatch(r.stderr, /\n\s+at /, 'no stack trace')
   }
 })
+
+test('people from around the world: bodies walk every way, presets use real parts, every skin tone works', async () => {
+  const { REGIONS } = await import('../src/sprites/people.js')
+  const { REGIONS: GEAR, STYLES } = await import('../src/sprites/gear-world.js')
+  for (const body of Object.keys(REGIONS)) {
+    assert.ok(spell.char.parts.body.includes(body), body)
+    for (const view of ['down', 'up', 'side']) assert.ok(looks[`${body}-walk-${view}`], `${body} walks ${view}`)
+    for (const dir of [...spell.walk.dirs, ...spell.walk.diagonals]) assert.equal(spell.walk(body, dir)[0].w, 24)
+    assert.equal(spell.action({ body, hand: 'katana' }, 'attack').length, 8)
+  }
+  for (const id of Object.keys(GEAR)) assert.ok(looks[id], id)
+  // the new weapons attack in their own style
+  for (const [weapon, style] of Object.entries(STYLES)) assert.equal(spell.action.styleOf({ body: 'hero', hand: weapon }), style, weapon)
+  // presets: unique ids, real parts, a region each
+  const ids = new Set()
+  for (const w of spell.char.world) {
+    assert.ok(!ids.has(w.id) && w.name && w.region, w.id)
+    ids.add(w.id)
+    assert.equal(spell.char(w.spec).w, 24, w.id)
+  }
+  assert.ok(spell.char.world.length >= 20)
+  // skin tones go light to deep, and recolor any humanoid
+  assert.deepEqual(spell.char.skins, ['skin-light', 'skin', 'skin-olive', 'skin-tan', 'skin-brown', 'skin-dark'])
+  const lum = (hex) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); return 0.299 * r + 0.587 * g + 0.114 * b }
+  const faces = spell.char.skins.map((s) => lum(resolveRamp(s)[3]))
+  assert.ok(faces.every((v, i) => i === 0 || v < faces[i - 1]), 'lightest to deepest')
+  const tones = new Set(spell.char.skins.map((C) => JSON.stringify(spell.char({ body: 'hanbok', C }).data.slice(0, 2000))))
+  assert.equal(tones.size, spell.char.skins.length)
+  // random characters come in many skin tones, never a skin tone as an outfit
+  const randoms = Array.from({ length: 200 }, (_, i) => spell.char.random(i))
+  assert.ok(new Set(randoms.map((r) => r.C).filter(Boolean)).size >= 5)
+  assert.ok(randoms.every((r) => !spell.char.skins.includes(r.A)))
+})

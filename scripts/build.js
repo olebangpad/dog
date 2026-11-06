@@ -432,6 +432,26 @@ function monstersShowcase() {
   })
 }
 
+// People from around the world (spell.char.world): every preset walking toward you, labelled with where it's from
+function peopleShowcase() {
+  const list = spell.char.world
+  const walks = list.map((w) => spell.walk(w.spec, 'down'))
+  const cols = 9, col = 40, cell = 24, labelH = 8, gapY = 6
+  const rows = Math.ceil(list.length / cols)
+  const label = (r) => ({ 'East Asia': 'E.ASIA', 'East Africa': 'E.AFRICA', 'Austria and Bavaria': 'ALPS', 'Peru and the Andes': 'ANDES', Scandinavia: 'NORSE' }[r] ?? r).toUpperCase().slice(0, 9)
+  return Array.from({ length: 8 }, (_, t) => {
+    let img = new Pixmap(cols * col, rows * (cell + labelH + gapY) - gapY)
+    list.forEach((w, i) => {
+      const x = (i % cols) * col, y = Math.floor(i / cols) * (cell + labelH + gapY)
+      const f = walks[i]
+      img = img.draw(f[Math.floor(t / 2) % f.length], x + ((col - cell) >> 1), y)
+      const l = text(label(w.region), { color: DIM })
+      img = img.draw(l, x + ((col - l.w) >> 1), y + cell + 1)
+    })
+    return framed(img, 8).scale(3)
+  })
+}
+
 // The UI kit put together: panels stretched with nineSlice, an inventory, bars, buttons and icons
 function uiShowcase() {
   let img = Pixmap.create(240, 128, '#2f5a3a')
@@ -579,6 +599,7 @@ async function buildShowcase() {
     for (const [n, bytes] of Object.entries(pack.files)) if (!n.startsWith('README')) await write(join(root, 'assets', 'terrain', n), bytes)
   }
   await write(join(dir, 'monsters.png'), apng(monstersShowcase(), 6))
+  await write(join(dir, 'people.png'), apng(peopleShowcase(), 6))
   await write(join(dir, 'ui.png'), png(uiShowcase()))
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {
