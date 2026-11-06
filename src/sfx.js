@@ -192,13 +192,51 @@ function getAudioContext() {
   return audioContext
 }
 
+// Every sound plays through a music bus or an effects bus into a master, so a game's volume sliders and mute button
+// reach every sound, including ones already playing.
+const levels = { master: 1, music: 1, sfx: 1 }
+let muted = false, buses = null
+function busFor(ctx, kind) {
+  if (!buses || buses.ctx !== ctx) {
+    const master = ctx.createGain()
+    master.connect(ctx.destination)
+    const sub = () => { const g = ctx.createGain(); g.connect(master); return g }
+    buses = { ctx, master, music: sub(), sfx: sub() }
+    applyLevels()
+  }
+  return kind === 'music' ? buses.music : buses.sfx
+}
+function applyLevels() {
+  if (!buses) return
+  buses.master.gain.value = muted ? 0 : levels.master
+  buses.music.gain.value = levels.music
+  buses.sfx.gain.value = levels.sfx
+}
+/** volume() / volume(0.5): the master level; volume('music') / volume('music', 0.3): one bus ('music' or 'sfx'). 0..1. */
+export function volume(bus, level) {
+  if (bus === undefined || typeof bus === 'number') [bus, level] = ['master', bus]
+  if (!(bus in levels)) throw new Error(`pixspell: volume() takes 'master', 'music' or 'sfx', not "${bus}"`)
+  if (level !== undefined) {
+    if (!Number.isFinite(Number(level))) throw new Error('pixspell: a volume is a number from 0 to 1')
+    levels[bus] = Math.min(1, Math.max(0, Number(level)))
+    applyLevels()
+  }
+  return levels[bus]
+}
+/** mute(true) silences everything (playing sounds too), mute(false) brings it back; mute() says whether it's muted. */
+export function mute(on) {
+  if (on !== undefined) { muted = Boolean(on); applyLevels() }
+  return muted
+}
+
 /** A rendered sound: mono samples in -1..1 plus ways to play and export them. */
 export class Sound {
-  constructor(samples, { sampleRate = SAMPLE_RATE, id = 'sound', loop = false } = {}) {
+  constructor(samples, { sampleRate = SAMPLE_RATE, id = 'sound', loop = false, kind = 'sfx' } = {}) {
     this.samples = samples
     this.sampleRate = sampleRate
     this.id = id
     this.loop = loop
+    this.kind = kind // 'sfx' or 'music': which volume bus it plays through
     this._buffers = new WeakMap()
   }
 
@@ -239,18 +277,35 @@ export class Sound {
     return buf
   }
 
-  /** Browser: play now. Returns { stop() }. Call from a click or key handler the first time (autoplay rules). */
-  play({ volume = 1, loop = this.loop, rate = 1 } = {}) {
+  /**
+   * Browser: play now. Returns { stop(fade) }: stop(0.5) fades out over half a second. fadeIn: seconds to fade in.
+   * Call from a click or key handler the first time (autoplay rules).
+   */
+  play({ volume = 1, loop = this.loop, rate = 1, fadeIn = 0 } = {}) {
     const ctx = getAudioContext()
     const src = ctx.createBufferSource()
     src.buffer = this.toAudioBuffer(ctx)
     src.loop = loop
     src.playbackRate.value = rate
     const gain = ctx.createGain()
-    gain.gain.value = volume
-    src.connect(gain).connect(ctx.destination)
+    if (fadeIn > 0) {
+      gain.gain.setValueAtTime(0, ctx.currentTime)
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + fadeIn)
+    } else gain.gain.value = volume
+    src.connect(gain).connect(busFor(ctx, this.kind))
     src.start()
-    return { stop: () => { try { src.stop() } catch {} }, source: src }
+    const stop = (fade = 0) => {
+      try {
+        if (fade > 0) {
+          const t = ctx.currentTime
+          gain.gain.cancelScheduledValues(t)
+          gain.gain.setValueAtTime(gain.gain.value, t)
+          gain.gain.linearRampToValueAtTime(0, t + fade)
+          src.stop(t + fade)
+        } else src.stop()
+      } catch { /* already stopped */ }
+    }
+    return { stop, source: src, gain }
   }
 
   /** Node only: write a .wav file. */

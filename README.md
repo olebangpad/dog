@@ -566,7 +566,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | --- | --- |
 | `spell(id, { A, B, C, frame })` | render a sprite. `A/B/C` take a material name, any hex color, or 4 colors |
 | `spell.frames(id, opts)` | every frame of an animation, in play order |
-| frames (from `frames`, `walk`, `action`, `status`, `fx`) | arrays of images with `.fps` and `.loop`, plus `.save(path)` (animated PNG), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
+| frames (from `frames`, `walk`, `action`, `status`, `fx`) | arrays of images with `.fps` and `.loop`. In a game loop: `.atTime(t)`, `.duration`, `.origin` (feet / middle / corner to place at x, y), `.flipX()`; images have a kept `.canvas` for `drawImage`. Out: `.save(path)` (animated PNG), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
 | `spell.list({ category, tag, variants })` | ids of all looks |
 | `spell.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | animation frames · a reproducible random character |
@@ -583,6 +583,8 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.autotile(inner, outer, { grid })` | terrain transitions: `.tiles` (16), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()` (Tiled .tsx + Godot .tres); `outer` null = overlay |
 | `spell.fromImage(img, { id })` · `spell.define(def)` · `spell.readPNG(bytes, inflate)` | your own pixel art: a picture (or frames) → a sprite definition with ramps (`.def`, `.code`), registered so `spell(id)` recolors and resizes it |
 | `spell.music(name, { key, tempo, seed })` | chiptune music: a seamless loop or a jingle, as a Sound. Tracks: `spell.music.list`, `spell.music.info(name)` |
+| `spell.music.play(name)` · `.stop(fade)` · `.playing()` | the game's music: switches tracks with a fade, keeps the same track going |
+| `spell.volume(level)` · `spell.volume('music' \| 'sfx', level)` · `spell.mute(on)` | volume and mute for every sound, playing ones included |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | convert any PixSpell image · every file for one tile size, for your own exporter |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |

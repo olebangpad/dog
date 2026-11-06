@@ -24,15 +24,18 @@ Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): e
 ## Rules that keep pixel art crisp and fast
 
 1. `ctx.imageSmoothingEnabled = false` and CSS `image-rendering: pixelated`. Prefer whole-number zoom.
-2. Build sprites **once** at startup and turn them into canvases: `img.toCanvas(document.createElement('canvas'))`.
-   Then only `ctx.drawImage()` in the game loop. Never call `spell()`, `spell.walk()` or `spell.action()` per frame.
+2. Build sprites **once** at startup, then only `ctx.drawImage(img.canvas, x, y)` in the game loop (`.canvas` is made once
+   per image and kept). Never call `spell()`, `spell.walk()` or `spell.action()` per frame.
 3. Sizes and anchors: tiles/items are 16×16. Characters (`spell.char`, `spell.walk`) are **24×24 with the feet at (12, 23)**.
    Actions and game packs are **32×32 with the feet at (16, 31)**. Draw a character standing at (x, y) with
    `drawImage(walkFrame, x - 12, y - 23)` or `drawImage(actionFrame, x - 16, y - 31)`.
 4. Action frames face **right**. For a character facing left, mirror them (`frames.map(f => f.flipX())` or `ctx.scale(-1, 1)`).
    Walk cycles already exist for `left`.
-5. Every animation is an array of Pixmaps with `.fps` (and `.loop`). Frame at time t: `frames[Math.floor(t * frames.fps) % frames.length]`.
-   It also has `.save(path)` (an animated PNG, Node), `.toDataURL()` (an `<img>` that plays), `.toSheet()` and `.scale(n)`.
+5. Every animation is an array of Pixmaps with `.fps` and `.loop`. In a game loop: `frames.atTime(t)` is the frame t seconds
+   in (looping ones wrap, the rest hold the last frame), `frames.duration` is one pass in seconds, and `frames.origin` is the
+   point to place at (x, y), already right for the grid: a character's feet, an effect's middle, a plain sprite's top-left:
+   `const f = frames.atTime(t); ctx.drawImage(f.canvas, x - frames.origin[0], y - frames.origin[1])`.
+   Also `.flipX()` (face left), `.scale(n)`, `.toSheet()`, `.save(path)` (an animated PNG, Node), `.toDataURL()` (an `<img>` that plays).
 6. **Match the game's tile size with `grid`** (8, 16, 32 or 64; the art is drawn on 16). Every call takes it:
    `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 32 })`, `spell.walk(spec, 'left', { grid: 32 })`,
    `spell.action(spec, 'attack', { element: 'fire', grid: 32 })`, `spell.fx('boom', { grid: 32 })`, `spell.pack(spec, { grid: 32 })`.
@@ -110,9 +113,11 @@ const sounds = spell.sfxPack(['slash', 'hit', 'coin'])     // WAVs in one zip: .
 console.log(swing.duration, wav.length, Object.keys(sounds.files))
 ```
 
-- Browser: `sound.play()` returns `{ stop() }`. Browsers only start audio from a key press or click, so trigger the first
-  sound from an input handler (later ones can come from the game loop). Loops (`rain`, `wind`, `campfire`) are seamless:
-  `.play({ loop: true })`.
+- Browser: `sound.play({ volume, rate, fadeIn })` returns `{ stop(fade) }`. Browsers only start audio from a key press or
+  click, so trigger the first sound from an input handler (later ones can come from the game loop). Loops (`rain`, `wind`,
+  `campfire`) are seamless: `.play({ loop: true })`.
+- Settings and a mute button: `spell.volume(0.8)` (master), `spell.volume('music', 0.5)`, `spell.volume('sfx', 1)`,
+  `spell.mute(true)`. They reach sounds that are already playing; `spell.volume('music')` reads a level.
 - Names: UI `click select confirm cancel error text menu`, movement `jump land step dash splash`, pickups `coin gem key pickup
   powerup chest`, jingles `win lose fanfare`, plus the attack styles, actions and effects. Use `seed: 1..4` on repeated
   sounds (hits, steps) so they don't all sound the same.
@@ -133,8 +138,10 @@ const another = spell.music('dungeon', { seed: 1 })          // same style, a di
 console.log(theme.loop, faster.duration, spell.music.info('battle'), spell.music('victory').loop)
 ```
 
-- Switch tracks on scene changes: `music?.stop(); music = spell.music('battle').play()`. Play the first one from a key
-  press or click (autoplay rules). Each track takes a fraction of a second to render the first time, then it's cached.
+- Switch tracks on scene changes with `spell.music.play('battle')`: it fades out the track before (`{ fade: 0.6 }` seconds),
+  and the same track again keeps playing, so call it whenever a scene starts. `spell.music.stop()` fades out,
+  `spell.music.playing()` names the track. Play the first one from a key press or click (autoplay rules). Each track takes
+  a fraction of a second to render the first time, then it's cached: build the ones you need at startup.
 
 ## Everything else
 
@@ -218,29 +225,34 @@ const ok = spell('button').nineSlice(48, 16).draw(text('OK'), 18, 5)
 ```html
 <canvas id="game" width="256" height="176" style="width:768px;image-rendering:pixelated"></canvas>
 <script type="module">
-import { spell, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'
+import { spell } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'
 
 const ctx = document.getElementById('game').getContext('2d')
 ctx.imageSmoothingEnabled = false
-const toCanvas = (img) => img.toCanvas(document.createElement('canvas'))
-const anim = (frames) => ({ imgs: frames.map(toCanvas), fps: frames.fps ?? 6 })
+// any animation, t seconds in, with its origin (a character's feet, an effect's middle) at (x, y)
+const draw = (frames, x, y, t = 0) => ctx.drawImage(frames.atTime(t).canvas, Math.round(x) - frames.origin[0], Math.round(y) - frames.origin[1])
 
-// 1. build everything once
+// 1. build everything once (never call spell() in the loop)
 const HERO = { body: 'heroine', hat: 'wizard', hand: 'staff-fire' }
-const walk = Object.fromEntries(spell.walk.dirs.map((d) => [d, anim(spell.walk(HERO, d))]))
-const swing = spell.action(HERO, 'attack', 'fire') // faces right
-const attack = { right: anim(swing), left: { imgs: swing.map((f) => toCanvas(f.flipX())), fps: swing.fps } }
-let map = new Pixmap(256, 176)
-for (let y = 0; y < 11; y++) for (let x = 0; x < 16; x++) map = map.draw(spell('grass'), x * 16, y * 16)
-const background = toCanvas(map)
+const walk = Object.fromEntries(spell.walk.dirs.map((d) => [d, spell.walk(HERO, d)]))
+const attack = { right: spell.action(HERO, 'attack', 'fire') } // actions face right
+attack.left = attack.right.flipX()
+const lake = Array.from({ length: 11 }, (_, y) => Array.from({ length: 16 }, (_, x) => Math.hypot(x - 11, y - 4) < 2.6))
+const background = spell.autotile('water', 'grass').draw(lake).canvas // 16x11 cells of 16 px, shores included
+const swish = spell.sfx('slash', { element: 'fire' })
 
 // 2. state + input
-const hero = { x: 128, y: 100, dir: 'down', attackT: -1 }
+const hero = { x: 64, y: 120, dir: 'down', attackT: -1 }
 const keys = new Set()
-addEventListener('keydown', (e) => { keys.add(e.key); if (e.key === ' ') hero.attackT = 0 })
+addEventListener('keydown', (e) => {
+  keys.add(e.key)
+  spell.music.play('field') // browsers allow sound after a key press; calling it again keeps the same track going
+  if (e.key === ' ' && hero.attackT < 0) { hero.attackT = 0; swish.play() }
+  if (e.key === 'm') spell.mute(!spell.mute())
+})
 addEventListener('keyup', (e) => keys.delete(e.key))
 
-// 3. loop: update, then drawImage only
+// 3. loop: update, then draw
 let last = performance.now(), t = 0
 requestAnimationFrame(function loop(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; t += dt
@@ -249,17 +261,11 @@ requestAnimationFrame(function loop(now) {
   hero.x += mx * 60 * dt; hero.y += my * 60 * dt
   ctx.drawImage(background, 0, 0)
   if (hero.attackT >= 0) {
-    hero.attackT += dt
     const a = attack[hero.dir === 'left' ? 'left' : 'right']
-    const i = Math.floor(hero.attackT * a.fps)
-    if (i >= a.imgs.length) hero.attackT = -1
-    else ctx.drawImage(a.imgs[i], Math.round(hero.x) - 16, Math.round(hero.y) - 31)
-  }
-  if (hero.attackT < 0) {
-    const w = walk[hero.dir]
-    const img = mx || my ? w.imgs[Math.floor(t * w.fps) % w.imgs.length] : w.imgs[0]
-    ctx.drawImage(img, Math.round(hero.x) - 12, Math.round(hero.y) - 23)
-  }
+    draw(a, hero.x, hero.y, hero.attackT)
+    hero.attackT += dt
+    if (hero.attackT >= a.duration) hero.attackT = -1
+  } else draw(walk[hero.dir], hero.x, hero.y, mx || my ? t : 0)
   requestAnimationFrame(loop)
 })
 </script>

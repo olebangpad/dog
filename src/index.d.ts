@@ -80,11 +80,12 @@ export class Pixmap {
   toDataURL(): string
   /** Browser only. */
   toCanvas(canvas?: HTMLCanvasElement): HTMLCanvasElement
+  /** Browser: a canvas of this image made once and kept, for ctx.drawImage(img.canvas, x, y) in a game loop. */
+  readonly canvas: HTMLCanvasElement
   /** Node only: write a compressed PNG. */
   save(path: string): Promise<string>
 }
 
-/** A list of frames with the speed they were made for. */
 /**
  * An animation: its frames, .fps and .loop, plus helpers. walk, action, status, fx and frames all return one.
  *   await spell.walk(knight, 'left').scale(4).save('walk.png')    img.src = spell.fx('meteor').toDataURL()
@@ -100,8 +101,19 @@ export type Frames = Pixmap[] & {
   save(path: string): Promise<string>
   /** Every frame on one sheet, with each frame's rect. */
   toSheet(opts?: { columns?: number; gap?: number; padding?: number; background?: string }): { image: Pixmap; frames: { x: number; y: number; w: number; h: number }[] }
-  /** Every frame scaled; keeps .fps and .loop. */
+  /** Every frame scaled; keeps .fps, .loop and .origin. */
   scale(n: number): Frames
+  /** Every frame mirrored (actions face right; this faces them left). */
+  flipX(): Frames
+  /** The frame t seconds in: looping animations wrap, the others hold their last frame. */
+  atTime(t: number): Pixmap
+  /** Seconds for one pass through every frame. */
+  readonly duration: number
+  /**
+   * The point to place at (x, y), in frame pixels: a character's feet (walk, action, status), an effect's middle (fx),
+   * a plain sprite's top-left. drawImage(f.canvas, x - frames.origin[0], y - frames.origin[1]).
+   */
+  readonly origin: [number, number]
 }
 
 export interface CharacterSpec extends Ramps, GridOptions {
@@ -253,9 +265,12 @@ export interface SfxOptions {
   element?: FxColorName
 }
 
+/** A sound that is playing. */
+export interface Playing { stop(fade?: number): void; source: AudioBufferSourceNode; gain: GainNode }
+
 /** A rendered sound: mono samples in -1..1. Treat it as read-only (spell.sfx caches it). */
 export class Sound {
-  constructor(samples: Float32Array, opts?: { sampleRate?: number; id?: string; loop?: boolean })
+  constructor(samples: Float32Array, opts?: { sampleRate?: number; id?: string; loop?: boolean; kind?: 'sfx' | 'music' })
   readonly samples: Float32Array
   readonly sampleRate: number
   readonly id: string
@@ -263,13 +278,15 @@ export class Sound {
   readonly loop: boolean
   /** Seconds. */
   readonly duration: number
+  /** Which volume bus it plays through. */
+  readonly kind: 'sfx' | 'music'
   /** 16-bit PCM mono WAV bytes. */
   toWAV(): Uint8Array
   toDataURL(): string
   /** Browser: an AudioBuffer for your own Web Audio graph. */
   toAudioBuffer(context?: BaseAudioContext): AudioBuffer
-  /** Browser: play now. Call it from a click/key handler the first time (autoplay rules). */
-  play(opts?: { volume?: number; loop?: boolean; rate?: number }): { stop(): void; source: AudioBufferSourceNode }
+  /** Browser: play now. Call it from a click/key handler the first time (autoplay rules). stop(fade) fades out over fade seconds. */
+  play(opts?: { volume?: number; loop?: boolean; rate?: number; fadeIn?: number }): Playing
   /** Node only: write a .wav file. */
   save(path: string): Promise<string>
 }
@@ -362,7 +379,18 @@ export interface PixSpell {
     list: string[]
     tags(name: string): string[]
     info(name: string): MusicInfo | null
+    /** Play a track as the game's music, fading out the one before; the same track again keeps playing. */
+    play(name: string, opts?: MusicOptions & { fade?: number }): Playing
+    /** Fade out the music spell.music.play started. */
+    stop(fade?: number): void
+    /** The track spell.music.play started, or null. */
+    playing(): string | null
   }
+  /** Volume 0..1 for every sound, playing ones too: volume(0.5) master, volume('music', 0.3) one bus; no level reads it. */
+  volume(level?: number): number
+  volume(bus: 'master' | 'music' | 'sfx', level?: number): number
+  /** mute(true) silences everything, mute(false) brings it back, mute() says whether it's muted. */
+  mute(on?: boolean): boolean
   /** Sounds (all, or the names given) as WAV files in one zip. */
   sfxPack(names?: string[], opts?: SfxOptions & { name?: string }): SoundPack
   fx: {

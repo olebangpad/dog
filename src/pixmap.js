@@ -7,6 +7,9 @@ import { encodePNG, toBase64 } from './png.js'
 
 const pack = (r, g, b, a) => a === 0 ? 0 : (((r << 24) | (g << 16) | (b << 8) | a) >>> 0)
 
+// canvases made by .canvas, kept per image
+const canvases = new WeakMap()
+
 export class Pixmap {
   constructor(w, h, data) {
     this.w = w | 0
@@ -55,6 +58,7 @@ export class Pixmap {
   /** Mutating setter. Prefer the chainable methods in user code. */
   set(x, y, c) {
     if (x < 0 || y < 0 || x >= this.w || y >= this.h) return this
+    canvases.delete(this)
     this.data.set(c, (y * this.w + x) * 4)
     return this
   }
@@ -344,6 +348,7 @@ export class Pixmap {
   /** In-place alpha blend. Internal: only for images a function just created itself (sheet, compose). */
   _blit(img, x = img.x, y = img.y) {
     const p = this
+    canvases.delete(p)
     const d = p.data, s = img.data
     for (let sy = 0; sy < img.h; sy++) {
       const ty = sy + y
@@ -374,6 +379,16 @@ export class Pixmap {
     canvas.height = this.h
     canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(this.data), this.w, this.h), 0, 0)
     return canvas
+  }
+
+  /**
+   * Browser: a <canvas> of this image, made once and kept, for ctx.drawImage(img.canvas, x, y) in a game loop.
+   * Don't draw on it; .set() makes a fresh one.
+   */
+  get canvas() {
+    let c = canvases.get(this)
+    if (!c) canvases.set(this, (c = this.toCanvas()))
+    return c
   }
 
   /** Node: write a compressed PNG file. */

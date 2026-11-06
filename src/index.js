@@ -18,13 +18,13 @@ import { runRecipe, FX_COLORS } from './fx.js'
 import { RECIPES } from './fx/index.js'
 import { zip } from './zip.js'
 import { createBundle } from './bundle.js'
-import { renderSound, Sound, note, SAMPLE_RATE } from './sfx.js'
+import { renderSound, Sound, note, SAMPLE_RATE, volume, mute } from './sfx.js'
 import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
 import { SONGS, renderSong } from './music.js'
 import { createAutotile } from './autotile.js'
 import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './palette.js'
 import { decodePNG, spriteFromImage } from './import.js'
-import { framed } from './frames.js'
+import { framed, asFrames, originKind } from './frames.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -93,7 +93,7 @@ spell.frames = framed((id, opts = {}) => {
   const recipe = recipeById[look.def.id] // sprites loop; effects say whether they do
   Object.assign(frames, { fps: look.def.fps, loop: recipe ? Boolean(recipe.loop) : true })
   return regridAll(frames, k, smooth)
-})
+}, (out, id) => (recipeById[lookup(id).def.id] ? 'center' : 'corner'))
 
 // ---------------------------------------------------------------- grids
 /** Tile sizes PixSpell can deliver: the art is drawn on a 16 px grid and converted from there. */
@@ -203,13 +203,17 @@ const gridded = (fn, many) => Object.assign((...a) => {
 }, fn)
 
 /** Convert any PixSpell image or frame list to another tile grid: spell.toGrid(spell('sword'), 32). */
-spell.toGrid = framed((img, grid, { smooth } = {}) => (Array.isArray(img) ? regridAll(img, gridFactor(grid), smooth) : regrid(img, gridFactor(grid), smooth)))
+spell.toGrid = (img, grid, { smooth } = {}) => {
+  if (!Array.isArray(img)) return regrid(img, gridFactor(grid), smooth)
+  const out = regridAll(img, gridFactor(grid), smooth)
+  return asFrames(out === img ? [...img] : out, img.fps, img.loop, originKind(img))
+}
 spell.grids = GRIDS
 
 const characters = createCharacters(looks)
 spell.char = Object.assign(gridded(characters, false), characters, {
-  frames: framed(gridded(characters.frames, true)),
-  walk: framed(gridded(characters.walk, true)),
+  frames: framed(gridded(characters.frames, true), 'feet'),
+  walk: framed(gridded(characters.walk, true), 'feet'),
 })
 
 /**
@@ -219,7 +223,7 @@ spell.char = Object.assign(gridded(characters, false), characters, {
  */
 const rawAction = gridded(createActions(spell, looks), true)
 // actions flash, tint and fade after rendering, so with a palette on they are snapped to it once more
-spell.action = framed(Object.assign((...a) => applyActive(rawAction(...a)), rawAction))
+spell.action = framed(Object.assign((...a) => applyActive(rawAction(...a)), rawAction), 'feet')
 
 /**
  * Walk cycles: spell.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
@@ -256,7 +260,7 @@ spell.fx = framed((name, opts = {}) => {
     fxMemo.set(key, hit)
   }
   return Object.assign([...hit], { fps: hit.fps, loop: hit.loop }) // a fresh array; the images are immutable
-})
+}, 'center')
 function renderFx(name, { size, seed, frames: count, element, A, B, C, light } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`pixspell: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
@@ -279,7 +283,7 @@ spell.fxPack = createFxPack(spell, looks)
  *   spell.status({ body: 'hero', hat: 'crown' }, 'burning')
  *   spell.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
  */
-spell.status = framed((...a) => applyActive(statusFrames(...a)))
+spell.status = framed((...a) => applyActive(statusFrames(...a)), 'feet')
 function statusFrames(spec, name, { walk, element, size = 32, grid, smooth } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`pixspell: no effect called "${name}"`)
@@ -334,7 +338,7 @@ spell.fx.sequence = framed((steps, { size = 32, fps } = {}) => {
   })
   out.fps = fps ?? placed[0]?.fps ?? 12
   return out
-})
+}, 'center')
 spell.fx.colors = FX_COLORS
 
 // ------------------------------------------------------------------ sound
@@ -377,6 +381,14 @@ spell.sfx.forEffect = (fx) => {
   return base ? EFFECT_SOUNDS[base] : null
 }
 
+// ------------------------------------------------------------------ volume
+/**
+ * Volume for every sound, playing ones included: spell.volume(0.5) is the master level, spell.volume('music', 0.3)
+ * and spell.volume('sfx', 1) set one bus; spell.volume('music') reads it. spell.mute(true) silences everything.
+ */
+spell.volume = volume
+spell.mute = mute
+
 // ------------------------------------------------------------------ your own art
 spell.define = define
 /**
@@ -401,7 +413,7 @@ spell.palette = (...a) => {
   return setPalette(a[0])
 }
 spell.palettes = Object.fromEntries(Object.entries(PALETTES).map(([k, v]) => [k, { colors: [...v.colors], note: v.note }]))
-spell.toPalette = framed(toPalette)
+spell.toPalette = (img, name) => (Array.isArray(img) ? asFrames(toPalette(img, name), img.fps, img.loop, originKind(img)) : toPalette(img, name))
 
 // ------------------------------------------------------------------ terrain
 /**
@@ -438,6 +450,28 @@ spell.music = (name, opts = {}) => {
   }
   return sound
 }
+/**
+ * The game's music: plays a track as the one that's on, fading out the one before (fade in seconds). The same track
+ * again keeps playing instead of restarting, so calling it on every scene change is fine. Returns { stop(fade) }.
+ *   spell.music.play('town')   ...   spell.music.play('battle')   ...   spell.music.stop()
+ */
+let nowPlaying = null
+spell.music.play = (name, { fade = 0.6, ...opts } = {}) => {
+  const key = `${name}|${JSON.stringify(opts)}`
+  if (nowPlaying?.key === key) return nowPlaying.handle
+  const sound = spell.music(name, opts)
+  const before = nowPlaying
+  spell.music.stop(fade)
+  nowPlaying = { name, key, handle: sound.play({ fadeIn: before ? Math.min(fade, 0.3) : 0 }) }
+  return nowPlaying.handle
+}
+/** Stop the music started by spell.music.play, fading out over fade seconds. */
+spell.music.stop = (fade = 0.6) => {
+  nowPlaying?.handle.stop(fade)
+  nowPlaying = null
+}
+/** The name of the track spell.music.play started, or null. */
+spell.music.playing = () => nowPlaying?.name ?? null
 spell.music.list = SONGS.map((s) => s.id)
 spell.music.tags = (name) => [...(songById[name]?.tags ?? [])]
 /** Tempo, key, bars and whether it loops, e.g. { tempo: 104, key: 'F', bars: 16, loop: true }. */

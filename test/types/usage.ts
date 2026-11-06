@@ -45,6 +45,15 @@ const playing: string = spell.fx('meteor').toDataURL()
 const attackSheet: Pixmap = spell.action(knight, 'attack').toSheet({ columns: 4 }).image
 const idleFps: number = spell.char.frames(knight).fps
 console.log(savedWalk, playing, attackSheet, idleFps, spell.frames('coin').toAPNG().length)
+const leftSwing: Frames = spell.action(knight, 'attack').flipX()
+const now: Pixmap = leftSwing.atTime(0.2)
+const [ox, oy] = leftSwing.origin
+const swingSeconds: number = leftSwing.duration
+const townMusic = spell.music.play('town', { fade: 1 })
+townMusic.stop(0.5)
+const musicLevel: number = spell.volume('music', 0.4) + spell.volume(0.8) + spell.volume()
+const isMuted: boolean = spell.mute(true)
+console.log(now.w, ox, oy, swingSeconds, musicLevel, isMuted, spell.music.playing(), spell.sfx('coin').kind)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

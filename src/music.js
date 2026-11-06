@@ -218,5 +218,5 @@ export function songRecipe(song, { seed = 0, key = 0, tempo = 1 } = {}) {
 export function renderSong(song, opts = {}) {
   const recipe = songRecipe(song, opts)
   const samples = renderSound(recipe, { sampleRate: opts.sampleRate ?? SAMPLE_RATE })
-  return new Sound(samples, { id: song.id, loop: !song.jingle })
+  return new Sound(samples, { id: song.id, loop: !song.jingle, kind: 'music' })
 }

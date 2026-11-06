@@ -525,7 +525,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | --- | --- |
 | `spell(id, { A, B, C, frame })` | 스프라이트 렌더링. `A/B/C`에는 재질 이름, hex 색, 4색 배열 |
 | `spell.frames(id, opts)` | 애니메이션 전체 프레임 |
-| 프레임 목록 (`frames`, `walk`, `action`, `status`, `fx`의 결과) | `.fps`, `.loop`가 붙은 그림 배열. `.save(path)`(움직이는 PNG), `.toDataURL()`(재생되는 `<img>`), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
+| 프레임 목록 (`frames`, `walk`, `action`, `status`, `fx`의 결과) | `.fps`, `.loop`가 붙은 그림 배열. 게임 루프용: `.atTime(t)`, `.duration`, `.origin`(x, y에 놓을 점: 발 / 가운데 / 왼쪽 위), `.flipX()`. 그림마다 한 번 만들어 두는 `.canvas`(`drawImage`용). 내보내기: `.save(path)`(움직이는 PNG), `.toDataURL()`(재생되는 `<img>`), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
 | `spell.list({ category, tag, variants })` | 전체 id 목록 |
 | `spell.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
@@ -541,6 +541,8 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.autotile(inner, outer, { grid })` | 지형 전환: `.tiles`(16장), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()`(Tiled .tsx + Godot .tres). `outer`가 null이면 오버레이 |
 | `spell.fromImage(img, { id })` · `spell.define(def)` · `spell.readPNG(bytes, inflate)` | 직접 그린 픽셀 아트: 그림(또는 프레임)을 램프가 있는 스프라이트 정의로(`.def`, `.code`), 등록하면 `spell(id)`로 색과 크기를 바꿀 수 있음 |
 | `spell.music(name, { key, tempo, seed })` | 칩튠 음악: 끊김 없이 반복되는 루프나 짧은 징글(Sound). 목록은 `spell.music.list`, 정보는 `spell.music.info(name)` |
+| `spell.music.play(name)` · `.stop(fade)` · `.playing()` | 게임 배경음악: 페이드로 곡을 바꾸고, 같은 곡이면 계속 재생 |
+| `spell.volume(level)` · `spell.volume('music' \| 'sfx', level)` · `spell.mute(on)` | 모든 소리의 볼륨과 음소거(재생 중인 소리 포함) |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | 위 모든 호출에 붙는 옵션: 그 타일 크기용 그림 (`smooth: false`면 단순 확대) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | 아무 PixSpell 이미지나 변환 · 한 타일 크기의 전체 파일 목록 |
 | `compose(...layers)` | 레이어 합성, `.at(x, y)`로 위치 지정 |

@@ -19,6 +19,12 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Animations are easy to save:** every frame list (`walk`, `action`, `status`, `fx`, `frames`, `char.frames`) has
   `.save(path)` (an animated PNG at its own speed), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()` and
   `.scale(n)`, and `spell.frames()` / `spell.char.frames()` now carry `.fps` and `.loop` too.
+- **Game-loop helpers:** frame lists have `.atTime(t)`, `.duration`, `.flipX()` and `.origin` (a character's feet, an
+  effect's middle, already right for the grid), and every image has a kept `.canvas` for `drawImage`. The SKILL.md game
+  recipe uses them and draws an autotiled lake.
+- **Volume and music switching:** `spell.volume(level)`, `spell.volume('music' | 'sfx', level)`, `spell.mute(on)` reach
+  every sound, playing ones too. `spell.music.play(name)` switches tracks with a fade and keeps the same track going;
+  `spell.music.stop(fade)`, `spell.music.playing()`. `sound.play({ fadeIn })` and `stop(fade)`.
 - **Bring your own art:** `spell.fromImage(img, { id })` turns a picture (or frames, up to 64×64) into a sprite with an
   outline and up to 3 recolorable ramps, `spell.define(def)` registers it, `spell.readPNG(bytes, inflate)` decodes PNGs
   (8-bit, palette, gray). CLI `pixspell import art.png [--size 16x16] [-o art.js] [--preview p.png]`, and an Import panel in the studio

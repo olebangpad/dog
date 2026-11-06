@@ -1172,3 +1172,40 @@ test('animations save, play and sheet like images: frame lists carry fps, loop a
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('animations in a game loop: atTime, duration, origin (feet, middle, corner) through scale, flipX and grids', () => {
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword' }
+  const walk = spell.walk(knight, 'left'), swing = spell.action(knight, 'attack', 'fire'), boom = spell.fx('boom')
+  assert.deepEqual(walk.origin, [12, 23]) // the feet, as the docs say
+  assert.deepEqual(swing.origin, [16, 31])
+  assert.deepEqual(spell.walk(knight, 'left', { grid: 32 }).origin, [24, 47])
+  assert.deepEqual(spell.toGrid(walk, 32).origin, [24, 47])
+  assert.deepEqual(walk.scale(3).origin, [36, 71])
+  assert.deepEqual(swing.flipX().origin, [16, 31])
+  assert.deepEqual(boom.origin, [16, 16])
+  assert.deepEqual(spell.frames('coin').origin, [0, 0])
+  assert.deepEqual(spell.toPalette(swing, 'gameboy').origin, [16, 31])
+  // looping animations wrap, the others hold their last frame
+  assert.equal(walk.atTime(walk.duration + 0.01), walk[0])
+  assert.equal(swing.atTime(0), swing[0])
+  assert.equal(swing.atTime(99), swing[swing.length - 1])
+  assert.equal(swing.duration, swing.length / swing.fps)
+  assert.deepEqual(swing.flipX()[0].data, swing[0].flipX().data)
+})
+
+test('volume and mute: master, music and sfx levels, clamped; music is on the music bus', () => {
+  try {
+    assert.equal(spell.volume(0.5), 0.5)
+    assert.equal(spell.volume('music', 2), 1, 'clamped')
+    assert.equal(spell.volume('sfx', -1), 0)
+    assert.equal(spell.volume('music'), 1)
+    assert.equal(spell.mute(true), true)
+    assert.equal(spell.mute(), true)
+    assert.throws(() => spell.volume('voice', 1), /'master', 'music' or 'sfx'/)
+    assert.equal(spell.music('victory').kind, 'music')
+    assert.equal(spell.sfx('coin').kind, 'sfx')
+    assert.equal(spell.music.playing(), null)
+  } finally {
+    spell.volume(1); spell.volume('music', 1); spell.volume('sfx', 1); spell.mute(false)
+  }
+})

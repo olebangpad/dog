@@ -1146,3 +1146,25 @@ at desktop and phone width.
 - **Found:** the console greeting still said DOG. **Fixed.**
 - **Fine:** the 61-file package, the CLI help, and all six pages (no console errors, no sideways scroll on a phone).
 
+### Pass 2: writing a game the way an agent would
+
+I wrote a small game from SKILL.md alone and noted where the code got long or easy to get wrong.
+
+- **Found:** every game loop repeats the same lines: pick the frame for time t, turn every frame into a canvas, and
+  subtract the feet offset, which is (12, 23) for a walk, (16, 31) for an action and doubles at grid 32. Mixing those up
+  is the classic bug: a hero who jumps 4 px when they attack.
+  **Fixed:**
+  - frame lists know `.atTime(t)` (wrap or hold), `.duration` and `.origin`;
+  - `.flipX()` keeps all of that;
+  - images keep one `.canvas` each.
+  The origin is stored as a kind (feet, center, corner) rather than a point, so it stays right through `scale(3)`,
+  `toGrid(…, 32)` and palettes. My first version scaled the point and put the feet a pixel high.
+- **Found:** no way to mute or turn the music down, although the UI kit ships mute icons. **Fixed:** every sound plays
+  through a music or effects bus into a master: `spell.volume()`, `spell.volume('music', 0.3)`, `spell.mute(true)`, and
+  they apply to sounds already playing.
+- **Found:** switching music meant keeping the old handle around and stopping it. **Fixed:** `spell.music.play('battle')`
+  fades the old track out, and calling it again with the same track does nothing, so a scene can call it on every entry.
+- **SKILL.md and the canvas starter:** the one-file game recipe is shorter, draws an autotiled lake, plays music from the first key press and
+  mutes on M. `templates/canvas/` got the same treatment plus a sand path that blends into the grass. I ran both in
+  Chromium with simulated keys: no errors, and the knight walks and swings left with the mirrored action.
+
