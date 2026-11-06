@@ -85,7 +85,24 @@ export class Pixmap {
 }
 
 /** A list of frames with the speed they were made for. */
-export type Frames = Pixmap[] & { fps: number; loop?: boolean }
+/**
+ * An animation: its frames, .fps and .loop, plus helpers. walk, action, status, fx and frames all return one.
+ *   await spell.walk(knight, 'left').scale(4).save('walk.png')    img.src = spell.fx('meteor').toDataURL()
+ */
+export type Frames = Pixmap[] & {
+  fps: number
+  loop?: boolean
+  /** An animated PNG at .fps (loops: 0 = forever). */
+  toAPNG(opts?: { deflate?: (bytes: Uint8Array) => Uint8Array; loops?: number }): Uint8Array
+  /** The animated PNG as a data: URL, for <img src> (it plays). */
+  toDataURL(): string
+  /** Node: write it as a compressed animated PNG. */
+  save(path: string): Promise<string>
+  /** Every frame on one sheet, with each frame's rect. */
+  toSheet(opts?: { columns?: number; gap?: number; padding?: number; background?: string }): { image: Pixmap; frames: { x: number; y: number; w: number; h: number }[] }
+  /** Every frame scaled; keeps .fps and .loop. */
+  scale(n: number): Frames
+}
 
 export interface CharacterSpec extends Ramps, GridOptions {
   /** Body id, e.g. 'hero', 'heroine-blonde', 'goblin', 'slime-pink'. See spell.char.parts.body. */
@@ -281,7 +298,7 @@ export interface PixSpell {
     /** A 24x24 character with gear snapped on by name. */
     (body: string, opts?: Omit<CharacterSpec, 'body'>): Pixmap
     (spec: CharacterSpec): Pixmap
-    frames(body: string | CharacterSpec, opts?: Omit<CharacterSpec, 'body'>): Pixmap[]
+    frames(body: string | CharacterSpec, opts?: Omit<CharacterSpec, 'body'>): Frames
     /** Reproducible random spec. */
     random(seed?: number | string, opts?: { outfit?: number }): CharacterSpec
     walk(body: string | CharacterSpec, dir?: WalkDir, opts?: Omit<CharacterSpec, 'body'>): Frames

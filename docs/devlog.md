@@ -1127,3 +1127,22 @@ characters had little world to stand in. The plan is world building, then monste
 - **Skipped: hand-drawn 3/4 diagonal poses.** The procedural turn (head and shoulders shifted a pixel) already reads as
   3/4 at 16 px, and drawing 3 poses for each of 37 bodies costs a lot for little gain.
 
+## Round 14: three passes of "use it, find what's wrong, fix it"
+
+### Pass 1: a newcomer's first ten minutes
+
+I packed the npm tarball, installed it in an empty folder and followed the README; then loaded every page in Chromium
+at desktop and phone width.
+
+- **Found:** an animation couldn't be saved. `spell('sword').save('x.png')` works, but `spell.action(...)` returns an
+  array, so the obvious `.save()` was undefined and you had to find `encodeAPNG` and write the file yourself.
+  **Fixed:** every frame list now has `.save(path)`, `.toDataURL()`, `.toAPNG()`, `.toSheet()` and `.scale(n)`
+  (`src/frames.js`). The helpers are non-enumerable, so arrays still spread and compare like plain arrays.
+- **Found:** `spell.frames('coin')` and `spell.char.frames(spec)` had no `.fps`, so a saved or played coin had no speed
+  to go by. **Fixed:** both carry `.fps` and `.loop` now (effects loop only if their recipe does).
+- **Found:** the importer only existed in code and the CLI. **Fixed:** the studio has an Import panel, and you can drop a
+  PNG on the preview. A row of square frames becomes an animation, and the copied definition writes the imported
+  ramps correctly (it printed `'#a,#b,#c,#d'` before).
+- **Found:** the console greeting still said DOG. **Fixed.**
+- **Fine:** the 61-file package, the CLI help, and all six pages (no console errors, no sideways scroll on a phone).
+

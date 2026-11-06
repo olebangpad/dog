@@ -1,7 +1,7 @@
 // PixSpell studio: browse, combine, recolor and resize sprites, then export.
 import {
   spell, looks, sprites, compose, sheet, defineSprite, render, resolveRamp, rampFrom,
-  MATERIALS, MATERIAL_NAMES, LEGEND, OUTLINE, encodeAPNG,
+  MATERIALS, MATERIAL_NAMES, LEGEND, OUTLINE, encodeAPNG, Pixmap,
 } from '../src/index.js'
 import { $, $$, h, paint, thumb, download, toast, copy, encode, decode, readHash, writeHash } from './ui.js'
 import { initMaker } from './maker.js'
@@ -230,7 +230,7 @@ function renderSlots() {
     const custom = h('input', { type: 'color', title: 'Any color: 4 shades are generated from it', value: /^#/.test(current) ? current.slice(0, 7) : resolveRamp(current)[2].slice(0, 7) })
     custom.addEventListener('input', () => set(custom.value))
     return h('div', { class: 'slot' },
-      h('div', { class: 'slot-head' }, h('b', {}, slot), rampBox(resolveRamp(current)), h('span', {}, /^#/.test(current) ? current : current)),
+      h('div', { class: 'slot-head' }, h('b', {}, slot), rampBox(resolveRamp(current)), h('span', {}, Array.isArray(current) ? 'its own colors' : current)),
       h('div', { class: 'swatches' },
         MATERIAL_NAMES.map((m) => h('button', {
           class: 'swatch', title: m, 'aria-label': `${slot}: ${m}`, 'aria-pressed': String(current === m),
@@ -341,7 +341,8 @@ function codeSnippet() {
   const imports = many ? '{ spell, compose }' : '{ spell }'
   const body = many ? `compose(\n  ${calls.join(',\n  ')},\n)` : calls[0] ?? `spell('dog')`
   const edited = layers.some((L) => L.custom) ? '\n// note: edited pixels are not included - copy them from "Edit pixels"' : ''
-  return `import ${imports} from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\nconst img = ${body}${chain.length ? '\n  ' + chain.join('\n  ') : ''}\n\ndocument.body.append(img.toCanvas())${edited}`
+  const imported = layers.some((L) => looks[L.id].def.category === 'custom') ? '\n// an imported sprite: spell.define() it first ("Copy sprite definition" under Edit pixels)' : ''
+  return `import ${imports} from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\nconst img = ${body}${chain.length ? '\n  ' + chain.join('\n  ') : ''}\n\ndocument.body.append(img.toCanvas())${edited}${imported}`
 }
 function renderCode() { $('#code').textContent = codeSnippet() }
 $('#copy-code').addEventListener('click', () => copy(codeSnippet(), 'Code copied'))
@@ -404,7 +405,7 @@ $('#copy-def').addEventListener('click', () => {
     '{',
     `  id: '${L.custom ? L.id + '-remix' : L.id}',`,
     `  tags: ${JSON.stringify(def.tags)},`,
-    `  ramps: { ${def.slots.map((s) => `${s}: '${ramps[s]}'`).join(', ')} },`,
+    `  ramps: { ${def.slots.map((s) => `${s}: ${JSON.stringify(ramps[s]).replace(/"/g, "'")}`).join(', ')} },`,
     def.frames.length > 1 ? `  fps: ${def.fps},` : null,
     def.frames.length > 1
       ? `  frames: [\n${def.frames.map((f) => '    ' + art(f, '      ')).join(',\n')},\n  ],`
@@ -413,6 +414,43 @@ $('#copy-def').addEventListener('click', () => {
   ].filter(Boolean)
   copy(lines.join('\n'), 'Definition copied - paste it into src/sprites/*.js')
 })
+
+// ------------------------------------------------------ import your PNG
+// The picture becomes a real sprite (spell.fromImage + spell.define): outline, up to 3 recolorable ramps.
+async function importFile(file) {
+  if (!file) return
+  try {
+    const bmp = await createImageBitmap(file)
+    const c = h('canvas', { width: bmp.width, height: bmp.height })
+    const ctx = c.getContext('2d')
+    ctx.drawImage(bmp, 0, 0)
+    const img = Pixmap.fromImageData(ctx.getImageData(0, 0, c.width, c.height))
+    // frames side by side: the count picked, or (auto) as many squares as fit when the image is a row of squares
+    const pickN = $('#import-frames').value
+    const n = pickN === 'auto' ? (img.w > img.h && img.w % img.h === 0 ? img.w / img.h : 1) : Number(pickN)
+    if (img.w % n) throw new Error(`a ${img.w} px wide image doesn't split into ${n} frames`)
+    const fw = img.w / n
+    const frames = Array.from({ length: n }, (_, i) => img.crop(i * fw, 0, fw, img.h))
+    const stem = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sprite'
+    let id = looks[stem] ? `my-${stem}` : stem
+    for (let k = 2; looks[id]; k++) id = `my-${stem}-${k}`
+    const { def, warnings } = spell.fromImage(frames, { id })
+    spell.define(def)
+    state.layers = [mkLayer(id)]
+    state.active = 0
+    ui.editFrame = 0
+    update()
+    toast(`Imported "${id}": ${n > 1 ? `${n} frames, ` : ''}${Object.keys(def.ramps).length} color slots${warnings.length ? ', some shades merged' : ''}`)
+  } catch (e) {
+    toast(`Couldn't import: ${e.message.replace(/^pixspell: /, '')}`)
+  }
+}
+$('#import-btn').addEventListener('click', () => $('#import-file').click())
+$('#import-file').addEventListener('change', (e) => { importFile(e.target.files[0]); e.target.value = '' })
+const stageEl = $('#stage')
+stageEl.addEventListener('dragover', (e) => { e.preventDefault(); stageEl.classList.add('drop') })
+stageEl.addEventListener('dragleave', () => stageEl.classList.remove('drop'))
+stageEl.addEventListener('drop', (e) => { e.preventDefault(); stageEl.classList.remove('drop'); importFile(e.dataTransfer.files[0]) })
 
 // --------------------------------------------------------------- gallery
 const tiles = new Map()
@@ -558,4 +596,4 @@ requestAnimationFrame(loop)
 
 // expose for tinkering in the console
 Object.assign(window, { spell, compose, looks })
-console.log('%cDOG', 'font: bold 20px monospace; color: #a8e05a', "- try: spell('slime', { A: '#ff00aa' }).scale(8).toCanvas()")
+console.log('%cPIXSPELL', 'font: bold 20px monospace; color: #a8e05a', "- try: spell('slime', { A: '#ff00aa' }).scale(8).toCanvas()")

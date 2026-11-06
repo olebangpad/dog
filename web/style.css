@@ -107,6 +107,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 }
 .stage[data-bg='dark'] { background: #0b0f0c; }
 .stage[data-bg='light'] { background: #eef3ea; }
+.stage.drop { outline: 3px dashed var(--accent, #a8e05a); outline-offset: -6px; }
 .stage[data-bg='grass'] { background-color: #2a6a3a; background-size: 64px 64px; image-rendering: pixelated; }
 .stage canvas { cursor: grab; max-width: 100%; max-height: 100%; }
 .stage canvas.dragging { cursor: grabbing; }

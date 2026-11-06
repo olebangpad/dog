@@ -469,12 +469,13 @@ npx pixspell render potion -A '#ff4fd8' --scale 8 -o potion.png   # CLI도 같�
 ```
 
 ```js
-import { spell, compose, sheet } from 'pixspell'
+import { spell } from 'pixspell'
 
 await spell('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
 
-const frames = spell.frames('slime-blue')            // 애니메이션 모든 프레임
-await sheet(frames).image.scale(4).save('slime-sheet.png')
+const frames = spell.frames('slime-blue')            // 애니메이션 모든 프레임, .fps 포함
+await frames.toSheet().image.scale(4).save('slime-sheet.png')
+await spell.walk({ body: 'hero', hat: 'knight' }, 'left').scale(4).save('walk.png')   // 제 속도로 움직이는 애니메이션 PNG
 ```
 
 ES 모듈 전용입니다(`require` 불가). 모든 기능이 `spell` 하나에 들어 있습니다(예전 이름 `dog`도 그대로 동작합니다). 버전은 semver를 따르고, 1.0 전까지는 마이너 버전에서 API가 바뀔 수 있으며 [변경 기록](CHANGELOG.md)에 적습니다.
@@ -524,6 +525,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | --- | --- |
 | `spell(id, { A, B, C, frame })` | 스프라이트 렌더링. `A/B/C`에는 재질 이름, hex 색, 4색 배열 |
 | `spell.frames(id, opts)` | 애니메이션 전체 프레임 |
+| 프레임 목록 (`frames`, `walk`, `action`, `status`, `fx`의 결과) | `.fps`, `.loop`가 붙은 그림 배열. `.save(path)`(움직이는 PNG), `.toDataURL()`(재생되는 `<img>`), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
 | `spell.list({ category, tag, variants })` | 전체 id 목록 |
 | `spell.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |

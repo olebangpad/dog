@@ -486,12 +486,13 @@ npx pixspell render potion -A '#ff4fd8' --scale 8 -o potion.png   # the CLI come
 ```
 
 ```js
-import { spell, compose, sheet } from 'pixspell'
+import { spell } from 'pixspell'
 
 await spell('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
 
-const frames = spell.frames('slime-blue')            // every animation frame
-await sheet(frames).image.scale(4).save('slime-sheet.png')
+const frames = spell.frames('slime-blue')            // every animation frame, with .fps
+await frames.toSheet().image.scale(4).save('slime-sheet.png')
+await spell.walk({ body: 'hero', hat: 'knight' }, 'left').scale(4).save('walk.png')   // an animated PNG at its own speed
 ```
 
 PixSpell is ES modules only (no `require`). Everything hangs off one object, `spell` (`dog` still works: it was the early name). Versions follow semver: until 1.0, a minor release may change the API
@@ -565,6 +566,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | --- | --- |
 | `spell(id, { A, B, C, frame })` | render a sprite. `A/B/C` take a material name, any hex color, or 4 colors |
 | `spell.frames(id, opts)` | every frame of an animation, in play order |
+| frames (from `frames`, `walk`, `action`, `status`, `fx`) | arrays of images with `.fps` and `.loop`, plus `.save(path)` (animated PNG), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
 | `spell.list({ category, tag, variants })` | ids of all looks |
 | `spell.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | animation frames · a reproducible random character |

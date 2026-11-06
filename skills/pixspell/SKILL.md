@@ -31,7 +31,8 @@ Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): e
    `drawImage(walkFrame, x - 12, y - 23)` or `drawImage(actionFrame, x - 16, y - 31)`.
 4. Action frames face **right**. For a character facing left, mirror them (`frames.map(f => f.flipX())` or `ctx.scale(-1, 1)`).
    Walk cycles already exist for `left`.
-5. Every animation is an array of Pixmaps with a `.fps` property. Frame at time t: `frames[Math.floor(t * frames.fps) % frames.length]`.
+5. Every animation is an array of Pixmaps with `.fps` (and `.loop`). Frame at time t: `frames[Math.floor(t * frames.fps) % frames.length]`.
+   It also has `.save(path)` (an animated PNG, Node), `.toDataURL()` (an `<img>` that plays), `.toSheet()` and `.scale(n)`.
 6. **Match the game's tile size with `grid`** (8, 16, 32 or 64; the art is drawn on 16). Every call takes it:
    `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 32 })`, `spell.walk(spec, 'left', { grid: 32 })`,
    `spell.action(spec, 'attack', { element: 'fire', grid: 32 })`, `spell.fx('boom', { grid: 32 })`, `spell.pack(spec, { grid: 32 })`.

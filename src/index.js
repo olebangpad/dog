@@ -24,6 +24,7 @@ import { SONGS, renderSong } from './music.js'
 import { createAutotile } from './autotile.js'
 import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './palette.js'
 import { decodePNG, spriteFromImage } from './import.js'
+import { framed } from './frames.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -83,13 +84,16 @@ export function spell(id, opts = {}) {
 }
 
 /** All frames of an animated sprite. */
-spell.frames = (id, opts = {}) => {
+spell.frames = framed((id, opts = {}) => {
   const look = lookup(id)
   const { grid, smooth, ...rest } = opts
   const k = gridFactor(grid)
   if (k !== 1 && recipeById[look.def.id]) return effectAtGrid(look, k, rest)
-  return regridAll(renderFrames(look.def, { ...look.ramps, ...rest }), k, smooth)
-}
+  const frames = renderFrames(look.def, { ...look.ramps, ...rest })
+  const recipe = recipeById[look.def.id] // sprites loop; effects say whether they do
+  Object.assign(frames, { fps: look.def.fps, loop: recipe ? Boolean(recipe.loop) : true })
+  return regridAll(frames, k, smooth)
+})
 
 // ---------------------------------------------------------------- grids
 /** Tile sizes PixSpell can deliver: the art is drawn on a 16 px grid and converted from there. */
@@ -199,13 +203,13 @@ const gridded = (fn, many) => Object.assign((...a) => {
 }, fn)
 
 /** Convert any PixSpell image or frame list to another tile grid: spell.toGrid(spell('sword'), 32). */
-spell.toGrid = (img, grid, { smooth } = {}) => (Array.isArray(img) ? regridAll(img, gridFactor(grid), smooth) : regrid(img, gridFactor(grid), smooth))
+spell.toGrid = framed((img, grid, { smooth } = {}) => (Array.isArray(img) ? regridAll(img, gridFactor(grid), smooth) : regrid(img, gridFactor(grid), smooth)))
 spell.grids = GRIDS
 
 const characters = createCharacters(looks)
 spell.char = Object.assign(gridded(characters, false), characters, {
-  frames: gridded(characters.frames, true),
-  walk: gridded(characters.walk, true),
+  frames: framed(gridded(characters.frames, true)),
+  walk: framed(gridded(characters.walk, true)),
 })
 
 /**
@@ -215,7 +219,7 @@ spell.char = Object.assign(gridded(characters, false), characters, {
  */
 const rawAction = gridded(createActions(spell, looks), true)
 // actions flash, tint and fade after rendering, so with a palette on they are snapped to it once more
-spell.action = Object.assign((...a) => applyActive(rawAction(...a)), rawAction)
+spell.action = framed(Object.assign((...a) => applyActive(rawAction(...a)), rawAction))
 
 /**
  * Walk cycles: spell.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
@@ -239,7 +243,7 @@ const recipeById = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
 // rendered effects are cached: attacks and games ask for the same few over and over
 const fxMemo = new Map()
 const FX_MEMO_MAX = 300
-spell.fx = (name, opts = {}) => {
+spell.fx = framed((name, opts = {}) => {
   if (opts.grid != null) { // effects are code: a grid just means drawing them at another size
     const { grid, smooth, ...rest } = opts
     opts = { ...rest, size: (rest.size ?? 32) * gridFactor(grid) }
@@ -252,7 +256,7 @@ spell.fx = (name, opts = {}) => {
     fxMemo.set(key, hit)
   }
   return Object.assign([...hit], { fps: hit.fps, loop: hit.loop }) // a fresh array; the images are immutable
-}
+})
 function renderFx(name, { size, seed, frames: count, element, A, B, C, light } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`pixspell: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
@@ -275,7 +279,7 @@ spell.fxPack = createFxPack(spell, looks)
  *   spell.status({ body: 'hero', hat: 'crown' }, 'burning')
  *   spell.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
  */
-spell.status = (...a) => applyActive(statusFrames(...a))
+spell.status = framed((...a) => applyActive(statusFrames(...a)))
 function statusFrames(spec, name, { walk, element, size = 32, grid, smooth } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`pixspell: no effect called "${name}"`)
@@ -306,7 +310,7 @@ function statusFrames(spec, name, { walk, element, size = 32, grid, smooth } = {
  *   ], { size: 32, fps: 12 })
  * Each step: fx, element, seed, x/y offset, repeat (for loops), at (frame offset), with.
  */
-spell.fx.sequence = (steps, { size = 32, fps } = {}) => {
+spell.fx.sequence = framed((steps, { size = 32, fps } = {}) => {
   let prevStart = 0, prevEnd = 0
   const placed = steps.map((st) => {
     const one = spell.fx(st.fx, { size: st.size ?? size, element: st.element, seed: st.seed })
@@ -330,7 +334,7 @@ spell.fx.sequence = (steps, { size = 32, fps } = {}) => {
   })
   out.fps = fps ?? placed[0]?.fps ?? 12
   return out
-}
+})
 spell.fx.colors = FX_COLORS
 
 // ------------------------------------------------------------------ sound
@@ -397,7 +401,7 @@ spell.palette = (...a) => {
   return setPalette(a[0])
 }
 spell.palettes = Object.fromEntries(Object.entries(PALETTES).map(([k, v]) => [k, { colors: [...v.colors], note: v.note }]))
-spell.toPalette = toPalette
+spell.toPalette = framed(toPalette)
 
 // ------------------------------------------------------------------ terrain
 /**

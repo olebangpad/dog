@@ -125,7 +125,8 @@ export function createCharacters(looks) {
   /** Every frame of the character's animation (body and gear animate together). */
   char.frames = (body, opts = {}) => {
     const spec = normalize(body, opts)
-    return Array.from({ length: length(spec) }, (_, i) => build(spec, i))
+    const frames = Array.from({ length: length(spec) }, (_, i) => build(spec, i))
+    return Object.assign(frames, { fps: looks[spec.body].def.fps, loop: true })
   }
 
   /**
@@ -153,6 +154,7 @@ export function createCharacters(looks) {
     }
     if (dir === 'left' || dir.endsWith('-left')) frames = frames.map((f) => f.flipX())
     frames.fps = pose ? pose.def.fps : 6
+    frames.loop = true
     return frames
   }
   char.walk.dirs = WALK_DIRS

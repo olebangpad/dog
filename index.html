@@ -164,6 +164,18 @@
           <pre class="code" id="code"></pre>
         </details>
 
+        <details class="panel" id="import-panel" open>
+          <summary>Import <small>your own PNG</small></summary>
+          <p class="hint">Drew something in Aseprite or Piskel? Bring it in (or drop it on the preview): it becomes a sprite you can recolor, resize and export like the others. Up to 64×64 per frame; a strip of frames becomes an animation.</p>
+          <div class="row wrap">
+            <button class="btn primary" id="import-btn">Import PNG…</button>
+            <label class="hint">Frames across <select id="import-frames" aria-label="Frames across">
+              <option value="auto">auto</option><option>1</option><option>2</option><option>3</option><option>4</option><option>6</option><option>8</option>
+            </select></label>
+            <input type="file" id="import-file" accept="image/png,image/gif,image/webp" hidden>
+          </div>
+        </details>
+
         <details class="panel" id="edit-panel">
           <summary>Edit pixels <small>text art</small></summary>
           <p class="hint">Every sprite is plain text. Change a character and the preview updates. When you like it, copy the definition and open a pull request.</p>

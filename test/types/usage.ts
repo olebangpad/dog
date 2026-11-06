@@ -40,6 +40,11 @@ const imported = spell.fromImage(spell('slime'), { id: 'my-slime', ramps: 2 })
 const mySlime = spell.define({ ...imported.def, id: 'my-slime-2' })
 const fromPng: Pixmap = spell.readPNG(spell('coin').toPNG(), (b) => b)
 console.log(imported.code.length, imported.warnings, mySlime.w, fromPng.w)
+const savedWalk: Promise<string> = spell.walk(knight, 'left').scale(4).save('walk.png')
+const playing: string = spell.fx('meteor').toDataURL()
+const attackSheet: Pixmap = spell.action(knight, 'attack').toSheet({ columns: 4 }).image
+const idleFps: number = spell.char.frames(knight).fps
+console.log(savedWalk, playing, attackSheet, idleFps, spell.frames('coin').toAPNG().length)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

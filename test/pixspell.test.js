@@ -1139,3 +1139,36 @@ test('CLI imports a PNG as sprite source', async () => {
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('animations save, play and sheet like images: frame lists carry fps, loop and helpers', async () => {
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword' }
+  const all = { walk: spell.walk(knight, 'left'), action: spell.action(knight, 'attack', 'fire'), fx: spell.fx('meteor'), frames: spell.frames('coin'),
+    status: spell.status('slime', 'burning'), idle: spell.char.frames(knight), sequence: spell.fx.sequence([{ fx: 'boom' }]), grid: spell.toGrid(spell.frames('coin'), 32) }
+  for (const [name, f] of Object.entries(all)) {
+    assert.ok(f.fps > 0, `${name} has an fps`)
+    for (const m of ['save', 'toAPNG', 'toDataURL', 'toSheet', 'scale']) assert.equal(typeof f[m], 'function', `${name}.${m}`)
+    assert.deepEqual(Object.keys(f).filter((k) => isNaN(k)).sort(), Object.keys(f).filter((k) => ['fps', 'loop'].includes(k)).sort(), 'helpers are not enumerable')
+  }
+  assert.equal(all.frames.fps, sprites.coin.fps)
+  assert.equal(all.frames.loop, true)
+  assert.equal(spell.frames('fx-meteor').loop, false)
+  assert.equal(spell.frames('fx-rain').loop, true)
+  const big = all.walk.scale(3)
+  assert.equal(big[0].w, all.walk[0].w * 3)
+  assert.equal(big.fps, all.walk.fps)
+  assert.equal(typeof big.save, 'function')
+  assert.equal(all.action.toSheet({ columns: 4 }).frames.length, 8)
+  assert.match(all.fx.toDataURL(), /^data:image\/png;base64,/)
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-frames-'))
+  try {
+    await all.walk.save(join(dir, 'walk.png'))
+    const png = readFileSync(join(dir, 'walk.png'))
+    assert.ok(png.includes(Buffer.from('acTL')), 'an animated PNG')
+    assert.deepEqual(spell.readPNG(png, inflateSync).data, all.walk[0].data, 'its first frame')
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
