@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -354,6 +354,24 @@ spell.pack(knight, { diagonals: true })                                // 8방�
 
 <img src="docs/img/gallery.png" alt="PixSpell의 모든 기본 스프라이트" width="100%">
 
+### 🗺️ 자연스럽게 이어지는 지형
+
+<img src="docs/img/terrain.png" alt="높이 지도로 만든 섬: 바다, 모래, 풀, 흙길이 자연스럽게 이어지고 기사가 걷는 모습" width="832">
+
+네모난 타일로는 해안선도 네모납니다. `spell.autotile(안쪽, 바깥쪽)`은 두 지형 사이의 모서리 타일 16장을 만들고
+(바깥쪽엔 외곽선, 안쪽엔 밝은 테두리), 칸 배열 하나로 지도 전체를 그려 줍니다. 바깥 지형을 비우면 투명한 오버레이가 되어
+층을 쌓을 수 있습니다. 위 섬은 바다 위에 모래, 풀, 흙길을 차례로 얹은 것입니다.
+
+```js
+const shore = spell.autotile('water', 'grass')        // 16장; 번호 = 물인 모서리: 북서 1 + 북동 2 + 남서 4 + 남동 8
+const map = shore.draw(cells)                         // cells: 2차원 배열, true = 물. 듀얼 그리드라 어떤 모양이든 됨
+spell.autotile('dirt', null).draw(path)               // 아래층 위에 얹는 오버레이
+shore.pack().zip()                                    // 시트 + Tiled .tsx(코너 왕 세트) + Godot 4 TileSet .tres + JSON
+```
+
+자주 쓰는 조합은 [`assets/terrain/`](assets/terrain)과 다운로드 zip에 들어 있습니다(물·풀, 해변, 모래·풀, 길, 자갈길, 용암·돌, 눈, 늪, 진흙).
+이어 붙일 수 있는 타일이면 어떤 두 개든, 어떤 타일 크기든 됩니다. `npx pixspell autotile water grass`로도 만들 수 있습니다.
+
 ### 🪟 UI 키트
 
 <img src="docs/img/ui.png" alt="PixSpell로 만든 게임 UI: 하트, 체력·마나·경험치 바, 버튼이 있는 대화 창, 아이템 칸 인벤토리, 아이콘 버튼" width="720">
@@ -485,6 +503,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.pack(spec)` · `spell.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
 | `spell.sfx(name, { element, pitch, seed })` | 효과음: `.play()`, `.toWAV()`, `.save(path)`. 목록은 `spell.sfx.list`, 이펙트 소리는 `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | 효과음 WAV 묶음 zip |
+| `spell.autotile(inner, outer, { grid })` | 지형 전환: `.tiles`(16장), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()`(Tiled .tsx + Godot .tres). `outer`가 null이면 오버레이 |
 | `spell.music(name, { key, tempo, seed })` | 칩튠 음악: 끊김 없이 반복되는 루프나 짧은 징글(Sound). 목록은 `spell.music.list`, 정보는 `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | 위 모든 호출에 붙는 옵션: 그 타일 크기용 그림 (`smooth: false`면 단순 확대) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | 아무 PixSpell 이미지나 변환 · 한 타일 크기의 전체 파일 목록 |

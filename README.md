@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -367,6 +367,25 @@ add 525 more animated looks; all of them are exported in `assets/` too.
 
 <img src="docs/img/gallery.png" alt="Every base sprite in PixSpell" width="100%">
 
+### 🗺️ Terrain that blends
+
+<img src="docs/img/terrain.png" alt="An island made from a height map: sea, sand, grass and a dirt path blending into each other, with a knight walking" width="832">
+
+Square tiles make square coastlines. `spell.autotile(inner, outer)` makes the 16 corner tiles between two terrains,
+with an outline on the outer side and a light rim on the inner side, and paints a whole map from a grid of cells. Leave
+the outer terrain out and you get an overlay, so layers stack: the island above is sea, then sand, then grass, then a path.
+
+```js
+const shore = spell.autotile('water', 'grass')        // 16 tiles; index = corners that are water: NW 1 + NE 2 + SW 4 + SE 8
+const map = shore.draw(cells)                         // cells: a 2D array, true = water; a dual grid, so any shape works
+spell.autotile('dirt', null).draw(path)               // an overlay to stack on what's below
+shore.pack().zip()                                    // sheet + Tiled .tsx (corner Wang set) + Godot 4 TileSet .tres + JSON
+```
+
+Ready-made pairs are in [`assets/terrain/`](assets/terrain) and the download zips (water and grass, beach, sand and grass,
+paths, cobblestone, lava and stone, snow, swamp, mud). Any two seamless tiles work, at any tile size;
+`npx pixspell autotile water grass` writes one.
+
 ### 🪟 A UI kit
 
 <img src="docs/img/ui.png" alt="A game screen's UI made from PixSpell: hearts, health, mana and XP bars, a dialog panel with buttons, an inventory of item slots and icon buttons" width="720">
@@ -525,6 +544,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
 | `spell.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `spell.sfx.list`, `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | sounds as WAV files in one zip |
+| `spell.autotile(inner, outer, { grid })` | terrain transitions: `.tiles` (16), `.sheet`, `.draw(cells)`, `.layout(cells)`, `.pack()` (Tiled .tsx + Godot .tres); `outer` null = overlay |
 | `spell.music(name, { key, tempo, seed })` | chiptune music: a seamless loop or a jingle, as a Sound. Tracks: `spell.music.list`, `spell.music.info(name)` |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |
 | `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | convert any PixSpell image · every file for one tile size, for your own exporter |

@@ -1,0 +1,154 @@
+{
+  "image": "grass-snow-grass.png",
+  "tileSize": 16,
+  "columns": 4,
+  "inner": "grass-snow",
+  "outer": "grass",
+  "corners": "mask bits: NW 1, NE 2, SW 4, SE 8 (1 = inner terrain at that corner); tile index = mask",
+  "tiles": [
+    {
+      "index": 0,
+      "x": 0,
+      "y": 0,
+      "nw": 0,
+      "ne": 0,
+      "sw": 0,
+      "se": 0
+    },
+    {
+      "index": 1,
+      "x": 16,
+      "y": 0,
+      "nw": 1,
+      "ne": 0,
+      "sw": 0,
+      "se": 0
+    },
+    {
+      "index": 2,
+      "x": 32,
+      "y": 0,
+      "nw": 0,
+      "ne": 1,
+      "sw": 0,
+      "se": 0
+    },
+    {
+      "index": 3,
+      "x": 48,
+      "y": 0,
+      "nw": 1,
+      "ne": 1,
+      "sw": 0,
+      "se": 0
+    },
+    {
+      "index": 4,
+      "x": 0,
+      "y": 16,
+      "nw": 0,
+      "ne": 0,
+      "sw": 1,
+      "se": 0
+    },
+    {
+      "index": 5,
+      "x": 16,
+      "y": 16,
+      "nw": 1,
+      "ne": 0,
+      "sw": 1,
+      "se": 0
+    },
+    {
+      "index": 6,
+      "x": 32,
+      "y": 16,
+      "nw": 0,
+      "ne": 1,
+      "sw": 1,
+      "se": 0
+    },
+    {
+      "index": 7,
+      "x": 48,
+      "y": 16,
+      "nw": 1,
+      "ne": 1,
+      "sw": 1,
+      "se": 0
+    },
+    {
+      "index": 8,
+      "x": 0,
+      "y": 32,
+      "nw": 0,
+      "ne": 0,
+      "sw": 0,
+      "se": 1
+    },
+    {
+      "index": 9,
+      "x": 16,
+      "y": 32,
+      "nw": 1,
+      "ne": 0,
+      "sw": 0,
+      "se": 1
+    },
+    {
+      "index": 10,
+      "x": 32,
+      "y": 32,
+      "nw": 0,
+      "ne": 1,
+      "sw": 0,
+      "se": 1
+    },
+    {
+      "index": 11,
+      "x": 48,
+      "y": 32,
+      "nw": 1,
+      "ne": 1,
+      "sw": 0,
+      "se": 1
+    },
+    {
+      "index": 12,
+      "x": 0,
+      "y": 48,
+      "nw": 0,
+      "ne": 0,
+      "sw": 1,
+      "se": 1
+    },
+    {
+      "index": 13,
+      "x": 16,
+      "y": 48,
+      "nw": 1,
+      "ne": 0,
+      "sw": 1,
+      "se": 1
+    },
+    {
+      "index": 14,
+      "x": 32,
+      "y": 48,
+      "nw": 0,
+      "ne": 1,
+      "sw": 1,
+      "se": 1
+    },
+    {
+      "index": 15,
+      "x": 48,
+      "y": 48,
+      "nw": 1,
+      "ne": 1,
+      "sw": 1,
+      "se": 1
+    }
+  ]
+}

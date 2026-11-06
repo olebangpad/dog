@@ -27,6 +27,7 @@ const write = async (path, bytes) => {
   await writeFile(path, bytes)
 }
 const png = (img) => img.toPNG({ deflate })
+
 const apng = (frames, fps) => encodeAPNG(frames, { fps, deflate })
 
 // --------------------------------------------------------------- assets
@@ -462,6 +463,32 @@ function uiShowcase() {
   return img.scale(3)
 }
 
+// An island from a height map: water, then sand, grass and rock blended with spell.autotile, a dirt path, props
+function terrainShowcase() {
+  const W = 26, H = 13, T = 16
+  const hgt = (x, y) => 1 - Math.hypot((x - 12.5) / 11, (y - 6.2) / 6) + 0.16 * Math.sin(x * 0.85) * Math.cos(y * 1.2) + 0.08 * Math.sin(x * 2.1 + y)
+  const cells = (t) => Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => hgt(x, y) > t))
+  const path = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => hgt(x, y) > 0.38 && Math.abs(y - 6 - Math.sin(x * 0.5) * 1.5) < 0.9 && x > 5 && x < 21))
+  let land = new Pixmap(W * T, H * T)
+  for (const [id, t] of [['dirt-sand', 0.12], ['grass', 0.3]]) land = land.draw(spell.autotile(id, null).draw(cells(t)), 0, 0)
+  land = land.draw(spell.autotile('dirt', null).draw(path), 0, 0)
+  const pond = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => Math.hypot((x - 17.5) / 2.2, (y - 9.5) / 1.4) < 1))
+  land = land.draw(spell.autotile('water', null).draw(pond), 0, 0)
+  const props = [['pine-tree', 7, 3], ['tree', 9, 2], ['pine-tree', 16, 3], ['tree-autumn', 21, 8], ['rock', 5, 7], ['flower', 10, 9],
+    ['flower-blue', 15, 9], ['tent', 13, 3], ['campfire', 14, 4], ['bush', 20, 5], ['giant-mushroom', 8, 8], ['rock-mossy', 4, 9]]
+  const frameOf = (id, t) => { const f = spell.frames(id); return f[t % f.length] }
+  const water = spell.frames('water')
+  const hero = spell.walk({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, 'right')
+  return Array.from({ length: 8 }, (_, t) => {
+    let img = new Pixmap(W * T, H * T)
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) img = img._blit(water[(t >> 1) % water.length], x * T, y * T)
+    img = img.draw(land, 0, 0)
+    for (const [id, x, y] of props) img = img.draw(frameOf(id, t), x * T, y * T)
+    img = img.draw(hero[t % hero.length], (6 + t * 0.5) * T - 4, 5 * T)
+    return img.scale(2)
+  })
+}
+
 // A village and a dungeon room built only from tiles and props, animated (lava, torches, cauldron, fountain, banners)
 function worldShowcase() {
   const T = 16, W = 14, H = 9
@@ -515,6 +542,12 @@ async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   { const { frames, fps } = heroExample(); await write(join(dir, 'hero.png'), apng(frames, fps)) }
   await write(join(dir, 'world.png'), apng(worldShowcase(), 6))
+  await write(join(dir, 'terrain.png'), apng(terrainShowcase(), 6))
+  // ready-made terrain transitions (also in the download zips)
+  for (const [inner, outer] of spell.autotile.presets) {
+    const pack = spell.autotile(inner, outer).pack({ deflate })
+    for (const [n, bytes] of Object.entries(pack.files)) if (!n.startsWith('README')) await write(join(root, 'assets', 'terrain', n), bytes)
+  }
   await write(join(dir, 'monsters.png'), apng(monstersShowcase(), 6))
   await write(join(dir, 'ui.png'), png(uiShowcase()))
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))

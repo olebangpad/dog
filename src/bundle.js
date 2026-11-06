@@ -9,7 +9,7 @@
 import { sheet } from './pixmap.js'
 
 export function createBundle(spell, looks, recipeIds) {
-  return function bundle({ grid = 16, sprites = true, effects = true, effectColors = false, characters = true, sounds = true } = {}) {
+  return function bundle({ grid = 16, sprites = true, effects = true, effectColors = false, characters = true, terrain = true, sounds = true } = {}) {
     const items = []
     const strip = (frames) => sheet(frames).image
     if (sprites) {
@@ -37,6 +37,11 @@ export function createBundle(spell, looks, recipeIds) {
         items.push({ path: `effects/${look.id}.png`, make: () => strip(spell.frames(look.id, { grid })) })
       }
     }
+    if (terrain) for (const [inner, outer] of spell.autotile.presets) {
+      const pack = () => spell.autotile(inner, outer, { grid }).pack()
+      items.push({ path: `terrain/${inner}-${outer}.png`, make: () => spell.autotile(inner, outer, { grid }).sheet })
+      for (const ext of ['tsx', 'tres']) items.push({ path: `terrain/${inner}-${outer}.${ext}`, make: () => pack().files[`${inner}-${outer}.${ext}`] })
+    }
     if (sounds) for (const id of spell.sfx.list) items.push({ path: `sounds/${id}.wav`, make: () => spell.sfx(id).toWAV() })
     const k = grid / 16
     items.push({
@@ -54,6 +59,7 @@ sprites/          ${16 * k}x${16 * k} items, tiles, monsters, icons (still frame
 sprites/gear/     hats and held items on their own
 characters/       every body (${24 * k}x${24 * k}); walk/ = 8-direction walk strips
 effects/          ${32 * k}x${32 * k} effect strips, frames left to right${effectColors ? ' (every color)' : ' (original colors; more colors on the effects page)'}
+terrain/          terrain transitions: 16 corner tiles (index = NW 1 + NE 2 + SW 4 + SE 8), Tiled .tsx, Godot .tres
 sounds/           sound effects, 16-bit mono WAV (the same at every grid)
 
 Make anything else at this size in code: spell('sword', { grid: ${grid} }), spell.char(spec, { grid: ${grid} }),

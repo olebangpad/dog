@@ -59,6 +59,8 @@ export async function computeSnapshots() {
   for (const el of spell.sfx.elements) out[`sfx:slash-${el}`] = fnv([pcm(spell.sfx('slash', { element: el }))])
   out['sfx:hit-seed3-pitch1.3'] = fnv([pcm(spell.sfx('hit', { seed: 3, pitch: 1.3 }))])
   for (const id of spell.music.list) out[`music:${id}`] = fnv([pcm(spell.music(id))])
+  for (const [inner, outer] of spell.autotile.presets) out[`autotile:${inner}-${outer}`] = fnv([spell.autotile(inner, outer).sheet])
+  out['autotile:dirt-sand-overlay-32'] = fnv([spell.autotile('dirt-sand', null, { grid: 32 }).sheet])
   out['music:town-seed1-key2'] = fnv([pcm(spell.music('town', { seed: 1, key: 2 }))])
   return out
 }

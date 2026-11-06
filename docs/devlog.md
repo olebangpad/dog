@@ -1060,3 +1060,29 @@ characters had little world to stand in. The plan is world building, then monste
   `assets/walk/`, the character maker (↘ ↙ ↗ ↖ buttons), the MCP `walk` enum and the walk showcase now cover all 8.
 - **Checks:** a test covers left mirroring right, a diagonal differing from the front view, the side-pose and hop
   fallbacks, grids and pack tags. 72 new snapshots, none changed. Types are updated.
+
+## Round 13: what real games need
+
+### (a) Shipped: terrain that blends (autotiles)
+
+- **`spell.autotile(inner, outer)`** (`src/autotile.js`) makes 16 corner tiles:
+  - The tile index is a bitmask of which corners are the inner terrain: NW 1, NE 2, SW 4, SE 8.
+  - Inside a tile, the four corners blend bilinearly, plus a small wobble that repeats every tile. Along a shared edge
+    the blend depends only on the two shared corners, so neighbouring tiles meet. A test checks that fewer than 5% of
+    the edge rows of any matching pair disagree.
+  - The outer side gets a dark line and the inner side a light rim.
+- **Using them:**
+  - `outer: null` makes an overlay, so layers stack.
+  - `draw(cells)` paints a whole map on a dual grid, with tiles on the corners between cells. `layout(cells)` gives
+    the indices for your own tilemap.
+  - `pack()` writes the sheet, a Tiled corner Wang set (`.tsx`), a Godot 4 TileSet (`.tres`, Match Corners), JSON and a
+    README.
+- **Where they show up:** 10 ready-made pairs go to `assets/terrain/` and the download zips (`terrain/`). There is
+  `pixspell autotile <inner> [outer]`, an MCP `autotile` tool that returns the sheet image, and 11 snapshot hashes.
+- **Showcase:** `docs/img/terrain.png` is an island from a height map: sea, sand, grass, a dirt path and a bay, with
+  animated water.
+- **Fixes along the way:**
+  - The stone-floor "mountain" read as green bricks, so I dropped it.
+  - A pond drawn with a water–grass pair painted grass over the whole map. A pond on a map needs an overlay.
+- **Not checked:** the Tiled XML parses, and its corner order matches Tiled's documented `wangid` order. But I haven't
+  opened either file in Tiled or Godot.

@@ -2043,5 +2043,16 @@
  "music:victory": "c325a6a4",
  "music:level-clear": "3aa03430",
  "music:game-over": "ea059547",
+ "autotile:water-grass": "94c3db93",
+ "autotile:water-dirt-sand": "419307d0",
+ "autotile:dirt-sand-grass": "6fa98296",
+ "autotile:dirt-grass": "c135e693",
+ "autotile:cobblestone-grass": "1b6f0232",
+ "autotile:lava-stone": "c7c086e3",
+ "autotile:water-stone": "d484f4da",
+ "autotile:grass-snow-grass": "e2723a16",
+ "autotile:water-swamp-grass": "17bbd737",
+ "autotile:grass-dirt-mud": "15562030",
+ "autotile:dirt-sand-overlay-32": "5f43121a",
  "music:town-seed1-key2": "9646662e"
 }

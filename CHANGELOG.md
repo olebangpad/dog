@@ -16,6 +16,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **Terrain transitions:** `spell.autotile(inner, outer)` makes 16 corner tiles that blend two terrains, draws whole
+  maps from a grid of cells (dual grid), stacks as overlays, and packs a Tiled corner Wang set and a Godot 4 TileSet.
+  10 ready-made pairs in `assets/terrain/` and the downloads; `pixspell autotile`; an MCP tool.
 - **UI kit:** `panel`, `slot`, `button`, `button-pressed`, a 32×8 `bar` (health, mana, XP, stamina, shield, empty) and
   icons (settings, sound, mute, pause, play, home, menu, plus, minus, arrow). New `Pixmap.nineSlice(w, h, edge)`
   stretches framed images to any size with their corners intact.

@@ -21,6 +21,7 @@ import { createBundle } from './bundle.js'
 import { renderSound, Sound, note, SAMPLE_RATE } from './sfx.js'
 import { SOUNDS, FLAVORS, EFFECT_SOUNDS } from './sfx/sounds.js'
 import { SONGS, renderSong } from './music.js'
+import { createAutotile } from './autotile.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -353,6 +354,15 @@ spell.sfx.forEffect = (fx) => {
   const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
   return base ? EFFECT_SOUNDS[base] : null
 }
+
+// ------------------------------------------------------------------ terrain
+/**
+ * Terrain transitions: 16 corner tiles blending one seamless tile into another (or into nothing, for overlays).
+ *   spell.autotile('water', 'grass').draw(cells)        a map from cells (true = water), shores included
+ *   spell.autotile('dirt-sand', null)                   an overlay layer to stack on another terrain
+ *   spell.autotile('water', 'grass').pack().zip()       sheet + Tiled .tsx + Godot 4 .tres + JSON
+ */
+spell.autotile = createAutotile(spell)
 
 // ------------------------------------------------------------------ music
 const songById = Object.fromEntries(SONGS.map((s) => [s.id, s]))

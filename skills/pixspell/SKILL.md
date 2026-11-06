@@ -163,6 +163,18 @@ Maps: seamless ground tiles (`grass` `dirt` `stone` `brick` `planks` `water` `co
 `stump` `giant-mushroom` `crystals` `lily-pad` `hay-bale` `pumpkin` `flower` `sign` `campfire`. Most have material
 variants (`door-iron`, `checker-floor-dungeon`, `lava-toxic`); every id and variant is in catalog.md.
 
+Terrain transitions: `spell.autotile(inner, outer)` makes the 16 corner tiles between two seamless tiles and draws whole
+maps, so coasts, paths and lava edges aren't square. Stack layers with overlays (`outer` null): sea, then sand, then grass.
+
+```js
+const lake = [[false, true, true], [true, true, false]]   // cells: true = water
+const shore = spell.autotile('water', 'grass')
+const ground = shore.draw(lake)                            // 48x32: draw it once, then drawImage it as the map
+const sand = spell.autotile('dirt-sand', null).draw(lake)  // an overlay layer
+const idx = shore.layout(lake)                             // (h+1) x (w+1) tile indices for your own tilemap (dual grid, offset half a tile)
+console.log(ground.w, sand.h, idx[1][1], Object.keys(shore.pack().files))   // .png, .tsx (Tiled), .tres (Godot), .json
+```
+
 UI kit: `panel` `slot` `button` `button-pressed` stretch to any size with `.nineSlice(w, h)`; `bar` is a 32x8 health bar
 (`bar-mana`, `bar-xp`, `bar-empty`...: draw `bar-empty`, then a cropped `bar` for the fill); icons `gear` `sound` `mute`
 `pause` `play` `home` `menu` `plus` `minus` `arrow` (`.flipX()` for left), plus `heart` `star` `check` `cross` `lock` `cursor`.

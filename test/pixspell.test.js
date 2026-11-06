@@ -902,7 +902,7 @@ test('MCP server: handshake, tools, images, files kept inside the project', asyn
     assert.equal((await rpc('initialize', { protocolVersion: '1999-01-01' })).result.protocolVersion, '2025-11-25', 'unknown version: ours')
     server.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n')
     const { tools } = (await rpc('tools/list', {})).result
-    assert.deepEqual(tools.map((t) => t.name), ['preview', 'save', 'pack', 'catalog'])
+    assert.deepEqual(tools.map((t) => t.name), ['preview', 'save', 'pack', 'autotile', 'catalog'])
     for (const t of tools) assert.equal(t.inputSchema.type, 'object')
 
     const look = await tool('preview', { items: [{ fx: 'meteor', element: 'ice' }, { sfx: 'coin' }] })
@@ -1005,4 +1005,39 @@ test('walks: 8 directions; diagonals turn humanoids, mirror for the left, and fa
   const json = JSON.parse(typeof raw === 'string' ? raw : new TextDecoder().decode(raw))
   for (const d of spell.walk.diagonals) assert.ok(json.meta.frameTags.some((t) => t.name === `walk-${d}`), d)
   assert.throws(() => spell.walk(knight, 'sideways'), /walk direction/)
+})
+
+test('autotile: 16 corner tiles that meet, a dual-grid map, overlays and engine files', () => {
+  const shore = spell.autotile('water', 'grass')
+  assert.equal(shore.tiles.length, 16)
+  assert.deepEqual(shore.tiles[0].data, spell('grass').data, 'no inner corner: the outer tile')
+  assert.deepEqual(shore.tiles[15].data, spell('water').data, 'every corner inner: the inner tile')
+  assert.equal(shore.tile(1, 0, 0, 1), shore.tiles[9])
+  // neighbours that share corners meet: along the shared edge, the side of the line matches on both tiles
+  const isWater = (img, x, y) => { const [r, g, b] = img.get(x, y); return b > g }
+  let mismatch = 0, total = 0
+  for (const L of shore.tiles.keys()) for (const R of shore.tiles.keys()) {
+    if (((L >> 1) & 1) !== (R & 1) || ((L >> 3) & 1) !== ((R >> 2) & 1)) continue
+    for (let y = 0; y < 16; y++) { total++; if (isWater(shore.tiles[L], 15, y) !== isWater(shore.tiles[R], 0, y)) mismatch++ }
+  }
+  assert.ok(mismatch / total < 0.05, `${mismatch} of ${total} edge rows disagree`)
+  // a map: (h + 1) x (w + 1) dual-grid masks, drawn at the map's size
+  const cells = [[0, 1, 1], [1, 1, 0]]
+  const masks = shore.layout(cells)
+  assert.equal(masks.length, 3); assert.equal(masks[0].length, 4)
+  assert.equal(masks[1][1], 0 * 1 + 1 * 2 + 1 * 4 + 1 * 8)
+  const map = shore.draw(cells)
+  assert.equal(map.w, 48); assert.equal(map.h, 32)
+  // overlays are transparent away from the inner terrain, and grids scale
+  const sand = spell.autotile('dirt-sand', null)
+  assert.equal(sand.tiles[0].data.some((v, i) => i % 4 === 3 && v > 0), false)
+  assert.equal(spell.autotile('water', 'grass', { grid: 32 }).tiles[5].w, 32)
+  // engine files
+  const pack = shore.pack()
+  assert.ok(pack.files['water-grass.png'] instanceof Uint8Array)
+  assert.equal((pack.files['water-grass.tsx'].match(/<wangtile /g) ?? []).length, 16)
+  assert.match(pack.files['water-grass.tsx'], /wangtile tileid="1" wangid="0,1,0,1,0,1,0,2"/) // NW corner = water
+  assert.match(pack.files['water-grass.tres'], /terrain_set_0\/mode = 1/)
+  assert.match(pack.files['water-grass.tres'], /3:3\/0\/terrains_peering_bit\/bottom_right_corner = 1/)
+  assert.throws(() => spell.autotile('bar', 'grass'), /needs 16x16 tiles/) // the health bar is 32x8
 })

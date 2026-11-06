@@ -34,6 +34,9 @@ usage:
   pixspell fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
   pixspell sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
                                            a sound effect as a WAV file (pixspell sfx alone lists them)
+  pixspell autotile <inner> [outer] [--grid 32] [-o shore.zip | --dir out/]
+                                           terrain transition: 16 corner tiles + Tiled .tsx + Godot .tres
+                                           (no outer: an overlay to stack on another terrain)
   pixspell music [name] [--key 2] [--tempo 1.1] [--seed n] -o out.wav
                                            chiptune music: a seamless loop or a jingle (pixspell music alone lists them)
   pixspell sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
@@ -225,6 +228,17 @@ if (!cmd || o.help) {
     const sound = spell.sfx(name, { element: o.element, pitch: o.pitch, seed: o.seed, volume: o.volume })
     save(o.out ?? `${sound.id}.wav`, sound.toWAV())
     console.log(`${sound.duration.toFixed(2)}s${sound.loop ? ', seamless loop' : ''}`)
+  }
+} else if (cmd === 'autotile') {
+  if (!args[0]) { console.error('pixspell: which terrains? e.g. pixspell autotile water grass'); process.exitCode = 1 }
+  else {
+    const at = spell.autotile(args[0], args[1] ?? null, { grid: o.grid ?? 16, seed: o.seed })
+    const pack = at.pack({ deflate })
+    if (o.dir) {
+      mkdirSync(o.dir, { recursive: true })
+      for (const [n, bytes] of Object.entries(pack.files)) save(join(o.dir, n), bytes)
+    } else save(o.out ?? `${pack.id}.zip`, pack.zip())
+    console.log(`16 tiles of ${at.size}x${at.size}: ${args[0]} into ${args[1] ?? 'transparency'}`)
   }
 } else if (cmd === 'music') {
   if (!args[0]) {

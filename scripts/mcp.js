@@ -93,6 +93,23 @@ const TOOLS = [
     },
   },
   {
+    name: 'autotile',
+    title: 'Make terrain transition tiles',
+    description: 'Write 16 corner tiles that blend one seamless terrain into another (shores, paths, lava edges) as a zip: '
+      + 'a 4x4 sheet, a Tiled .tsx corner Wang set, a Godot 4 TileSet .tres and JSON. Returns the sheet image. '
+      + 'In code: spell.autotile(inner, outer).draw(cells) paints a whole map.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        inner: { type: 'string', description: 'Terrain inside, e.g. "water", "dirt", "lava", "dirt-sand"' },
+        outer: { type: 'string', description: 'Terrain around it, e.g. "grass", "stone". Leave out for an overlay on transparency' },
+        path: { type: 'string', description: 'e.g. "assets/shore.zip"' },
+        grid: ITEM.properties.grid,
+      },
+      required: ['inner', 'path'],
+    },
+  },
+  {
     name: 'catalog',
     title: 'Find asset names',
     description: 'List PixSpell names: sprites, bodies, hats, held, offhand, fx, sfx, music, actions, elements or materials, optionally filtered by a word.',
@@ -163,6 +180,14 @@ const handlers = {
     const bytes = pack.zip()
     writeFileSync(file, bytes)
     return [{ type: 'text', text: `wrote ${relative(process.cwd(), file)} (${bytes.length} bytes): ${Object.keys(pack.files).join(', ')}` }]
+  },
+  autotile({ inner, outer, path, grid }) {
+    const at = spell.autotile(inner, outer ?? null, { grid: grid ?? 16 })
+    const file = target(path)
+    const bytes = at.pack({ deflate }).zip()
+    writeFileSync(file, bytes)
+    return [{ type: 'image', data: b64(at.sheet.scale(Math.max(1, Math.floor(128 / at.sheet.w))).toPNG({ deflate })), mimeType: 'image/png' },
+      { type: 'text', text: `wrote ${relative(process.cwd(), file)} (${bytes.length} bytes): spell.autotile('${inner}', ${outer ? `'${outer}'` : 'null'}). Tile index = NW 1 + NE 2 + SW 4 + SE 8 (corners that are ${inner}).` }]
   },
   catalog({ kind, query }) {
     const list = LISTS[kind]

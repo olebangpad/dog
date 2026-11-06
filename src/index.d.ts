@@ -176,6 +176,23 @@ export interface SequenceStep {
   with?: boolean
 }
 
+export interface Autotile {
+  inner: string
+  outer: string | null
+  size: number
+  /** 16 tiles; index = which corners are the inner terrain: NW 1 + NE 2 + SW 4 + SE 8. */
+  tiles: Pixmap[]
+  /** The 16 tiles in a 4x4 sheet (index = row * 4 + column). */
+  sheet: Pixmap
+  tile(nw: 0 | 1, ne: 0 | 1, sw: 0 | 1, se: 0 | 1): Pixmap
+  /** Dual-grid tile indices for a map of cells (true = inner): (h + 1) x (w + 1). */
+  layout(cells: ArrayLike<ArrayLike<unknown>>): number[][]
+  /** The whole map as one image (w x h cells). */
+  draw(cells: ArrayLike<ArrayLike<unknown>>): Pixmap
+  /** Sheet PNG + Tiled .tsx (corner Wang set) + Godot 4 TileSet .tres + JSON + README. */
+  pack(opts?: { name?: string; deflate?: (b: Uint8Array) => Uint8Array }): { id: string; files: Record<string, Uint8Array | string>; zip(): Uint8Array }
+}
+
 export interface MusicOptions {
   /** 0 (default) is the track as written; other seeds write a different melody in the same style. */
   seed?: number
@@ -288,6 +305,8 @@ export interface PixSpell {
     /** The sound for an effect ('fx-meteor' -> 'meteor'), or null for silent ambience. */
     forEffect(effect: string): string | null
   }
+  /** Terrain transitions: spell.autotile('water', 'grass').draw(cells). outer null = an overlay on transparency. */
+  autotile(inner: string, outer: string | null, opts?: GridOptions & { edge?: 'line' | 'soft' | 'none'; seed?: number; frame?: number }): Autotile
   /** Chiptune music made by code: seamless loops (spell.music('town').play()) and jingles ('victory'). */
   music: {
     (name: string, opts?: MusicOptions): Sound
