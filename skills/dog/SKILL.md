@@ -1,22 +1,23 @@
 ---
-name: dog-pixel-art
+name: game-assets
 description: Build 2D pixel-art games and game assets with DOG (Dots Of Games), a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
 # DOG: pixel art as code
 
 DOG renders every sprite from text art, so anything can be recolored, combined, resized and exported in one call.
-Art is CC0 (no credit needed), code is MIT. Repo: https://github.com/olebangpad/dog. Every sprite id is in [catalog.md](catalog.md).
+Art is CC0 (no credit needed), code is MIT. Repo: https://github.com/olebangpad/dots-of-games. Every sprite id is in [catalog.md](catalog.md).
 
 ## Setup
 
 Browser, no install or build step (ES module):
 
 ```js
-import { dog, compose, sheet, text, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'
+import { dog, compose, sheet, text, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
 ```
 
-Node: `git clone https://github.com/olebangpad/dog`, then `import { dog } from './dog/src/index.js'` and save images with `await img.save('out.png')`.
+Node / bundlers: `npm i dots-of-games`, then `import { dog } from 'dots-of-games'` (ES modules only, TypeScript types included).
+Save images with `await img.save('out.png')`. The CLI comes along: `npx dog render sword --grid 32 -o sword.png`.
 
 Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): export a **game pack**, see below.
 
@@ -138,7 +139,7 @@ Materials: `red orange gold lime green mint ice blue purple pink wood leather sk
 ```html
 <canvas id="game" width="256" height="176" style="width:768px;image-rendering:pixelated"></canvas>
 <script type="module">
-import { dog, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'
+import { dog, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
 
 const ctx = document.getElementById('game').getContext('2d')
 ctx.imageSmoothingEnabled = false
@@ -229,7 +230,7 @@ Every sprite and variant is pre-exported in the repo: `assets/png/<id>.png` (16Ã
 Text art legend: `.` clear, `#` outline, `w` white, `1-4` ramp A, `5-8` ramp B, `a-d` ramp C (dark to light). Example:
 
 ```js
-import { defineSprite, render } from './dog/src/index.js'
+import { defineSprite, render } from 'dots-of-games'
 const star = defineSprite({ id: 'tiny-star', ramps: { A: 'gold' }, art: `
   ..#..
   .#4#.

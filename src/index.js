@@ -364,7 +364,7 @@ dog.sfxPack = (names = dog.sfx.list, { name = 'sounds', ...opts } = {}) => {
   const files = {}
   for (const n of names) files[`${n}.wav`] = dog.sfx(n, opts).toWAV()
   files['README.txt'] = [
-    `${name}: ${names.length} sound effects from DOG (Dots Of Games), https://github.com/olebangpad/dog`,
+    `${name}: ${names.length} sound effects from DOG (Dots Of Games), https://github.com/olebangpad/dots-of-games`,
     `16-bit mono WAV, ${SAMPLE_RATE} Hz. Made by code; CC0, use them anywhere.`,
     'Loops (seamless): ' + (names.filter((n) => soundById[n]?.loop).join(', ') || 'none'),
     '',

@@ -4,7 +4,7 @@ Thanks for helping grow the collection! New sprites are the most welcome contrib
 
 ## Add a sprite in two minutes
 
-1. Open the [playground](https://olebangpad.github.io/dog/), pick a similar sprite, open **Edit pixels** and draw.
+1. Open the [playground](https://olebangpad.github.io/dots-of-games/), pick a similar sprite, open **Edit pixels** and draw.
    Or write the text art in any editor.
 2. Click **Copy sprite definition** and paste it into the matching file in `src/sprites/`:
 

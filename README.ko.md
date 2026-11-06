@@ -4,11 +4,13 @@
 
 # DOG · Dots Of Games
 
-**코드로 만드는 도트 그래픽.** 440개가 넘는 무료 2D 게임 도트 이미지, **540개가 넘는 게임 이펙트**, **효과음 66개**를 **한 줄로 조합하고, 크기를 바꾸고, 색을 바꿀 수 있습니다.**<br>
-**275만 가지** 조합의 캐릭터 메이커도 들어 있고, 캐릭터는 4방향으로 걷고 행동합니다. 모든 스프라이트는 텍스트 파일이고, 의존성은 0개입니다.
+**코드로 만드는 게임 에셋.** 도트 스프라이트, 캐릭터, 애니메이션, 이펙트, 효과음을 자바스크립트 한 줄로 만들고, 색을 바꾸고, 크기를 바꿉니다.
+그림은 CC0, 의존성 0개. 게임 개발자와 그들의 AI 코딩 에이전트를 위해 만들었습니다.
 
-[**▶ 데모 게임 하기**](https://olebangpad.github.io/dog/game.html) ·
-[플레이그라운드](https://olebangpad.github.io/dog/) ·
+스프라이트 **441**개 · 걷고 싸우는 캐릭터 **275만** 가지 · 이펙트 **545**종 · 효과음 **66**개 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
+
+[**▶ 데모 게임 하기**](https://olebangpad.github.io/dots-of-games/game.html) ·
+[플레이그라운드](https://olebangpad.github.io/dots-of-games/) ·
 [게임 만들기](#-dog로-게임-만들기) ·
 [캐릭터 메이커](#-캐릭터-메이커) ·
 [이펙트 545종](#-이펙트-545종) ·
@@ -22,7 +24,18 @@
 
 <img src="docs/img/scene.png" alt="DOG 스프라이트로만 만든 애니메이션 장면" width="576">
 
+[![CI](https://github.com/olebangpad/dots-of-games/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/dots-of-games/actions/workflows/ci.yml)
+
 </div>
+
+```js
+import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'   // 또는: npm i dots-of-games
+
+const knight = dog.char('hero', { hat: 'knight', hand: 'sword', offhand: 'shield' })   // 장비가 알아서 붙는 24×24 캐릭터
+const swing = dog.action('hero', 'attack', { element: 'fire', grid: 32 })              // 64×64 공격 8프레임 (.fps 포함)
+dog.sfx('slash', { element: 'fire' }).play()                                           // 그리고 그 소리
+document.body.append(knight.scale(8).toCanvas())
+```
 
 ## 왜 DOG인가요?
 
@@ -38,13 +51,13 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 ### 🎮 DOG로만 만든 게임 화면
 
-[**DOG Quest**](https://olebangpad.github.io/dog/game.html)는 직접 해볼 수 있는 작은 데모입니다. 화면의 모든 픽셀이 이 레포에서 나옵니다.
+[**DOG Quest**](https://olebangpad.github.io/dots-of-games/game.html)는 직접 해볼 수 있는 작은 데모입니다. 화면의 모든 픽셀이 이 레포에서 나옵니다.
 주인공은 `dog.char()`, 걷기는 `dog.walk()`, 공격은 `dog.action('attack')`, 적이 맞으면 `dog.action('hit')`,
 쓰러지면 `dog.action('death')`, 크리티컬·코인 획득·적이 사라지는 연기·레벨업 꽃가루·모닥불 불빛·반딧불은 `dog.fx()`이고,
 직접 조작하기 시작하면 공격·타격·코인·레벨업마다 `dog.sfx()` 효과음이 나고, 타일·코인·하트·HUD 글자도 전부 스프라이트와 도트 폰트입니다.
 키를 누르기 전까지는 혼자 플레이하고, 캐릭터 메이커의 **▶ Play as this character** 버튼으로 내가 만든 캐릭터로 플레이할 수 있습니다.
 
-<a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest 플레이 화면" width="512"></a>
+<a href="https://olebangpad.github.io/dots-of-games/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest 플레이 화면" width="512"></a>
 
 세로형 홍보 영상 (`scripts/record-promo.cjs`로 생성): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4) ·
 이펙트 영상 [English](docs/promo/fx-reel-en.mp4) · [한국어](docs/promo/fx-reel-ko.mp4)
@@ -56,7 +69,7 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 **1. 템플릿 복사하기.** [`templates/canvas/index.html`](templates/canvas/index.html)은 파일 하나짜리 완성된 작은 게임입니다.
 설치도 빌드도 필요 없습니다. [`templates/phaser/`](templates/phaser)는 같은 게임을 Phaser 3와 DOG 게임 팩으로 만든 버전입니다.
 
-**2. 게임 팩 다운로드.** [캐릭터 메이커](https://olebangpad.github.io/dog/#maker)에서 **📦 Game pack**을 누르면 zip 하나에
+**2. 게임 팩 다운로드.** [캐릭터 메이커](https://olebangpad.github.io/dots-of-games/#maker)에서 **📦 Game pack**을 누르면 zip 하나에
 스프라이트 시트(`idle`, 4방향 `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser용 JSON, Godot 4용 SpriteFrames 파일이 들어 있습니다.
 코드로는 `dog.pack(spec)`, 명령어로는 `node scripts/dog.js pack hero --hat crown --hand sword`입니다.
 
@@ -68,18 +81,18 @@ hero.anims.createFromAseprite('hero')
 hero.play({ key: 'walk-left', repeat: -1 })
 ```
 
-**3. AI에게 만들어 달라고 하기.** DOG에는 AI 코딩 도우미용 스킬이 들어 있습니다: [`skills/dog/SKILL.md`](skills/dog/SKILL.md)
-(API, 도트 그래픽 규칙, 게임 레시피, 엔진 내보내기)와 [`catalog.md`](skills/dog/catalog.md)(모든 스프라이트 이름). 예제 코드는 CI에서 실제로 실행해 검증합니다.
-Claude Code라면 게임 프로젝트 폴더에서:
+**3. AI 코딩 에이전트에게 맡기기.** DOG는 전부 코드와 텍스트라서, 에이전트가 이미지 파일 없이도 다 쓸 수 있습니다.
+스킬이 들어 있습니다: [`skills/dog/SKILL.md`](skills/dog/SKILL.md)(API, 도트 그래픽 규칙, 게임 레시피, 엔진 내보내기, 효과음, 타일 크기)와
+[`catalog.md`](skills/dog/catalog.md)(모든 스프라이트 이름). 예제 코드는 CI에서 실제로 실행해 검증합니다.
 
-```bash
-mkdir -p .claude/skills/dog && cd .claude/skills/dog
-curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/SKILL.md
-curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/catalog.md
-```
+- **Claude Code:** 플러그인으로 설치하고 요청만 하면 됩니다.
+  ```
+  /plugin marketplace add olebangpad/dots-of-games
+  /plugin install dog@dots-of-games
+  ```
+- **Codex, Cursor 등 다른 에이전트:** `SKILL.md`를 프로젝트에 복사하거나(내용을 `AGENTS.md`·규칙 파일에 넣어도 됩니다) [`llms.txt`](llms.txt)를 읽게 하세요.
 
-그리고 *"DOG로 단검 든 고블린이 슬라임이랑 싸우는 탑다운 게임 만들어줘"*처럼 요청하면 됩니다.
-다른 AI 도구는 [`llms.txt`](llms.txt)부터 읽게 하면 됩니다.
+그리고 *"DOG로 단검 든 고블린이 슬라임이랑 싸우는 탑다운 게임 만들어줘. 효과음도 넣어줘"*처럼 요청하면 됩니다.
 
 ### 🧙 캐릭터 메이커
 
@@ -124,9 +137,9 @@ dog.action('hero-mage', 'cast', '#00ffcc')      // 재질 이름이나 hex 색�
 **코드로만 그린 이펙트 80종**이 각각 최대 11가지 색, 원하는 크기로 나옵니다. 여기에 손으로 그린 폭발·반짝임·베기가 더해집니다.
 폭발, 마법, 속성, 투사체와 빔, 끝없이 이어지는 날씨, 환경(용암, 안개, 햇살, 물결), 상태이상, 무기별 베기와 타격 피드백(POW, CRIT!, MISS, 막기, 패링),
 보상, 그리고 큰 연출(운석, 토네이도, 블랙홀, 소환, 부활, 꽃가루)까지 있습니다.
-[**이펙트 페이지**](https://olebangpad.github.io/dog/fx.html)에서 보고, 색을 바꾸고, 내려받을 수 있습니다.
+[**이펙트 페이지**](https://olebangpad.github.io/dots-of-games/fx.html)에서 보고, 색을 바꾸고, 내려받을 수 있습니다.
 
-<a href="https://olebangpad.github.io/dog/fx.html"><img src="docs/img/fx.png" alt="코드로 만든 모든 이펙트 애니메이션" width="100%"></a>
+<a href="https://olebangpad.github.io/dots-of-games/fx.html"><img src="docs/img/fx.png" alt="코드로 만든 모든 이펙트 애니메이션" width="100%"></a>
 
 ```js
 dog.fx('meteor')                                   // 프레임 배열 (32×32), .fps와 .loop 포함
@@ -144,7 +157,7 @@ dog.fxPack(['meteor', 'poof', 'crit'])             // 시트 한 장 + Phaser/As
 
 소리도 그림처럼 **파일이 아니라 레시피**입니다. 공격 방식과 행동마다 같은 이름의 소리가 있어서, 무기에 맞는 휘두르는 소리가 저절로 따라옵니다.
 이펙트 색을 바꾸듯 **속성**을 더하고, 음높이를 바꾸고, 조금씩 다른 변형을 뽑아서 같은 타격음이 반복돼도 지루하지 않게 할 수 있어요.
-[**효과음 페이지**](https://olebangpad.github.io/dog/sfx.html)에서 듣고 내려받을 수 있습니다.
+[**효과음 페이지**](https://olebangpad.github.io/dots-of-games/sfx.html)에서 듣고 내려받을 수 있습니다.
 
 ```js
 dog.sfx('coin').play()                                  // 브라우저 (첫 소리는 키 입력이나 클릭에서 시작하세요)
@@ -200,7 +213,7 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 
 ## 📦 PNG만 필요하다면
 
-**원하는 비트(타일 크기)를 골라 전부 zip 하나로 받으세요:** [**다운로드 페이지**](https://olebangpad.github.io/dog/#download).
+**원하는 비트(타일 크기)를 골라 전부 zip 하나로 받으세요:** [**다운로드 페이지**](https://olebangpad.github.io/dots-of-games/#download).
 8×8, 16×16, 32×32, 64×64 중에 고르면 스프라이트, 걷기 스트립이 있는 캐릭터, 이펙트, 효과음이 그 크기에 맞춰 나옵니다.
 
 | 타일 | 만드는 방법 |
@@ -235,17 +248,22 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // 24×24 
 
 ```html
 <script type="module">
-  import { dog, compose } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'
+  import { dog, compose } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
 
   const king = compose(dog('hero'), dog('crown').at(0, -7)).scale(8)
   document.body.append(king.toCanvas())
 </script>
 ```
 
-**Node** (레포를 받기만 하면 됩니다. 설치할 것 없음):
+**npm** (Node 18 이상, 번들러, TypeScript 타입 포함):
+
+```bash
+npm i dots-of-games
+npx dog render potion -A '#ff4fd8' --scale 8 -o potion.png   # CLI도 같이 설치됩니다
+```
 
 ```js
-import { dog, compose, sheet } from './src/index.js'
+import { dog, compose, sheet } from 'dots-of-games'
 
 await dog('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
 
@@ -253,7 +271,10 @@ const frames = dog.frames('slime-blue')            // 애니메이션 모든 프
 await sheet(frames).image.scale(4).save('slime-sheet.png')
 ```
 
-**CLI**:
+ES 모듈 전용입니다(`require` 불가). 버전은 semver를 따르고, 1.0 전까지는 마이너 버전에서 API가 바뀔 수 있으며 [변경 기록](CHANGELOG.md)에 적습니다.
+레포를 받아서 `./src/index.js`를 바로 가져와도 됩니다. 설치할 것 없음.
+
+**CLI** (설치 후 `npx dog ...`, 레포에서는 `node scripts/dog.js ...`):
 
 ```bash
 node scripts/dog.js list monsters
@@ -322,7 +343,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 
 새 스프라이트 추가가 가장 반가운 기여입니다. 2분이면 됩니다.
 
-1. [플레이그라운드](https://olebangpad.github.io/dog/) → **Edit pixels** → 그리기 → **Copy sprite definition**
+1. [플레이그라운드](https://olebangpad.github.io/dots-of-games/) → **Edit pixels** → 그리기 → **Copy sprite definition**
 2. [`src/sprites/`](src/sprites)의 알맞은 파일에 붙여넣고 `variants` 몇 개 추가
 3. `npm run check && npm run build` 후 PR
 
@@ -330,7 +351,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 
 ## 📄 라이선스
 
-- **그림** (`src/sprites/`, `assets/`, `docs/img/`): [CC0 1.0](LICENSE-ASSETS), 퍼블릭 도메인
+- **DOG가 그리거나 내는 모든 것** (스프라이트 그림, 라이브러리가 만드는 모든 이미지·이펙트·효과음, 크기와 상관없이): [CC0 1.0](LICENSE-ASSETS), 퍼블릭 도메인. 상업용 게임에도 출처 표시 없이 쓸 수 있습니다
 - **코드**: [MIT](LICENSE)
 
 그림 그리는 시간을 아껴 드렸다면 ⭐ 하나가 다른 개발자들이 이 프로젝트를 찾는 데 큰 도움이 됩니다.

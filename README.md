@@ -4,11 +4,13 @@
 
 # DOG · Dots Of Games
 
-**Pixel art as code.** 440+ free game sprites, **540+ game effects** and **66 sound effects** you can **combine, resize and recolor in one line**,<br>
-plus a character maker with **2.7 million combinations** that walk in 4 directions and act. Every sprite is plain text. Zero dependencies.
+**Game assets as code.** Pixel-art sprites, characters, animations, effects and sounds you generate, recolor and resize
+in one line of JavaScript. CC0 art, zero dependencies, made for game developers and their AI coding agents.
 
-[**▶ Play the demo**](https://olebangpad.github.io/dog/game.html) ·
-[Open the playground](https://olebangpad.github.io/dog/) ·
+**441** sprites · **2.7 million** characters that walk and fight · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
+
+[**▶ Play the demo**](https://olebangpad.github.io/dots-of-games/game.html) ·
+[Open the playground](https://olebangpad.github.io/dots-of-games/) ·
 [Make a game](#-make-a-game-with-dog) ·
 [Character maker](#-character-maker) ·
 [Effects](#-545-game-effects) ·
@@ -26,11 +28,21 @@ plus a character maker with **2.7 million combinations** that walk in 4 directio
 ![characters](https://img.shields.io/badge/characters-2%2C756%2C176-a8e05a?style=flat-square)
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
-![size](https://img.shields.io/badge/tile-16×16-a8e05a?style=flat-square)
+![tiles](https://img.shields.io/badge/tiles-8_·_16_·_32_·_64_px-a8e05a?style=flat-square)
+[![CI](https://github.com/olebangpad/dots-of-games/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/dots-of-games/actions/workflows/ci.yml)
 
 <img src="docs/img/scene.png" alt="An animated scene built only from DOG sprites" width="576">
 
 </div>
+
+```js
+import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'   // or: npm i dots-of-games
+
+const knight = dog.char('hero', { hat: 'knight', hand: 'sword', offhand: 'shield' })   // a 24×24 character, gear snapped on
+const swing = dog.action('hero', 'attack', { element: 'fire', grid: 32 })              // 8 frames at 64×64, with .fps
+dog.sfx('slash', { element: 'fire' }).play()                                           // and its sound
+document.body.append(knight.scale(8).toCanvas())
+```
 
 ## Why DOG?
 
@@ -46,14 +58,14 @@ dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 ### 🎮 A game screen made only from DOG
 
-[**DOG Quest**](https://olebangpad.github.io/dog/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
+[**DOG Quest**](https://olebangpad.github.io/dots-of-games/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
 The hero is a `dog.char()`, it moves with `dog.walk()`, swings with `dog.action('attack')`, enemies flash with
 `dog.action('hit')` and puff away with `dog.action('death')`; crits, coin pops, poofs, level-up confetti, the campfire's glow and the
 fireflies are `dog.fx()`; once you take over, every swing, hit, coin and level-up has a `dog.sfx()` sound;
 tiles, coins, hearts and the HUD text are sprites and the pixel font.
 It plays itself until you press a key, and the character maker has a **▶ Play as this character** button.
 
-<a href="https://olebangpad.github.io/dog/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
+<a href="https://olebangpad.github.io/dots-of-games/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
 
 Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4) ·
 effects reel [English](docs/promo/fx-reel-en.mp4) · [한국어](docs/promo/fx-reel-ko.mp4)
@@ -65,7 +77,7 @@ Three ways in, from zero setup to a full engine:
 **1. Copy a starter.** [`templates/canvas/index.html`](templates/canvas/index.html) is a complete little game in one file, with no install
 and no build step. [`templates/phaser/`](templates/phaser) is the same idea with Phaser 3 and DOG game packs.
 
-**2. Download a game pack.** In the [character maker](https://olebangpad.github.io/dog/#maker) press **📦 Game pack**: one zip with a sprite sheet
+**2. Download a game pack.** In the [character maker](https://olebangpad.github.io/dots-of-games/#maker) press **📦 Game pack**: one zip with a sprite sheet
 (`idle`, 4-way `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser JSON and a Godot 4 SpriteFrames file.
 In code it's `dog.pack(spec)`; on the command line it's `node scripts/dog.js pack hero --hat crown --hand sword`.
 
@@ -77,18 +89,19 @@ hero.anims.createFromAseprite('hero')
 hero.play({ key: 'walk-left', repeat: -1 })
 ```
 
-**3. Let your AI assistant build it.** DOG ships a skill for AI coding assistants: [`skills/dog/SKILL.md`](skills/dog/SKILL.md)
-(API, pixel-art rules, a full game recipe, engine exports) and [`catalog.md`](skills/dog/catalog.md) (every sprite id). Its code samples run in CI.
-For Claude Code, inside your game project:
+**3. Let your AI coding agent build it.** DOG is plain code and text, so an agent can use all of it without
+touching an image file. It ships a skill: [`skills/dog/SKILL.md`](skills/dog/SKILL.md) (the API, rules for crisp pixel art,
+a full game recipe, engine exports, sounds, tile sizes) and [`catalog.md`](skills/dog/catalog.md) (every sprite id). Its code samples run in CI.
 
-```bash
-mkdir -p .claude/skills/dog && cd .claude/skills/dog
-curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/SKILL.md
-curl -sLO https://raw.githubusercontent.com/olebangpad/dog/main/skills/dog/catalog.md
-```
+- **Claude Code:** install it as a plugin, then just ask.
+  ```
+  /plugin marketplace add olebangpad/dots-of-games
+  /plugin install dog@dots-of-games
+  ```
+- **Codex, Cursor and other agents:** copy `SKILL.md` into your project (or its contents into your `AGENTS.md` / rules file),
+  or point the agent at [`llms.txt`](llms.txt).
 
-Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, using DOG"*.
-Other assistants can start from [`llms.txt`](llms.txt).
+Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, with sounds, using DOG"*.
 
 ### 🧙 Character maker
 
@@ -132,9 +145,9 @@ whips crack, torches burn, flowers bonk, empty hands punch. `dog.action.styleOf(
 **80 effect designs drawn entirely by code**, each in up to 11 colors and at any size, plus the hand-drawn explosions, sparkles and slashes.
 Bursts, magic, elements, projectiles and beams, seamless weather, environment (lava, fog, sunrays, ripples), status overlays,
 weapon slashes and hit feedback (POW, CRIT!, MISS, block, parry), rewards, and big moments (meteor, tornado, black hole, summon, revive, confetti).
-Browse, recolor and download them on the [**effects page**](https://olebangpad.github.io/dog/fx.html).
+Browse, recolor and download them on the [**effects page**](https://olebangpad.github.io/dots-of-games/fx.html).
 
-<a href="https://olebangpad.github.io/dog/fx.html"><img src="docs/img/fx.png" alt="Every procedural effect, animated" width="100%"></a>
+<a href="https://olebangpad.github.io/dots-of-games/fx.html"><img src="docs/img/fx.png" alt="Every procedural effect, animated" width="100%"></a>
 
 ```js
 dog.fx('meteor')                                   // frames (32×32) with .fps and .loop
@@ -152,7 +165,7 @@ Effects are recipes: a few lines that paint light into layers, which the engine 
 
 Sounds work like the art: **recipes, not files**. Every attack style and action has one, so the right swing sound comes with
 the weapon. Add an **element** the way you'd recolor an effect, change the pitch, or roll small variations so repeated hits
-don't sound identical. Listen and download on the [**sounds page**](https://olebangpad.github.io/dog/sfx.html).
+don't sound identical. Listen and download on the [**sounds page**](https://olebangpad.github.io/dots-of-games/sfx.html).
 
 ```js
 dog.sfx('coin').play()                                  // browser (start the first sound from a key press or click)
@@ -209,7 +222,7 @@ add 525 more animated looks; all of them are exported in `assets/` too.
 
 ## 📦 Just want the PNGs?
 
-**Pick your tile size and get everything in one zip:** [**download page**](https://olebangpad.github.io/dog/#download).
+**Pick your tile size and get everything in one zip:** [**download page**](https://olebangpad.github.io/dots-of-games/#download).
 Choose 8×8, 16×16, 32×32 or 64×64 (what people call 8-bit / 16-bit / 32-bit pixel art) and you get sprites, characters with
 walk strips, effects and sounds made for that grid:
 
@@ -245,17 +258,22 @@ All art is **CC0**: use it in commercial games, remix it, no credit required (cr
 
 ```html
 <script type="module">
-  import { dog, compose } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'
+  import { dog, compose } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
 
   const king = compose(dog('hero'), dog('crown').at(0, -7)).scale(8)
   document.body.append(king.toCanvas())
 </script>
 ```
 
-**Node** (clone the repo; nothing to install):
+**npm** (Node 18+, bundlers, TypeScript types included):
+
+```bash
+npm i dots-of-games
+npx dog render potion -A '#ff4fd8' --scale 8 -o potion.png   # the CLI comes with it
+```
 
 ```js
-import { dog, compose, sheet } from './src/index.js'
+import { dog, compose, sheet } from 'dots-of-games'
 
 await dog('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
 
@@ -263,7 +281,10 @@ const frames = dog.frames('slime-blue')            // every animation frame
 await sheet(frames).image.scale(4).save('slime-sheet.png')
 ```
 
-**CLI**:
+DOG is ES modules only (no `require`). Versions follow semver: until 1.0, a minor release may change the API
+and the [changelog](CHANGELOG.md) says how. Or clone the repo and import `./src/index.js`; nothing to install.
+
+**CLI** (`npx dog ...` after installing, or `node scripts/dog.js ...` in a clone):
 
 ```bash
 node scripts/dog.js list monsters
@@ -363,7 +384,7 @@ Materials: `red orange gold lime green mint ice blue purple pink wood leather sk
 
 New sprites are the best contribution, and it takes about two minutes:
 
-1. Open the [playground](https://olebangpad.github.io/dog/) → **Edit pixels** → draw → **Copy sprite definition**
+1. Open the [playground](https://olebangpad.github.io/dots-of-games/) → **Edit pixels** → draw → **Copy sprite definition**
 2. Paste it into the right file in [`src/sprites/`](src/sprites) and add a few `variants`
 3. `npm run check && npm run build`, then open a PR
 
@@ -388,7 +409,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 
 ## 📄 License
 
-- **Art** (`src/sprites/`, `assets/`, `docs/img/`): [CC0 1.0](LICENSE-ASSETS), public domain
+- **Everything DOG draws or plays** (the sprite art, and every image, effect and sound the library generates, at any size): [CC0 1.0](LICENSE-ASSETS), public domain. Use it in commercial games; no credit needed
 - **Code**: [MIT](LICENSE)
 
 If DOG saved you some drawing time, a ⭐ helps other devs find it.

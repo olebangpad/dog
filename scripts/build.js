@@ -66,7 +66,7 @@ async function buildAssets() {
       frame: { x: f.x, y: f.y, w: f.w, h: f.h }, rotated: false, trimmed: false,
       spriteSourceSize: { x: 0, y: 0, w: f.w, h: f.h }, sourceSize: { w: f.w, h: f.h },
     }])),
-    meta: { app: 'https://github.com/olebangpad/dog', version: '1', image: 'atlas.png', format: 'RGBA8888', size: { w: image.w, h: image.h }, scale: '1' },
+    meta: { app: 'https://github.com/olebangpad/dots-of-games', version: '1', image: 'atlas.png', format: 'RGBA8888', size: { w: image.w, h: image.h }, scale: '1' },
     // not part of the TexturePacker format, ignored by loaders: frame names per animation
     animations: Object.fromEntries(
       Object.values(looks)

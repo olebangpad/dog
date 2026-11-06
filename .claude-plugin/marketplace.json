@@ -1,0 +1,20 @@
+{
+  "name": "dots-of-games",
+  "description": "DOG (Dots Of Games): game assets as code, as a skill for Claude Code",
+  "owner": {
+    "name": "olebangpad",
+    "url": "https://github.com/olebangpad"
+  },
+  "plugins": [
+    {
+      "name": "dog",
+      "source": "./skills/dog",
+      "description": "Build 2D games with DOG: pixel-art sprites, 2.7M characters, walk cycles, actions, 500+ effects, 66 sounds and Phaser/Godot packs, generated in one line of JavaScript",
+      "version": "0.1.0",
+      "license": "MIT",
+      "homepage": "https://olebangpad.github.io/dots-of-games/",
+      "repository": "https://github.com/olebangpad/dots-of-games",
+      "keywords": ["pixel-art", "gamedev", "sprites", "game-assets", "phaser", "godot", "sound-effects"]
+    }
+  ]
+}

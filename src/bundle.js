@@ -42,7 +42,7 @@ export function createBundle(dog, looks, recipeIds) {
     items.push({
       path: 'README.txt',
       make: () => `DOG (Dots Of Games) - everything for a ${grid}x${grid} px tile grid
-https://github.com/olebangpad/dog - CC0: use it in any game, commercial or not. Credit welcome, not required.
+https://github.com/olebangpad/dots-of-games - CC0: use it in any game, commercial or not. Credit welcome, not required.
 
 DOG draws on a 16 px grid. This download was converted for ${grid} px tiles:
 ${k < 1 ? '  shrunk to half by vote, with the 1px outline drawn again (details like eyes are kept)'

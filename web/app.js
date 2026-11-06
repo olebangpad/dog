@@ -6,7 +6,7 @@ import {
 import { $, $$, h, paint, thumb, download, toast, copy, encode, decode, readHash, writeHash } from './ui.js'
 import { initMaker } from './maker.js'
 
-const REPO = 'olebangpad/dog'
+const REPO = 'olebangpad/dots-of-games'
 const CATEGORIES = ['all', 'characters', 'gear', 'items', 'monsters', 'tiles', 'icons', 'effects']
 const SCALES = [0.5, 1, 2, 3, 4, 6, 8, 12, 16]
 const PRESETS = [

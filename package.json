@@ -1,9 +1,38 @@
 {
   "name": "dots-of-games",
   "version": "0.1.0",
-  "description": "Pixel art and sound as code: CC0 game sprites, 500+ effects and 66 sound effects you can combine, resize, recolor and export in one line, plus a 2.7M-combination character maker. Zero dependencies.",
+  "description": "Game assets as code: pixel-art sprites, 2.7M characters, 500+ effects and 66 sound effects you generate, recolor and resize in one line of JavaScript. CC0 art, zero dependencies.",
+  "keywords": [
+    "pixel-art",
+    "sprites",
+    "gamedev",
+    "game-assets",
+    "procedural-generation",
+    "sound-effects",
+    "sfx",
+    "cc0",
+    "spritesheet",
+    "phaser",
+    "godot",
+    "recolor",
+    "character-generator",
+    "8-bit",
+    "16x16",
+    "ai-agents"
+  ],
+  "homepage": "https://olebangpad.github.io/dots-of-games/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olebangpad/dots-of-games.git"
+  },
+  "bugs": {
+    "url": "https://github.com/olebangpad/dots-of-games/issues"
+  },
+  "author": "olebangpad",
+  "license": "MIT",
   "type": "module",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
@@ -13,13 +42,14 @@
   "bin": {
     "dog": "scripts/dog.js"
   },
+  "sideEffects": false,
   "files": [
     "src",
     "scripts/dog.js",
-    "assets",
     "skills",
     "templates",
-    "llms.txt"
+    "llms.txt",
+    "LICENSE-ASSETS"
   ],
   "scripts": {
     "build": "node scripts/build.js",
@@ -30,26 +60,14 @@
     "promo": "node scripts/record-promo.cjs",
     "types": "npx -y -p typescript@5.6.3 tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --lib es2022,dom test/types/usage.ts",
     "bench": "node scripts/bench.js",
-    "snapshots": "node scripts/snapshots.js"
+    "snapshots": "node scripts/snapshots.js",
+    "pack:check": "npm pack --dry-run"
   },
-  "keywords": [
-    "pixel-art",
-    "sprites",
-    "gamedev",
-    "game-assets",
-    "cc0",
-    "spritesheet",
-    "palette",
-    "recolor",
-    "8-bit",
-    "16x16",
-    "sound-effects",
-    "sfx",
-    "wav"
-  ],
-  "license": "MIT",
   "engines": {
     "node": ">=18"
   },
-  "types": "src/index.d.ts"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

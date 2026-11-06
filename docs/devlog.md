@@ -581,3 +581,90 @@ not art that sits on a 32 or 64 grid. People should be able to pick the size the
   - The effects page at 64 (128 px strip, `grid: 64` in its code).
   - Mobile with no overflow.
   - The whole earlier suite.
+
+---
+
+## Round 8 · Launch readiness: a pre-release review, and a name people can find
+
+### Review (before changing anything)
+
+Facts checked first:
+- 0 stars, 0 forks.
+- Repo "About" is just `dog`, with no topics and no website.
+- Nothing on npm (`dots-of-games` is free).
+- CI and Pages are green.
+- The suite passes on Node 18.20.8 (the `engines` floor) as well as 22.
+
+| priority | finding | fix | who |
+| --- | --- | --- | --- |
+| P0 | The name `dog` can't be found on GitHub or a search engine, and the About box is empty | rename to `dots-of-games`; update all 68 references (docs, pages, CDN URLs, CTAs in the promo videos); suggested About text and topics | rename and About: owner, in Settings; references: here |
+| P0 | `npm i` is impossible. The current `files` would ship 17 MB of assets (3.5 MB tarball, 3,326 files), and there's no `repository` / `homepage` / `bugs` | slim package (library, CLI, skill, templates); metadata; a release workflow that publishes with provenance | here; the first publish needs the owner's npm token |
+| P0 | The license only covered `src/sprites/`, `assets/` and `docs/img/`. It said nothing about the effects and sounds the code *generates*, or the template art | say plainly: everything DOG generates (images, sounds) is CC0; code is MIT | here |
+| P0 | The README's first screen is a list of numbers. There's no 3-line quick start near the top and no mention of AI coding agents | one-line identity ("game assets as code"), quick start under the hero, "use with AI coding agents" section, CI badge | here |
+| P1 | AI agents: SKILL.md exists but nothing says how to install it. There's no Claude Code plugin and no AGENTS.md / CLAUDE.md for people working on the repo with an agent | Claude Code plugin marketplace in the repo (checked with `claude plugin validate` and a real install), AGENTS.md, CLAUDE.md | here |
+| P1 | Community files: only a sprite-request template; no bug / feature templates, PR template, changelog or code of conduct | add them | here |
+| P1 | CI only tests Node 22 while `engines` promises 18+ | matrix 18 / 20 / 22, plus a package-contents check | here |
+| P1 | `scripts/dog.js` has a shebang but isn't executable in git | `chmod +x` | here |
+| P2 | API review: names, options and return shapes are consistent (`element`, `grid`, `size`, `seed`; frames carry `.fps` / `.loop`). Errors name the fix. It's ESM-only (Node 18+, modern browsers). Nothing needs a breaking change before 0.1.0 | document "ESM only" and the 0.x versioning promise | here |
+| P2 | Clone size: `.git` 35 MB, `docs/` 12 MB, mostly the promo videos | fine for now; revisit if it grows | none |
+
+The plan: fix every "here" row and verify each one. Then hand the owner a short list: rename the repo, fill the About box,
+upload the social preview, add an npm token, publish v0.1.0.
+
+### Shipped
+
+- **New name, everywhere:** 68 references in 23 files now point at `olebangpad/dots-of-games`: README links, site meta,
+  CDN imports, SKILL.md, llms.txt, pack and bundle READMEs, the atlas, and the call-to-action in all four promo videos.
+  The longer address wrapped onto two lines on the video button, so the button text is smaller and kept on one line.
+  The videos were re-recorded.
+- **npm-ready.**
+  - `package.json` has `repository`, `homepage`, `bugs`, `author`, `sideEffects` and `publishConfig` (public, provenance).
+  - The package is the library, CLI, skill, templates and licenses: **142 kB, 53 files** instead of 3.5 MB / 3,326.
+  - Tested by installing the real tarball into an empty project: `import { dog } from 'dots-of-games'` works,
+    `npx dog render` and `npx dog sfx` work, and the TypeScript types resolve (a wrong `grid` is caught).
+  - `.github/workflows/release.yml` publishes to npm with provenance when a GitHub Release is published. It checks
+    that the tag matches `package.json` and runs the tests first.
+- **License, stated plainly:** everything DOG draws or plays, including generated effects and sounds at any size, is
+  CC0. The code is MIT. This is in `LICENSE-ASSETS` and both READMEs.
+- **README:**
+  - The first screen is one line ("Game assets as code") with a facts line and a 5-line quick start.
+  - Tile and CI badges.
+  - The AI section installs the skill as a Claude Code plugin; there are instructions for Codex, Cursor and others.
+  - An npm section, plus the ESM-only and 0.x versioning promises.
+  - Korean kept in step.
+- **AI agents.**
+  - The repo is a Claude Code plugin marketplace: `/plugin marketplace add olebangpad/dots-of-games`, then
+    `/plugin install dog@dots-of-games`.
+  - `claude plugin validate .` passes. A real install in a throwaway home directory loaded the `game-assets` skill
+    (about 240 tokens always-on).
+  - `AGENTS.md` (map, commands, rules for working on the repo) and `CLAUDE.md` (imports it).
+- **Community files:** bug and feature issue templates next to the sprite request, a PR checklist, a code of conduct,
+  and `CHANGELOG.md` with the 0.1.0 notes.
+- **CI:** tests on Node 18, 20 and 22. The build job also checks the npm package contents and size, and the plugin
+  manifest. `scripts/dog.js` is executable.
+
+### What the review caught
+
+- The first draft of the issue-template config linked to GitHub Discussions, and the code of conduct linked to private
+  vulnerability reporting. Both 404 unless the owner turns those features on, so neither link shipped.
+- The plugin validator's advice line still said `olebangpad/dog`, because it reads the git remote. That's a reminder
+  that the remote changes when the owner renames the repo, not before.
+- The `.claude-plugin` entry points at `skills/dog` as the plugin itself, not the repo root. That keeps a root
+  `CLAUDE.md` out of the plugin (the validator warns about one) and installs only the skill.
+
+### Checks
+
+- 56 tests on Node 22, and on Node 18.20.8 locally.
+- `tsc`, the build, and `claude plugin validate`.
+- The tarball installed and used in a fresh project.
+- The promo call-to-action measured at 1,054 of 1,080 px on one line.
+- Browser suite.
+
+### Left for the owner (can't be done from here)
+
+1. Settings → General → rename the repository to `dots-of-games`. GitHub redirects the old repo URL, but the Pages
+   site moves to `olebangpad.github.io/dots-of-games/` and the old one stops.
+2. The About box: description, website and topics.
+3. Settings → Social preview: upload `docs/img/social.png`.
+4. npm: create an access token, add it as the `NPM_TOKEN` repository secret, then publish GitHub Release `v0.1.0`.
+   The workflow does the rest.

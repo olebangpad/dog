@@ -2,7 +2,7 @@
 import { dog, looks, sheet, encodeAPNG, Pixmap, zip, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
 import { $, h, paint, thumb, download, copy, toast, encode, decode, readHash, writeHash } from './ui.js'
 
-const REPO = 'olebangpad/dog'
+const REPO = 'olebangpad/dots-of-games'
 const KINDS = [
   { key: 'body', label: 'Body', kind: 'body' },
   { key: 'hat', label: 'Hat', kind: 'head' },

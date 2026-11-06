@@ -1,0 +1,31 @@
+name: Release
+
+# Publishing a GitHub Release (e.g. v0.1.0) runs the checks and publishes the package to npm.
+# One-time setup: add an npm "Automation" access token as the repository secret NPM_TOKEN.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # npm provenance: the package links back to this workflow run
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Version matches the release tag
+        run: node -e "const v = require('./package.json').version; const tag = process.env.TAG.replace(/^v/, ''); if (v !== tag) throw new Error('package.json is ' + v + ' but the release is ' + tag)"
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+      - run: node scripts/validate.js
+      - run: node --test test/*.test.js
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

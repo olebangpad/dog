@@ -76,7 +76,7 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
   const json = {
     frames,
     meta: {
-      app: 'https://github.com/olebangpad/dog', version: '1', image: `${id}.png`, format: 'RGBA8888',
+      app: 'https://github.com/olebangpad/dots-of-games', version: '1', image: `${id}.png`, format: 'RGBA8888',
       size: { w: image.w, h: image.h }, scale: '1', frameTags,
       dog: { cell: cellW, ...meta, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
     },
@@ -104,7 +104,7 @@ export function createFxPack(dog, looks) {
       return { tag: id.replace(/^fx-/, ''), frames: dog.frames(id, { grid }), fps: def.fps, loop: def.tags.includes('loop') }
     })
     const readme = `DOG effects pack: ${name}
-Made with DOG - https://github.com/olebangpad/dog - CC0, use it anywhere.
+Made with DOG - https://github.com/olebangpad/dots-of-games - CC0, use it anywhere.
 
 ${name}.png   one effect per row (${rows.length} effects), frames left to right
 ${name}.json  Aseprite / TexturePacker JSON array, one frameTag per effect (Phaser: load.aseprite + createFromAseprite)
@@ -143,7 +143,7 @@ function godot(id, rows, frames) {
 function readmeFor(id, spec, rows, origin = ORIGIN, cell = PACK_CELL) {
   const opts = ['hat', 'hand', 'offhand', 'A', 'B', 'C'].filter((k) => spec[k]).map((k) => `${k}: '${spec[k]}'`)
   return `DOG character pack: ${id}
-Made with DOG - https://github.com/olebangpad/dog
+Made with DOG - https://github.com/olebangpad/dots-of-games
 The art is CC0 (public domain): use it in any game, commercial or not. Credit is welcome, not required.
 
 FILES

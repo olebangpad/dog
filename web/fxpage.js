@@ -78,7 +78,7 @@ function renderDetail() {
   const opts = [state.color && `element: '${state.color}'`, state.grid !== 16 && `grid: ${state.grid}`].filter(Boolean)
   const lookId = state.color ? `${id}-${state.color}` : id
   const lines = [
-    `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'`,
+    `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'`,
     '',
     `const frames = dog.fx('${short}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`,
     `// ${r.frames.length} Pixmaps, play at frames.fps (${r.fps})${r.loop ? ', loops' : ''}`,

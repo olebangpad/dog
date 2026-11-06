@@ -85,7 +85,7 @@ function showCode(seed = 0) {
   const o = [state.element && `element: '${state.element}'`, state.pitch !== 1 && `pitch: ${state.pitch}`, seed && `seed: ${seed}`].filter(Boolean)
   const call = `dog.sfx('${id}'${o.length ? `, { ${o.join(', ')} }` : ''})`
   $('#code').textContent = [
-    `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dog@main/src/index.js'`,
+    `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'`,
     '',
     `${call}.play()${dog.sfx(id).loop ? '          // seamless loop: .play({ loop: true }) / .stop()' : '          // call from a click or key handler the first time'}`,
     `await ${call}.save('${id}.wav')   // Node`,
