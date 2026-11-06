@@ -25,6 +25,8 @@ const JOBS = [
   { name: 'gameplay.gif', url: '/promo.html?mode=clip', viewport: [1024, 768], seconds: 10, fps: 15, selector: '#game' },
   // the README's first picture: code typed on the left, the art it makes on the right (full size, so the code stays readable)
   { name: 'code.gif', url: '/codereel.html', viewport: [960, 420], seconds: 15.5, fps: 12, gifScale: 1, colors: 64 },
+  // the AI-built example game playing itself, 30 s into a run so the screen is busy
+  { name: 'survivors.gif', url: '/examples/spell-survivors/?demo&warm=30', viewport: [700, 560], seconds: 7, fps: 10, gifScale: 1, colors: 64, selector: '#game' },
   // a grid of 25 effects is busy footage: a little more compression keeps these near 4 MB
   { name: 'fx-reel-en.mp4', url: '/fxreel.html?lang=en', viewport: [1080, 1920], seconds: 17, fps: 30, crf: 21 },
   { name: 'fx-reel-ko.mp4', url: '/fxreel.html?lang=ko', viewport: [1080, 1920], seconds: 17, fps: 30, crf: 21 },

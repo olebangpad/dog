@@ -771,3 +771,25 @@ need to look as good as the rest.
   - A new test checks that glow never changes a pixel the plain effect draws, that recolors carry the glow color,
     and that smoke never glows.
   - 595 snapshots changed on purpose: every effect, plus the actions and statuses that use effects.
+
+### (b) Shipped: a game built with nothing but PixSpell
+
+- **`examples/spell-survivors/`**: a survivor-style arena game in one HTML file of about 450 lines.
+  - You walk while a magic bolt fires itself, and enemies arrive in growing waves.
+  - Every level you pick one of three spells: fire aura (burns), frost nova (freezes), chain lightning, meteor, ice
+    blades, faster bolts, more HP or speed.
+  - It has damage numbers, XP gems, a night look so the new glow shows, sounds after the first input, a mute
+    button, touch drag on phones, and `?demo` (plays itself, silent).
+  - Every sprite, animation, effect and sound is a PixSpell call. Its README maps each part of the game to the call
+    that makes it, and gives the prompt to try with the plugin.
+  - It says plainly who wrote it: Claude in Claude Code, using only the public API in SKILL.md.
+- **`docs/promo/survivors.gif`** (640×360, 7 s): recorded 30 s into a demo run (`?warm=30`) so the screen is busy.
+- **What the play-tests caught:**
+  - The first build took 18 s to reach level 2: gems were only pulled from 40 px and enemies arrived slowly. Now gems
+    come from 64 px, waves grow every 30 s, and the first level needs 4 XP. A keyboard run now reaches level 3 in
+    18 s and the picks work.
+  - The phone layout was stuck at 1× (320 px), because only whole-number zoom was allowed. It now fills the screen
+    when 2× doesn't fit.
+  - Firefly swarms showed cut-off dots in columns where the seamless tile ended. Swarms are now the tile repeated
+    2×2 with a soft round fade.
+  - The first GIF was 4.1 MB; at 7 s and 10 fps it's 2.8 MB.

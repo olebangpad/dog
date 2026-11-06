@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Spell Survivors · made with PixSpell</title>
+  <meta name="description" content="A small survivor-style game where every sprite, animation, effect and sound comes from PixSpell code. No image or audio files.">
+  <style>
+    :root { --bg: #0b0f14; --ink: #e8f3e4; --muted: #8aa592; --accent: #a8e05a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, sans-serif; }
+    body { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+    canvas { image-rendering: pixelated; background: #000; touch-action: none; border-radius: 8px; box-shadow: 0 0 0 2px #1f2a22; }
+    .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: center; color: var(--muted); max-width: 960px; text-align: center; }
+    .bar b { color: var(--accent); }
+    button { background: #1b2620; color: var(--ink); border: 1px solid #2c3b31; border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="320" height="180" aria-label="Spell Survivors"></canvas>
+  <div class="bar">
+    <span><b>Spell Survivors</b>: move with arrows / WASD or drag. Your spells fire by themselves. Level up, pick a spell, survive.</span>
+    <button id="mute">🔊 Sound on</button>
+  </div>
+  <div class="bar"><span>Every sprite, animation, glow and sound here comes from <a href="https://github.com/olebangpad/pixspell">PixSpell</a> calls. No image or audio files.
+    Written by Claude (Claude Code) with the PixSpell skill. <a href="./README.md">How it was made</a></span></div>
+
+<script type="module">
+// Spell Survivors: a survivor-style arena game built only from PixSpell.
+// Outside this repo, import from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js' (or npm i pixspell).
+import { spell, text, Pixmap } from '../../src/index.js'
+
+const W = 320, H = 180, T = 16, MAP_W = 60, MAP_H = 40
+const canvas = document.getElementById('game')
+const ctx = canvas.getContext('2d')
+ctx.imageSmoothingEnabled = false
+const params = new URLSearchParams(location.search)
+const demo = params.has('demo') // plays itself (and stays silent)
+const warm = Number(params.get('warm') ?? 0) // start that many seconds into a run, for recordings
+
+// ---------------------------------------------------------------- assets (made once)
+const toC = (img) => img.toCanvas(document.createElement('canvas'))
+const anim = (frames, fps = frames.fps ?? 8, loop = frames.loop ?? true) => ({ imgs: frames.map(toC), fps, loop })
+const frameAt = (a, t) => a.imgs[a.loop ? Math.floor(t * a.fps) % a.imgs.length : Math.min(a.imgs.length - 1, Math.floor(t * a.fps))]
+const done = (a, t) => !a.loop && t * a.fps >= a.imgs.length
+
+const HERO = { body: 'heroine', hat: 'wizard', hand: 'staff' }
+const kit = (spec) => ({
+  walk: Object.fromEntries(spell.walk.dirs.map((d) => [d, anim(spell.walk(spec, d))])),
+  death: anim(spell.action(spec, 'death'), 14, false),
+})
+const hero = { ...kit(HERO), cast: anim(spell.action(HERO, 'cast', 'holy'), 16, false) }
+
+const ENEMIES = [
+  { spec: { body: 'slime' }, hp: 3, speed: 20, xp: 1, from: 0 },
+  { spec: { body: 'slime-blue' }, hp: 5, speed: 24, xp: 1, from: 12 },
+  { spec: { body: 'goblin', hand: 'dagger' }, hp: 8, speed: 30, xp: 2, from: 28 },
+  { spec: { body: 'ghost' }, hp: 7, speed: 34, xp: 2, from: 40 },
+  { spec: { body: 'skeleton', hat: 'viking', hand: 'axe' }, hp: 16, speed: 22, xp: 3, from: 60 },
+  { spec: { body: 'slime-red', hat: 'horns' }, hp: 40, speed: 16, xp: 8, from: 90 },
+].map((e) => ({ ...e, kit: kit(e.spec) }))
+
+const FX = {
+  bolt: anim(spell.fx('orb', { element: 'arcane', size: 16 })),
+  impact: anim(spell.fx('impact', { element: 'arcane', size: 24 }), 20, false),
+  poof: anim(spell.fx('poof', { size: 24 }), 18, false),
+  aura: anim(spell.fx('aura', { element: 'fire', size: 64 })),
+  burning: anim(spell.fx('burning', { size: 24 })),
+  nova: anim(spell.fx('shockwave', { element: 'ice', size: 96 }), 18, false),
+  frozen: anim(spell.fx('frozen', { size: 24 })),
+  lightning: anim(spell.fx('lightning', { size: 32 }), 20, false),
+  meteor: anim(spell.fx('meteor', { element: 'fire', size: 64 }), 16, false),
+  blade: anim(spell.fx('spinner', { element: 'ice', size: 16 })),
+  confetti: anim(spell.fx('confetti', { size: 48 }), 14, false),
+  pickup: anim(spell.fx('sparkle-burst', { element: 'water', size: 16 }), 24, false),
+}
+// fireflies are a seamless tile: repeat it 2x2 and fade the edges, so a swarm can float anywhere without cut-off dots
+FX.fireflies = { fps: 8, loop: true, imgs: spell.fx('fireflies', { size: 64 }).map((f) => {
+  const c = document.createElement('canvas'); c.width = c.height = 128
+  const x = c.getContext('2d')
+  for (const [dx, dy] of [[0, 0], [64, 0], [0, 64], [64, 64]]) x.drawImage(toC(f), dx, dy)
+  const fade = x.createRadialGradient(64, 64, 30, 64, 64, 62)
+  fade.addColorStop(0, '#000'); fade.addColorStop(1, 'rgba(0,0,0,0)')
+  x.globalCompositeOperation = 'destination-in'; x.fillStyle = fade; x.fillRect(0, 0, 128, 128)
+  return c
+}) }
+const gem = toC(spell('gem-sapphire', { grid: 8 }))
+const heart = toC(spell('heart', { grid: 8 })), heartEmpty = toC(spell('heart-empty', { grid: 8 }))
+const skull = toC(spell('skull', { grid: 8, frame: 0 }))
+const font = new Map()
+const label = (str, color = '#e8f3e4') => {
+  const key = str + color
+  if (!font.has(key)) font.set(key, toC(text(str, { color }).outline('#0b0f14')))
+  return font.get(key)
+}
+
+// the arena: grass with flowers and rocks, trees around the edge, drawn once
+let ground = new Pixmap(MAP_W * T, MAP_H * T)
+let seed = 7
+const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296)
+for (let y = 0; y < MAP_H; y++) for (let x = 0; x < MAP_W; x++) {
+  ground = ground.draw(spell('grass'), x * T, y * T)
+  const edge = x === 0 || y === 0 || x === MAP_W - 1 || y === MAP_H - 1
+  const deco = edge ? 'tree' : rnd() < 0.05 ? ['flower', 'rock', 'bush', 'flower-blue'][Math.floor(rnd() * 4)] : null
+  if (deco) ground = ground.draw(spell(deco), x * T, y * T)
+}
+const groundC = toC(ground)
+
+// ---------------------------------------------------------------- sound
+let muted = false, unlocked = false
+const sfx = (name, opts) => { if (!muted && unlocked && !demo) spell.sfx(name, opts).play({ volume: 0.45 }) }
+const unlock = () => { if (!unlocked) { unlocked = true; spell.sfx('click').play({ volume: 0 }) } }
+document.getElementById('mute').onclick = (e) => { muted = !muted; e.target.textContent = muted ? '🔇 Sound off' : '🔊 Sound on'; e.target.blur() }
+
+// ---------------------------------------------------------------- spells you can pick
+const ICON = (img) => toC(img.scale(2))
+const UPGRADES = [
+  { id: 'aura', name: 'FIRE AURA', icon: ICON(spell('flame')), max: 4 },
+  { id: 'nova', name: 'FROST NOVA', icon: ICON(spell('drop', { A: 'ice' })), max: 4 },
+  { id: 'chain', name: 'LIGHTNING', icon: ICON(spell('bolt')), max: 4 },
+  { id: 'meteor', name: 'METEOR', icon: ICON(spell('fx-meteor', { grid: 8, frame: 3 })), max: 4 },
+  { id: 'blades', name: 'ICE BLADES', icon: ICON(spell('sword', { A: 'ice' })), max: 4 },
+  { id: 'bolt', name: 'FASTER BOLTS', icon: ICON(spell('star')), max: 5 },
+  { id: 'hp', name: '+2 MAX HP', icon: ICON(spell('heart')), max: 5 },
+  { id: 'speed', name: 'SWIFT FEET', icon: ICON(spell('leaf')), max: 3 },
+]
+
+// ---------------------------------------------------------------- state
+let g
+function reset() {
+  g = {
+    t: 0, state: demo ? 'play' : 'title', x: MAP_W * T / 2, y: MAP_H * T / 2, dir: 'down', moving: false,
+    hp: 6, maxHp: 6, invuln: 0, speed: 62, lvl: 1, xp: 0, next: 4, kills: 0,
+    enemies: [], bolts: [], gems: [], fx: [], numbers: [], spawn: 0,
+    timers: { bolt: 0, aura: 0, nova: 2, chain: 1, meteor: 2 }, have: { bolt: 0 }, choices: [], dead: 0,
+  }
+}
+reset()
+
+// ---------------------------------------------------------------- input
+const keys = new Set()
+let drag = null
+addEventListener('keydown', (e) => {
+  unlock()
+  keys.add(e.key.toLowerCase())
+  if (g.state === 'title') g.state = 'play'
+  else if (g.state === 'over' && g.dead > 1) reset(), (g.state = 'play')
+  else if (g.state === 'levelup' && '123'.includes(e.key)) choose(Number(e.key) - 1)
+  if (e.key.startsWith('Arrow') || e.key === ' ') e.preventDefault()
+})
+addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()))
+const toGame = (e) => { const r = canvas.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * W, ((e.clientY - r.top) / r.height) * H] }
+canvas.addEventListener('pointerdown', (e) => {
+  unlock()
+  const [x, y] = toGame(e)
+  if (g.state === 'title') { g.state = 'play'; return }
+  if (g.state === 'over' && g.dead > 1) { reset(); g.state = 'play'; return }
+  if (g.state === 'levelup') { const i = Math.floor((x - 25) / 92); if (y > 60 && y < 130 && i >= 0 && i < 3) choose(i); return }
+  drag = { x, y, dx: 0, dy: 0 }
+})
+canvas.addEventListener('pointermove', (e) => { if (drag) { const [x, y] = toGame(e); drag.dx = x - drag.x; drag.dy = y - drag.y } })
+addEventListener('pointerup', () => { drag = null })
+
+function inputDir() {
+  if (demo) return autopilot()
+  let x = (keys.has('arrowright') || keys.has('d')) - (keys.has('arrowleft') || keys.has('a'))
+  let y = (keys.has('arrowdown') || keys.has('s')) - (keys.has('arrowup') || keys.has('w'))
+  if (drag && Math.hypot(drag.dx, drag.dy) > 4) { x = drag.dx; y = drag.dy }
+  const n = Math.hypot(x, y)
+  return n ? [x / n, y / n] : [0, 0]
+}
+// the attract mode: drift around the middle and away from the crowd
+function autopilot() {
+  let x = Math.cos(g.t * 0.5) * 0.6, y = Math.sin(g.t * 0.7) * 0.6
+  const close = nearest(g.x, g.y, 45)
+  const loot = g.gems.reduce((best, gm) => (!best || Math.hypot(gm.x - g.x, gm.y - g.y) < Math.hypot(best.x - g.x, best.y - g.y) ? gm : best), null)
+  if (!close && loot && Math.hypot(loot.x - g.x, loot.y - g.y) < 140) { x = (loot.x - g.x) / 40; y = (loot.y - g.y) / 40 }
+  for (const e of g.enemies) {
+    const dx = g.x - e.x, dy = g.y - e.y, d = Math.hypot(dx, dy) || 1
+    if (d < 70) { x += (dx / d) * (70 - d) / 30; y += (dy / d) * (70 - d) / 30 }
+  }
+  x += (MAP_W * T / 2 - g.x) / 300; y += (MAP_H * T / 2 - g.y) / 300
+  const n = Math.hypot(x, y)
+  return n > 0.2 ? [x / n, y / n] : [0, 0]
+}
+
+// ---------------------------------------------------------------- rules
+const lvlOf = (id) => g.have[id] ?? 0
+const nearest = (x, y, max = 1e9, skip) => {
+  let best = null, bd = max
+  for (const e of g.enemies) { if (e === skip || e.dead) continue; const d = Math.hypot(e.x - x, e.y - y); if (d < bd) { bd = d; best = e } }
+  return best
+}
+const effect = (a, x, y, extra = {}) => g.fx.push({ a, x, y, t: 0, ...extra })
+function hurt(e, dmg, color = '#ffffff') {
+  if (e.dead) return
+  e.hp -= dmg
+  e.flash = 0.1
+  g.numbers.push({ x: e.x, y: e.y - 18, t: 0, img: label(String(dmg), color) })
+  if (e.hp <= 0) {
+    e.dead = true; e.t = 0; g.kills++
+    effect(FX.poof, e.x, e.y - 8)
+    g.gems.push({ x: e.x, y: e.y - 4, v: e.type.xp })
+    sfx('poof', { pitch: 0.9 + Math.random() * 0.3 })
+  }
+}
+
+function spawn() {
+  const types = ENEMIES.filter((e) => g.t >= e.from)
+  const type = types[Math.floor(Math.random() * types.length)]
+  const a = Math.random() * Math.PI * 2, r = 190
+  const x = Math.min(MAP_W * T - 24, Math.max(24, g.x + Math.cos(a) * r))
+  const y = Math.min(MAP_H * T - 24, Math.max(24, g.y + Math.sin(a) * r))
+  g.enemies.push({ type, x, y, hp: type.hp * (1 + g.t / 120), t: Math.random(), dir: 'down', burn: 0, frozen: 0, hitBy: new Map(), flash: 0 })
+}
+
+function choose(i) {
+  const u = g.choices[i]
+  if (!u) return
+  g.have[u.id] = lvlOf(u.id) + 1
+  if (u.id === 'hp') { g.maxHp += 2; g.hp = g.maxHp }
+  if (u.id === 'speed') g.speed += 10
+  g.state = 'play'
+  sfx('confirm')
+}
+function levelUp() {
+  g.lvl++; g.xp = 0; g.next = Math.round(g.next * 1.35 + 2)
+  effect(FX.confetti, g.x, g.y - 16)
+  sfx('levelup')
+  const open = UPGRADES.filter((u) => lvlOf(u.id) < u.max)
+  g.choices = open.sort(() => Math.random() - 0.5).slice(0, 3)
+  if (demo) { g.have[g.choices[0].id] = lvlOf(g.choices[0].id) + 1; return }
+  g.state = 'levelup'
+}
+
+function update(dt) {
+  g.t += dt
+  if (g.state === 'over') { g.dead += dt; return }
+  if (g.state !== 'play') return
+  // move
+  const [mx, my] = inputDir()
+  g.moving = Math.hypot(mx, my) > 0.1
+  if (g.moving) {
+    g.dir = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : my > 0 ? 'down' : 'up'
+    g.x = Math.min(MAP_W * T - 24, Math.max(24, g.x + mx * g.speed * dt))
+    g.y = Math.min(MAP_H * T - 20, Math.max(28, g.y + my * g.speed * dt))
+  }
+  g.invuln = Math.max(0, g.invuln - dt)
+
+  // spawn faster as time goes on
+  g.spawn -= dt
+  if (g.spawn <= 0 && g.enemies.length < 90) {
+    for (let k = 0; k < 1 + Math.floor(g.t / 30); k++) spawn() // bigger groups as time goes on
+    g.spawn = Math.max(0.35, 0.6 - g.t / 200)
+  }
+
+  // enemies chase, push apart, burn, thaw
+  for (const e of g.enemies) {
+    e.t += dt; e.flash = Math.max(0, e.flash - dt)
+    if (e.dead) continue
+    if (e.burn > 0) { e.burn -= dt; e.burnTick = (e.burnTick ?? 0) - dt; if (e.burnTick <= 0) { e.burnTick = 0.5; hurt(e, 1, '#ffb347') } }
+    const slow = e.frozen > 0 ? 0 : 1
+    e.frozen = Math.max(0, e.frozen - dt)
+    const dx = g.x - e.x, dy = g.y - e.y, d = Math.hypot(dx, dy) || 1
+    let vx = (dx / d) * e.type.speed * slow, vy = (dy / d) * e.type.speed * slow
+    for (const o of g.enemies) {
+      if (o === e || o.dead) continue
+      const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy)
+      if (od > 0 && od < 12) { vx += (ox / od) * 30; vy += (oy / od) * 30 }
+    }
+    e.x += vx * dt; e.y += vy * dt
+    e.dir = Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 'right' : 'left') : vy > 0 ? 'down' : 'up'
+    if (d < 11 && !g.invuln) {
+      g.hp--; g.invuln = 0.9; sfx('hurt')
+      if (g.hp <= 0) { g.state = 'over'; g.dead = 0; sfx('lose') }
+    }
+  }
+  g.enemies = g.enemies.filter((e) => !e.dead || !done(e.type.kit.death, e.t))
+
+  // magic bolt: always on, aims at the nearest enemy
+  const T_ = g.timers
+  T_.bolt -= dt
+  if (T_.bolt <= 0) {
+    const target = nearest(g.x, g.y, 190)
+    if (target) {
+      const a = Math.atan2(target.y - 8 - (g.y - 10), target.x - g.x)
+      g.bolts.push({ x: g.x, y: g.y - 10, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, life: 1.6 })
+      sfx('magic', { pitch: 1.4, volume: 0.6 })
+      T_.bolt = 0.85 * 0.85 ** lvlOf('bolt')
+    }
+  }
+  for (const b of g.bolts) {
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt
+    for (const e of g.enemies) if (!e.dead && Math.hypot(e.x - b.x, e.y - 8 - b.y) < 9) { hurt(e, 3 + lvlOf('bolt')); effect(FX.impact, b.x, b.y); b.life = 0; sfx('hit', { seed: g.kills % 4 }); break }
+  }
+  g.bolts = g.bolts.filter((b) => b.life > 0)
+
+  // fire aura: burns what's close
+  if (lvlOf('aura')) {
+    T_.aura -= dt
+    if (T_.aura <= 0) {
+      T_.aura = 0.6
+      for (const e of g.enemies) if (!e.dead && Math.hypot(e.x - g.x, e.y - g.y) < 26 + lvlOf('aura') * 4) { e.burn = 2; hurt(e, lvlOf('aura'), '#ffb347') }
+    }
+  }
+  // frost nova: freezes everything around you
+  if (lvlOf('nova')) {
+    T_.nova -= dt
+    if (T_.nova <= 0) {
+      T_.nova = 4 - lvlOf('nova') * 0.5
+      effect(FX.nova, g.x, g.y - 8)
+      sfx('ice')
+      for (const e of g.enemies) if (!e.dead && Math.hypot(e.x - g.x, e.y - g.y) < 46) { e.frozen = 1.2 + lvlOf('nova') * 0.3; hurt(e, 2, '#9ee7ff') }
+    }
+  }
+  // chain lightning: jumps between enemies
+  if (lvlOf('chain')) {
+    T_.chain -= dt
+    if (T_.chain <= 0) {
+      T_.chain = 2.6 - lvlOf('chain') * 0.3
+      let from = { x: g.x, y: g.y }, prev = null
+      for (let k = 0; k < 2 + lvlOf('chain'); k++) {
+        const e = nearest(from.x, from.y, 120, prev)
+        if (!e) break
+        effect(FX.lightning, e.x, e.y - 14)
+        hurt(e, 5, '#ffe066'); prev = e; from = e
+      }
+      sfx('zap')
+    }
+  }
+  // meteor: falls on someone far away, burns an area
+  if (lvlOf('meteor')) {
+    T_.meteor -= dt
+    if (T_.meteor <= 0) {
+      T_.meteor = 4.5 - lvlOf('meteor') * 0.6
+      const alive = g.enemies.filter((e) => !e.dead)
+      const e = alive[Math.floor(Math.random() * alive.length)]
+      if (e) { effect(FX.meteor, e.x, e.y - 24, { boom: { x: e.x, y: e.y, at: 0.45 * FX.meteor.imgs.length / FX.meteor.fps } }); sfx('meteor', { volume: 0.7 }) }
+    }
+  }
+  // ice blades orbit you
+  const blades = lvlOf('blades') ? lvlOf('blades') + 1 : 0
+  g.blades = Array.from({ length: blades }, (_, k) => {
+    const a = g.t * 3 + (k / blades) * Math.PI * 2
+    return { x: g.x + Math.cos(a) * 30, y: g.y - 8 + Math.sin(a) * 22 }
+  })
+  for (const b of g.blades) for (const e of g.enemies) {
+    if (e.dead || Math.hypot(e.x - b.x, e.y - 8 - b.y) > 10) continue
+    if ((e.hitBy.get('blade') ?? 0) > g.t) continue
+    e.hitBy.set('blade', g.t + 0.4); hurt(e, 2 + lvlOf('blades'), '#c8f8ff')
+  }
+
+  // effects: meteors hit when they land
+  for (const f of g.fx) {
+    f.t += dt
+    if (f.boom && f.t >= f.boom.at && !f.boomed) {
+      f.boomed = true
+      for (const e of g.enemies) if (!e.dead && Math.hypot(e.x - f.boom.x, e.y - f.boom.y) < 34) { e.burn = 2; hurt(e, 10 + lvlOf('meteor') * 3, '#ff8a3d') }
+    }
+  }
+  g.fx = g.fx.filter((f) => !done(f.a, f.t))
+  for (const n of g.numbers) n.t += dt
+  g.numbers = g.numbers.filter((n) => n.t < 0.7)
+
+  // gems fly to you when you're close
+  for (const gm of g.gems) {
+    const d = Math.hypot(g.x - gm.x, g.y - 8 - gm.y)
+    if (d < 64) { gm.x += ((g.x - gm.x) / d) * 220 * dt; gm.y += ((g.y - 8 - gm.y) / d) * 220 * dt }
+    if (d < 8) {
+      gm.taken = true; g.xp += gm.v
+      effect(FX.pickup, gm.x, gm.y)
+      sfx('gem', { pitch: 1 + Math.min(0.6, g.xp / g.next * 0.6), volume: 0.5 })
+      if (g.xp >= g.next) levelUp()
+    }
+  }
+  g.gems = g.gems.filter((gm) => !gm.taken)
+}
+
+// ---------------------------------------------------------------- draw
+function draw() {
+  const cx = Math.round(Math.min(MAP_W * T - W, Math.max(0, g.x - W / 2)))
+  const cy = Math.round(Math.min(MAP_H * T - H, Math.max(0, g.y - H / 2)))
+  ctx.drawImage(groundC, cx, cy, W, H, 0, 0, W, H)
+  ctx.fillStyle = 'rgba(6, 10, 28, 0.62)' // night, so the spells light things up
+  ctx.fillRect(0, 0, W, H)
+  const sx = (x) => Math.round(x - cx), sy = (y) => Math.round(y - cy)
+  const at = (img, x, y) => ctx.drawImage(img, sx(x) - (img.width >> 1), sy(y) - (img.height >> 1))
+
+  for (let k = 0; k < 3; k++) { // three firefly swarms drifting slower than the ground (parallax)
+    const fx = ((k * 211 - cx * 0.4) % 440 + 440) % 440 - 120, fy = ((k * 97 - cy * 0.4) % 260 + 260) % 260 - 90
+    ctx.drawImage(frameAt(FX.fireflies, g.t + k), Math.round(fx), Math.round(fy))
+  }
+  if (lvlOf('aura')) at(frameAt(FX.aura, g.t), g.x, g.y - 10)
+  for (const gm of g.gems) at(gem, gm.x, gm.y + Math.sin(g.t * 6 + gm.x) * 1.5)
+
+  // characters, back to front
+  const actors = [...g.enemies.map((e) => ({ e, y: e.y })), { hero: true, y: g.y }].sort((a, b) => a.y - b.y)
+  for (const a of actors) {
+    if (a.hero) {
+      if (g.state === 'over') { const d = frameAt(hero.death, g.dead); ctx.drawImage(d, sx(g.x) - 16, sy(g.y) - 31); continue }
+      if (g.invuln && Math.floor(g.t * 14) % 2) continue
+      const w = hero.walk[g.dir]
+      ctx.drawImage(g.moving ? frameAt(w, g.t) : w.imgs[0], sx(g.x) - 12, sy(g.y) - 23)
+      continue
+    }
+    const e = a.e, k = e.type.kit
+    if (e.dead) { ctx.drawImage(frameAt(k.death, e.t), sx(e.x) - 16, sy(e.y) - 31); continue }
+    const img = frameAt(k.walk[e.dir], e.frozen > 0 ? 0 : e.t)
+    if (e.flash > 0) ctx.filter = 'brightness(3)'
+    ctx.drawImage(img, sx(e.x) - 12, sy(e.y) - 23)
+    ctx.filter = 'none'
+    if (e.frozen > 0) at(frameAt(FX.frozen, g.t), e.x, e.y - 10)
+    else if (e.burn > 0) at(frameAt(FX.burning, g.t), e.x, e.y - 10)
+  }
+  for (const b of g.blades ?? []) at(frameAt(FX.blade, g.t), b.x, b.y)
+  for (const b of g.bolts) at(frameAt(FX.bolt, g.t), b.x, b.y)
+  for (const f of g.fx) at(frameAt(f.a, f.t), f.x, f.y)
+  for (const n of g.numbers) at(n.img, n.x, n.y - n.t * 14)
+
+  // HUD
+  for (let i = 0; i < g.maxHp / 2; i++) ctx.drawImage(g.hp - i * 2 >= 1 ? heart : heartEmpty, 4 + i * 9, 4)
+  ctx.fillStyle = '#1b2620'; ctx.fillRect(4, 14, 92, 4)
+  ctx.fillStyle = '#5ac8e8'; ctx.fillRect(4, 14, Math.round(92 * Math.min(1, g.xp / g.next)), 4)
+  ctx.drawImage(label(`LV ${g.lvl}`, '#a8e05a'), 100, 12)
+  const s = Math.floor(g.t)
+  const clock = label(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`)
+  ctx.drawImage(clock, (W - clock.width) >> 1, 4)
+  ctx.drawImage(skull, W - 34, 4)
+  ctx.drawImage(label(String(g.kills)), W - 24, 5)
+
+  if (g.state === 'title') {
+    const tl = label('SPELL SURVIVORS', '#ffd06a')
+    ctx.drawImage(tl, (W - tl.width * 2) >> 1, 58, tl.width * 2, tl.height * 2)
+    if (Math.floor(g.t * 2) % 2) { const p = label('PRESS ANY KEY OR TAP'); ctx.drawImage(p, (W - p.width) >> 1, 100) }
+  }
+  if (g.state === 'levelup') {
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, W, H)
+    const t = label('LEVEL UP: PICK A SPELL', '#a8e05a'); ctx.drawImage(t, (W - t.width) >> 1, 44)
+    g.choices.forEach((u, i) => {
+      const x = 25 + i * 92, y = 60
+      ctx.fillStyle = '#16211b'; ctx.fillRect(x, y, 86, 70)
+      ctx.strokeStyle = '#a8e05a'; ctx.strokeRect(x + 0.5, y + 0.5, 85, 69)
+      ctx.drawImage(u.icon, x + 43 - (u.icon.width >> 1), y + 10)
+      const n = label(u.name); ctx.drawImage(n, x + 43 - (n.width >> 1), y + 46)
+      const l = label(`${i + 1}  LV ${lvlOf(u.id) + 1}`, '#8aa592'); ctx.drawImage(l, x + 43 - (l.width >> 1), y + 57)
+    })
+  }
+  if (g.state === 'over') {
+    const o = label('YOU FELL', '#ff6b6b'); ctx.drawImage(o, (W - o.width * 2) >> 1, 60, o.width * 2, o.height * 2)
+    const r = label(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} SURVIVED   ${g.kills} DEFEATED`); ctx.drawImage(r, (W - r.width) >> 1, 84)
+    if (g.dead > 1 && Math.floor(g.t * 2) % 2) { const p = label('PRESS ANY KEY TO TRY AGAIN'); ctx.drawImage(p, (W - p.width) >> 1, 100) }
+  }
+  if (demo) { const d = label('DEMO', '#ffd06a'); ctx.drawImage(d, W - d.width - 4, H - 10) }
+}
+
+// ---------------------------------------------------------------- loop + sizing
+function fit() {
+  let s = Math.min((innerWidth - 24) / W, (innerHeight - 140) / H)
+  s = s >= 2 ? Math.floor(s) : Math.max(0.5, s) // whole-pixel zoom when there's room, otherwise fill the phone
+  canvas.style.width = `${W * s}px`; canvas.style.height = `${H * s}px`
+}
+addEventListener('resize', fit); fit()
+let last = null
+requestAnimationFrame(function loop(now) {
+  const dt = last === null ? 0 : Math.min(0.05, Math.max(0, (now - last) / 1000))
+  last = now
+  update(dt); draw()
+  requestAnimationFrame(loop)
+})
+if (demo) { g.have = { bolt: 1, aura: 1, blades: 1, chain: 1, meteor: 1, nova: 1 } } // the attract mode shows off every spell
+for (let i = 0; i < warm * 30; i++) update(1 / 30)
+Object.assign(window, { game: () => g, spell })
+</script>
+</body>
+</html>
