@@ -10,6 +10,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 
 - **Sprites as code:** 126 sprites, 441 looks with variants. Recolor any of them to 18 materials or any hex
   color, combine them, resize them crisply, export PNG / animated PNG / sheets / atlas.
+- **World building:** 42 more tiles and props (614 sprite looks in all): doors, windows, roofs, fences, furniture, dungeon
+  pieces (pillars, spike traps, stairs, cobwebs, bones), a cauldron, anvil, well, fountain, banners, tent, mine cart and
+  rails, more nature, and seamless cobblestone, roof, carpet, checkered floor, bridge and animated lava.
 - **Characters:**
   - 12 bodies and 2.7 million combinations of hats, held items and off-hand items, snapped on by name.
   - 4-direction walk cycles.

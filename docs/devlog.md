@@ -906,3 +906,25 @@ its own output. A PixSpell agent picked assets by name and never saw them.
     bursts into a bright cyan-white flash, then spreads into a widening light-blue arc").
 - **Not yet:** the Claude Code plugin could start this server by itself through a `.mcp.json`, but that needs
   `npx pixspell` to exist, so it waits for the npm release.
+
+## Round 11: more content
+
+Counting what there was showed the gap: 12 tiles, 22 items, 6 monsters, 18 icons, and no music. The 2.7 million
+characters had little world to stand in. The plan is world building, then monsters, then items, a UI kit and music.
+
+### (a) Shipped: 42 world-building tiles and props
+
+- **New sprites:** `src/sprites/world.js`, category `tiles`. Each has 2–4 material variants, adding 173 looks
+  (614 sprite looks, up from 441).
+- **Indoors and dungeon:** door, stairs, barrel, crate, pot, table, chair, bed, bookshelf, wall torch, spike trap, pillar,
+  cobweb, bones, tombstone, cauldron, anvil, minecart, rails.
+- **Town and outdoors:** fence, well, window, lamp post, hay bale, pumpkin, banner, tent, sack, fountain, cactus,
+  pine tree, giant mushroom, stump, crystals, lily pad.
+- **Seamless ground:**
+  - cobblestone, roof scales, carpet, checkered floor and bridge;
+  - lava that flows by shifting the tile;
+  - fence, rails and bridge repeat sideways, the ladder repeats downward.
+- **Art fix:** the first roof read as bricks, so the shingles are now rounded scales.
+- **Showcase:** `docs/img/world.png` is a village and a dungeon room built only from these sprites, with a walking
+  wizard and knight.
+- **Checks:** the snapshots changed only by adding the 173 new looks; no existing look changed.

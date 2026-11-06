@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**2.7 million** characters with walk cycles and actions · **441** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
+**2.7 million** characters with walk cycles and actions · **614** sprites · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -24,7 +24,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-126_base_·_441_looks-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-168_base_·_614_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-80_designs_·_545_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-66_×_10_elements-a8e05a?style=flat-square)
 ![characters](https://img.shields.io/badge/characters-2%2C756%2C176-a8e05a?style=flat-square)
@@ -70,7 +70,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [42 world-building tiles and props](#-the-collection) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 66 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -318,8 +318,16 @@ outlines, drop shadows, hue shifts, flips and rotations, all chainable.
 
 ## 🖼 The collection
 
-126 base sprites in 7 categories, **441 looks** with variants, 33 of them animated.
-Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamless tiles, props, UI icons,
+<img src="docs/img/world.png" alt="A village and a dungeon room built only from PixSpell tiles and props, with a walking wizard and knight" width="672">
+
+**Build a whole world:** a village and a dungeon room, every pixel a PixSpell sprite. Doors, windows, roofs, fences,
+wells, lamp posts, barrels, crates, sacks, beds, tables, chairs, bookshelves, cauldrons, anvils, banners, tents, wall
+torches, pillars, spike traps, stairs, cobwebs, bones, tombstones, mine carts and rails, cactus, pine trees, giant
+mushrooms, crystals and lily pads, plus seamless cobblestone, roof tiles, carpet, checkered floors, bridges and
+flowing lava. Each comes in several materials (`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
+
+168 base sprites in 7 categories, **614 looks** with variants, 38 of them animated.
+Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamless tiles, props, furniture, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [80 procedural effects](#-545-game-effects)
 add 525 more animated looks; all of them are exported in `assets/` too.
 

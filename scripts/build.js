@@ -408,6 +408,48 @@ function showTiles() {
   }
 }
 
+// A village and a dungeon room built only from tiles and props, animated (lava, torches, cauldron, fountain, banners)
+function worldShowcase() {
+  const T = 16, W = 14, H = 9
+  const frameOf = (id, t) => { const f = spell.frames(id); return f[t % f.length] }
+  const village = (t) => {
+    let img = new Pixmap(W * T, H * T)
+    const at = (id, x, y) => { img = img.draw(frameOf(id, t), x, y) }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) at(y === 6 && x < 11 ? 'cobblestone' : x >= 11 && y >= 6 ? 'water' : 'grass', x * T, y * T)
+    for (let x = 1; x < 6; x++) { at('roof', x * T, T); at('roof', x * T, 2 * T); at('planks', x * T, 3 * T); at('planks', x * T, 4 * T) }
+    at('door', 3 * T, 4 * T); at('window', T + 6, 3 * T + 2); at('window-lit', 4 * T + 6, 3 * T + 2); at('banner', 6 * T + 2, 2 * T + 4)
+    for (let x = 7; x < 11; x++) at('fence', x * T, 4 * T)
+    at('well', 8 * T, 2 * T + 2); at('lamp-post', 6 * T, 5 * T - 6); at('hay-bale', 11 * T, 3 * T + 4); at('pumpkin', 12 * T, 4 * T)
+    at('pumpkin-white', 13 * T - 4, 4 * T + 2); at('pine-tree', 12 * T, 0); at('pine-tree', 10 * T + 4, -4); at('tree', 0, 7 * T - 4)
+    at('stump', 2 * T, 7 * T + 2); at('barrel', 6 * T + 2, 3 * T + 8); at('crate', 0, 5 * T); at('sack', T, 5 * T)
+    at('bridge', 11 * T, 6 * T); at('bridge', 12 * T, 6 * T); at('bridge', 13 * T, 6 * T); at('lily-pad', 12 * T, 7 * T + 4)
+    at('fountain', 8 * T, 7 * T); at('giant-mushroom', 4 * T, 7 * T); at('tent', 6 * T, 7 * T)
+    const hero = spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'right')
+    img = img.draw(hero[t % hero.length], 2 * T + 2 + t * 2, 5 * T + 4)
+    return img
+  }
+  const dungeon = (t) => {
+    let img = new Pixmap(W * T, H * T)
+    const at = (id, x, y) => { img = img.draw(frameOf(id, t), x, y) }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      at(y < 2 ? 'brick-dungeon' : x >= 9 && y >= 6 ? 'lava' : x >= 3 && x <= 6 && y >= 3 && y <= 6 ? 'carpet' : 'checker-floor-dungeon', x * T, y * T)
+    }
+    at('door-dark', 6 * T, T); at('wall-torch', 4 * T, 12); at('wall-torch', 8 * T, 12); at('banner-black', 2 * T, 6); at('banner-black', 10 * T, 6)
+    at('pillar', T, 2 * T); at('pillar', T, 5 * T); at('pillar-dark', 12 * T, 2 * T); at('cobweb', 0, 2 * T); at('bones', 2 * T, 7 * T)
+    at('spikes', 7 * T, 6 * T); at('spikes', 8 * T, 6 * T); at('bookshelf', 9 * T, 2 * T); at('bookshelf-magic', 10 * T, 2 * T)
+    at('cauldron', 11 * T + 4, 3 * T + 6); at('table', 4 * T, 4 * T); at('chair', 3 * T + 2, 4 * T - 2); at('stairs-down', 13 * T, 7 * T)
+    at('crystals-amethyst', 12 * T, 5 * T); at('chest-gold', 5 * T + 4, 2 * T + 8); at('pot', 2 * T, 3 * T); at('pot-blue', 2 * T + 10, 3 * T + 4)
+    at('bed', 7 * T, 3 * T + 4); at('anvil', 0, 4 * T); at('minecart', T, 7 * T); at('tombstone', 6 * T, 7 * T)
+    const knight = spell.walk({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, 'down')
+    img = img.draw(knight[t % knight.length], 6 * T - 4, 3 * T + 6 + t)
+    return img
+  }
+  return Array.from({ length: 12 }, (_, t) => {
+    const a = village(t), b = dungeon(t)
+    return Pixmap.create(a.w, a.h * 2 + 4, BG).draw(a, 0, 0).draw(b, 0, a.h + 4).scale(3)
+  })
+}
+
 // The profile-card example in the README: a made-up account, so the image never changes
 function heroExample() {
   const stats = { login: 'you', createdAt: '2019-03-01T00:00:00Z', repos: 42, followers: 120, stars: 860,
@@ -418,6 +460,7 @@ function heroExample() {
 async function buildShowcase() {
   const dir = join(root, 'docs', 'img')
   { const { frames, fps } = heroExample(); await write(join(dir, 'hero.png'), apng(frames, fps)) }
+  await write(join(dir, 'world.png'), apng(worldShowcase(), 6))
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {
     for (const [name, fn] of Object.entries({ gallery, recolor, combine, sizes, scene, banner, characters, actions, walks, social, fxShowcase, gridsShowcase })) {

@@ -136,6 +136,13 @@ Pixmap methods return new images and chain: `.scale(4)` (`0.5` halves) `.smooth(
 
 Materials: `red orange gold lime green mint ice blue purple pink wood leather skin sand iron stone bone shadow`.
 
+Maps: seamless ground tiles (`grass` `dirt` `stone` `brick` `planks` `water` `cobblestone` `roof` `carpet` `checker-floor`
+`lava`, plus `fence` `bridge` `rails` across and `ladder` down) and props to place on them: `door` `window` `stairs-down`
+`barrel` `crate` `pot` `sack` `table` `chair` `bed` `bookshelf` `wall-torch` `lamp-post` `banner` `pillar` `spikes`
+`cauldron` `anvil` `well` `fountain` `tent` `minecart` `tombstone` `bones` `cobweb` `tree` `pine-tree` `cactus` `bush` `rock`
+`stump` `giant-mushroom` `crystals` `lily-pad` `hay-bale` `pumpkin` `flower` `sign` `campfire`. Most have material
+variants (`door-iron`, `checker-floor-dungeon`, `lava-toxic`); every id and variant is in catalog.md.
+
 ## Recipe: a playable top-down game in one HTML file
 
 ```html
