@@ -8,6 +8,8 @@
 // darkest shade and highlights the lightest. Color palettes pick the nearest color. Only the 15 or so colors a sprite
 // uses are mapped, at render time, so it costs nothing per pixel.
 
+import { didYouMean } from './suggest.js'
+
 const hex = (s) => s.split(' ').map((c) => `#${c}`)
 export const PALETTES = {
   gameboy: { colors: hex('0f380f 306230 8bac0f 9bbc0f'), by: 'light', note: 'the original Game Boy greens' },
@@ -27,7 +29,7 @@ let active = null // { name, colors: [[r,g,b]], by, cache: Map }
 function prepare(name) {
   if (name == null) return null
   const p = Array.isArray(name) ? { colors: name, by: 'nearest' } : PALETTES[name]
-  if (!p) throw new Error(`pixspell: no palette called "${name}". Palettes: ${Object.keys(PALETTES).join(', ')} (or pass an array of colors)`)
+  if (!p) throw new Error(`pixspell: no palette called "${name}".${didYouMean(name, Object.keys(PALETTES))} Palettes: ${Object.keys(PALETTES).join(', ')} (or pass an array of colors)`)
   const colors = p.colors.map((c) => (typeof c === 'string' ? parse(c) : c.slice(0, 3)))
   const lum = (c) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
   if (p.by === 'light') colors.sort((a, b) => lum(a) - lum(b))

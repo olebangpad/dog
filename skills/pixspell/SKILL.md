@@ -41,6 +41,8 @@ Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): e
    `spell.action(spec, 'attack', { element: 'fire', grid: 32 })`, `spell.fx('boom', { grid: 32 })`, `spell.pack(spec, { grid: 32 })`.
    Sizes and anchors scale with it: at grid 32, characters are 48×48 (feet at 24, 47), actions and packs 64×64 (feet at 32, 63).
    Use one grid for the whole game; `smooth: false` gives plain zoom instead of Scale2x.
+7. Names are checked: a wrong sprite, effect, sound, track, gear, action, element or color throws an error that names the
+   closest real ones (`no sprite called "sowrd". Did you mean "sword"?`). Use the suggestion; don't guess again.
 
 ## Characters
 

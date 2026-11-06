@@ -8,6 +8,7 @@
 //   node scripts/pixspell.js outline < my-art.txt                              (auto-outline helper)
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from 'node:fs'
+import { didYouMean } from '../src/suggest.js'
 import { homedir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -118,10 +119,18 @@ function parse(argv) {
     else if (a === '--preview') opts.preview = next()
     else if (a === '--tempo') opts.tempo = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
+    else if (/^--?[a-z]/i.test(a)) (opts.unknown ??= []).push(a)
     else opts._.push(a)
   }
   return opts
 }
+// every option parse() knows, for "did you mean" on a typo
+const OPTIONS = ['-A', '-B', '-C', '-o', '--out', '--scale', '--smooth', '--outline', '--shadow', '--hue', '--sat', '--light', '--flip-x',
+  '--flip-y', '--rotate', '--frame', '--anim', '--hat', '--hand', '--offhand', '--random', '--action', '--walk', '--element', '--strip',
+  '--dir', '--size', '--seed', '--on', '--pitch', '--grid', '--no-effects', '--no-sounds', '--all-colors', '--volume', '--claude',
+  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--help']
+const COMMANDS = ['list', 'materials', 'info', 'render', 'combine', 'char', 'pack', 'fx', 'fxpack', 'sfx', 'import', 'autotile', 'music',
+  'sfxpack', 'export', 'hero', 'preview', 'doctor', 'mcp', 'skill', 'outline']
 
 function finish(img, o) {
   if (o.flipX) img = img.flipX()
@@ -151,8 +160,20 @@ function autoOutline(src) {
     : filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1) ? '#' : '.').join('')).join('\n')
 }
 
+// errors print as one line (PIXSPELL_DEBUG=1 for the stack), and the exit code says it failed
+const fail = (e) => {
+  console.error(process.env.PIXSPELL_DEBUG ? e : `${e?.message ?? e}`.replace(/^(pixspell: )?/, 'pixspell: '))
+  process.exit(1)
+}
+process.on('uncaughtException', fail)
+process.on('unhandledRejection', fail)
+
 const o = parse(process.argv.slice(2))
 const [cmd, ...args] = o._
+for (const u of o.unknown ?? []) {
+  console.error(`pixspell: unknown option ${u}.${didYouMean(u, OPTIONS)} See: pixspell --help`)
+  process.exit(1)
+}
 
 if (!cmd || o.help) {
   console.log(HELP)
@@ -167,7 +188,7 @@ if (!cmd || o.help) {
   console.log({ id: args[0], size: `${def.w}x${def.h}`, category: def.category, slots: def.slots, ramps: r, frames: def.frames.length, fps: def.fps, variants: Object.keys(def.variants) })
 } else if (cmd === 'render') {
   const id = args[0]
-  if (!looks[id]) throw new Error(`unknown sprite "${id}" - run: pixspell list`)
+  if (!looks[id]) throw new Error(`no sprite called "${id}".${didYouMean(id, Object.keys(looks))} Every id: pixspell list`)
   const out = o.out ?? `${id}.png`
   if (o.anim) {
     const frames = spell.frames(id, { ...ramps(o), grid: o.grid }).map((f) => finish(f, o))
@@ -185,7 +206,7 @@ if (!cmd || o.help) {
 } else if (cmd === 'char') {
   const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
-  console.log(spec)
+  if (o.random) console.error(`random character: ${JSON.stringify(spec)}`) // what the seed rolled, to rebuild it in code
   const name = o.out ?? `${spec.body}${o.walk ? '-walk-' + o.walk : o.action ? '-' + o.action : ''}.png`
   const g = { grid: o.grid }
   const frames = o.walk ? spell.walk(spec, o.walk, g) : o.action ? spell.action(spec, o.action, { element: o.element, grid: o.grid }) : spell.char.frames(spec, g)
@@ -380,7 +401,7 @@ if (!cmd || o.help) {
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))
 } else {
-  console.error(`unknown command "${cmd}"\n`)
+  console.error(`pixspell: unknown command "${cmd}".${didYouMean(cmd, COMMANDS)}\n`)
   console.log(HELP)
   process.exitCode = 1
 }

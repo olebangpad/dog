@@ -10,6 +10,7 @@
 import { render, defineSprite } from './sprite.js'
 import { Pixmap } from './pixmap.js'
 import { MATERIAL_NAMES } from './materials.js'
+import { didYouMean } from './suggest.js'
 
 export const CHAR_SIZE = 24
 export const BODY_AT = [4, 8] // where the 16x16 body sits inside the 24x24 character
@@ -69,13 +70,16 @@ export function createCharacters(looks) {
     if (!value) return null
     const ref = typeof value === 'string' ? { id: value } : value
     const id = [`${PREFIX[kind]}-${ref.id}`, ref.id].find((c) => looks[c]?.def.equip === kind)
-    if (!id) throw new Error(`pixspell: "${ref.id}" can't be worn on ${kind}. Try: ${parts[kind].slice(0, 6).join(', ')}...`)
+    if (!id) {
+      const short = parts[kind].map((p) => p.replace(`${PREFIX[kind]}-`, ''))
+      throw new Error(`pixspell: "${ref.id}" can't be worn on ${kind}.${didYouMean(ref.id, short) || ` Try: ${short.slice(0, 6).join(', ')}...`} Every one: spell.char.parts.${kind}`)
+    }
     return { look: looks[id], ramps: { ...looks[id].ramps, ...pickRamps(ref) } }
   }
 
   function normalize(body, opts) {
     const spec = typeof body === 'object' && body !== null ? { ...body } : { ...opts, body }
-    if (!looks[spec.body]) throw new Error(`pixspell: no body called "${spec.body}". Bodies: ${parts.body.filter((b) => !b.includes('-')).join(', ')}`)
+    if (!looks[spec.body]) throw new Error(`pixspell: no body called "${spec.body}".${didYouMean(spec.body, parts.body)} Bodies: ${parts.body.filter((b) => !b.includes('-')).join(', ')}`)
     if (!Object.keys(looks[spec.body].def.anchors).length) throw new Error(`pixspell: "${spec.body}" has no anchors, so it can't wear gear`)
     return spec
   }
@@ -137,7 +141,7 @@ export function createCharacters(looks) {
    */
   char.walk = (body, dir = 'down', opts = {}) => {
     if (typeof dir === 'object') [dir, opts] = [dir.dir ?? 'down', dir]
-    if (!WALK_DIRS.includes(dir) && !WALK_DIAGONALS.includes(dir)) throw new Error(`pixspell: walk direction must be one of ${[...WALK_DIRS, ...WALK_DIAGONALS].join(', ')}`)
+    if (!WALK_DIRS.includes(dir) && !WALK_DIAGONALS.includes(dir)) throw new Error(`pixspell: walk direction must be one of ${[...WALK_DIRS, ...WALK_DIAGONALS].join(', ')}.${didYouMean(dir, [...WALK_DIRS, ...WALK_DIAGONALS])}`)
     const spec = normalize(body, opts)
     const base = looks[spec.body].def.id
     const diagonal = dir.includes('-')

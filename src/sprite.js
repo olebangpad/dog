@@ -14,6 +14,7 @@ import { paletteColor } from './palette.js'
 import { MATERIALS, OUTLINE, WHITE } from './materials.js'
 import { parseColor, rampFrom, isColor } from './color.js'
 import { Pixmap } from './pixmap.js'
+import { didYouMean } from './suggest.js'
 
 export const LEGEND = {
   '1': ['A', 0], '2': ['A', 1], '3': ['A', 2], '4': ['A', 3],
@@ -36,7 +37,7 @@ export function resolveRamp(value) {
   }
   if (MATERIALS[value]) return MATERIALS[value]
   if (isColor(value)) return rampFrom(value)
-  throw new Error(`pixspell: unknown material "${value}"`)
+  throw new Error(`pixspell: unknown color "${value}": use a material (${Object.keys(MATERIALS).join(', ')}), a hex color like "#ff4fd8", or 4 colors.${didYouMean(value, Object.keys(MATERIALS))}`)
 }
 
 /** Which ramp slots (A/B/C) a sprite actually paints with. */

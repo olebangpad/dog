@@ -11,6 +11,7 @@
 
 import { Pixmap, sheet } from './pixmap.js'
 import { zip } from './zip.js'
+import { didYouMean } from './suggest.js'
 
 export const PACK_CELL = 32
 const ORIGIN = { x: 16, y: 31 }
@@ -99,7 +100,7 @@ export function createFxPack(spell, looks) {
   return function fxPack(ids = spell.fx.list, { name = 'effects', deflate, grid } = {}) {
     const rows = ids.map((raw) => {
       const id = looks[raw] ? raw : `fx-${raw}`
-      if (!looks[id]) throw new Error(`pixspell: no effect called "${raw}"`)
+      if (!looks[id]) throw new Error(`pixspell: no effect called "${raw}".${didYouMean(raw, spell.fx.list.map((f) => f.replace(/^fx-/, '')))}`)
       const { def } = looks[id]
       return { tag: id.replace(/^fx-/, ''), frames: spell.frames(id, { grid }), fps: def.fps, loop: def.tags.includes('loop') }
     })

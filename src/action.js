@@ -13,6 +13,10 @@ import { text } from './font.js'
 import { OUTLINE } from './materials.js'
 import { resolveRamp } from './sprite.js'
 import { BODY_AT } from './character.js'
+import { didYouMean } from './suggest.js'
+import { isColor } from './color.js'
+import { MATERIALS } from './materials.js'
+const isRampValue = (v) => Array.isArray(v) || MATERIALS[v] != null || isColor(v)
 
 export const ACTION_SIZE = 32
 export const ACTION_FRAMES = 8
@@ -58,6 +62,9 @@ export function createActions(spell, looks) {
     const s = typeof spec === 'string' ? { body: spec } : { ...spec }
     const o = typeof opts === 'string' ? { element: opts } : { ...opts }
     const material = o.element ? (ELEMENTS[o.element] ?? o.element) : fallback
+    if (o.element && !ELEMENTS[o.element] && !isRampValue(o.element)) {
+      throw new Error(`pixspell: unknown element "${o.element}". Elements: ${Object.keys(ELEMENTS).join(', ')} (or a material or hex color).${didYouMean(o.element, [...Object.keys(ELEMENTS), ...Object.keys(MATERIALS)])}`)
+    }
     const ramp = resolveRamp(material)
     const frames = spell.char.frames(s)
     const char = (i) => frames[i % frames.length]
@@ -200,7 +207,7 @@ export function createActions(spell, looks) {
   /** 8 frames (32x32) of `spec` performing `name`. `opts`: element name, or { element, amount, text, label }. */
   function action(spec, name, opts = {}) {
     const a = ACTIONS[name]
-    if (!a) throw new Error(`pixspell: unknown action "${name}". Try: ${Object.keys(ACTIONS).join(', ')}`)
+    if (!a) throw new Error(`pixspell: unknown action "${name}". Actions: ${Object.keys(ACTIONS).join(', ')}.${didYouMean(name, Object.keys(ACTIONS))}`)
     const c = setup(spec, opts, a.fallback)
     const frames = a.build(c)
     frames.fps = a.fps

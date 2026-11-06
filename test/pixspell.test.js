@@ -206,7 +206,7 @@ test('pixel font', () => {
 test('bad art is rejected with a helpful message', () => {
   assert.throws(() => defineSprite({ id: 'x', art: '..\n...' }), /row 1 is 3 wide/)
   assert.throws(() => defineSprite({ id: 'x', art: '.z' }), /unknown pixel "z"/)
-  assert.throws(() => spell('potion', { A: 'not-a-material' }), /unknown material/)
+  assert.throws(() => spell('potion', { A: 'not-a-material' }), /unknown color "not-a-material": use a material \(red, /)
 })
 
 // ------------------------------------------------------------ characters
@@ -1207,5 +1207,49 @@ test('volume and mute: master, music and sfx levels, clamped; music is on the mu
     assert.equal(spell.music.playing(), null)
   } finally {
     spell.volume(1); spell.volume('music', 1); spell.volume('sfx', 1); spell.mute(false)
+  }
+})
+
+test('typos get a "did you mean": sprites, effects, sounds, music, gear, actions, elements, colors, palettes', () => {
+  const cases = [
+    [() => spell('sowrd'), /no sprite called "sowrd"\. Did you mean "sword"/],
+    [() => spell.fx('meteorr'), /Did you mean "meteor"\?/],
+    [() => spell.status('slime', 'burnin'), /Did you mean "burning"\?/],
+    [() => spell.sfx('coins'), /Did you mean "coin"\?/],
+    [() => spell.sfx('hit', { element: 'fiire' }), /Did you mean "fire"\?/],
+    [() => spell.music('battel'), /Did you mean "battle"\?/],
+    [() => spell.char({ body: 'hero', hat: 'crwn' }), /can't be worn on head\. Did you mean "crown"/],
+    [() => spell.char({ body: 'hero', hand: 'swrod' }), /Did you mean "sword"/],
+    [() => spell.char({ body: 'heroo' }), /Did you mean "hero"/],
+    [() => spell.action('hero', 'atack'), /Did you mean "attack"\?/],
+    [() => spell.action('hero', 'attack', 'fiire'), /unknown element "fiire".*Did you mean "fire"\?/],
+    [() => spell.fx('boom', { element: 'fiire' }), /unknown element "fiire".*Did you mean "fire"\?/],
+    [() => spell('sword', { A: 'gld' }), /Did you mean "gold"\?/],
+    [() => spell.walk('hero', 'downright'), /Did you mean "down-right"\?/],
+    [() => spell.palette('gameboi'), /Did you mean "gameboy"/],
+    [() => spell.fxPack(['bom']), /Did you mean "boom"\?/],
+  ]
+  for (const [fn, re] of cases) assert.throws(fn, re)
+  // nothing close: no guess, still a pointer to the full list
+  assert.throws(() => spell('zzzzzzzz'), (e) => !/Did you mean/.test(e.message) && /spell\.list\(\)/.test(e.message))
+  // elements still take materials and hex colors
+  assert.equal(spell.action('hero', 'attack', { element: 'gold' }).length, 8)
+  assert.equal(spell.fx('boom', { element: '#ff00aa' }).length, spell.fx('boom').length)
+})
+
+test('CLI: typos in commands, options and names fail in one line with a suggestion', async () => {
+  const { spawnSync } = await import('node:child_process')
+  const cli = new URL('../scripts/pixspell.js', import.meta.url).pathname
+  const run = (...a) => spawnSync('node', [cli, ...a], { encoding: 'utf8' })
+  for (const [args, re] of [
+    [['rendr', 'potion'], /unknown command "rendr"\. Did you mean "render"\?/],
+    [['fx', 'meteor', '--elemnt', 'ice'], /unknown option --elemnt\. Did you mean "--element"\?/],
+    [['render', 'potoin'], /^pixspell: no sprite called "potoin"\. Did you mean "potion"/],
+    [['char', 'hero', '--hat', 'crwn'], /^pixspell: "crwn" can't be worn on head/],
+  ]) {
+    const r = run(...args)
+    assert.equal(r.status, 1, args.join(' '))
+    assert.match(r.stderr, re)
+    assert.doesNotMatch(r.stderr, /\n\s+at /, 'no stack trace')
   }
 })

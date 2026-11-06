@@ -1168,3 +1168,25 @@ I wrote a small game from SKILL.md alone and noted where the code got long or ea
   mutes on M. `templates/canvas/` got the same treatment plus a sand path that blends into the grass. I ran both in
   Chromium with simulated keys: no errors, and the knight walks and swings left with the mirrored action.
 
+### Pass 3: what happens when you get a name wrong
+
+AI agents guess names all day (`sowrd`, `fiire`, `crwn`), so I tried the wrong name on every API and in the CLI.
+
+- **Found:**
+  - `spell('sowrd')` said "Try spell.list()", which lists 1,500 ids.
+  - An element typo (`'fiire'`) was reported as "unknown material", a word the caller never used.
+  - In the CLI, a wrong sprite name printed a Node stack trace.
+  - A misspelled option (`--elemnt ice`) was silently ignored, so you got a default orange meteor and no hint why.
+- **Fixed:**
+  - `src/suggest.js` finds the closest names by edit distance, counting a swapped pair as one edit. It also matches one
+    part of a hyphenated id, so `crwn` finds `crown` and `metor` finds `meteor`.
+  - Every lookup error now ends with `Did you mean "sword"?` when something is close, and says nothing when nothing is
+    close.
+  - Elements are checked where they're used, so the message says "element" and lists the elements.
+  - The CLI suggests commands and options, refuses unknown options, and prints errors as one line with exit code 1
+    (`PIXSPELL_DEBUG=1` shows the stack).
+- **Also:** `pixspell char` printed the character spec on every run. It now prints only for `--random`, to stderr, so
+  you can rebuild that character in code.
+- **SKILL.md** tells agents the errors name the closest real names, so they read the suggestion instead of guessing again.
+- **Checked and fine:** importing the library takes about 45 ms in Node.
+

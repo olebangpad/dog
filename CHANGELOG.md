@@ -19,6 +19,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Animations are easy to save:** every frame list (`walk`, `action`, `status`, `fx`, `frames`, `char.frames`) has
   `.save(path)` (an animated PNG at its own speed), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()` and
   `.scale(n)`, and `spell.frames()` / `spell.char.frames()` now carry `.fps` and `.loop` too.
+- **Typos get an answer:** every name lookup (sprites, effects, sounds, music, gear, bodies, actions, elements, colors,
+  palettes, walk directions) says `Did you mean "sword"?` when something is close. The CLI does the same for commands
+  and options, rejects unknown options instead of ignoring them, and prints errors in one line with exit code 1.
 - **Game-loop helpers:** frame lists have `.atTime(t)`, `.duration`, `.flipX()` and `.origin` (a character's feet, an
   effect's middle, already right for the grid), and every image has a kept `.canvas` for `drawImage`. The SKILL.md game
   recipe uses them and draws an autotiled lake.

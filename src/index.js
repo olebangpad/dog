@@ -25,6 +25,7 @@ import { createAutotile } from './autotile.js'
 import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './palette.js'
 import { decodePNG, spriteFromImage } from './import.js'
 import { framed, asFrames, originKind } from './frames.js'
+import { didYouMean } from './suggest.js'
 
 /** Every sprite definition, keyed by id. */
 export const sprites = {}
@@ -60,7 +61,7 @@ export function define(raw) {
 
 function lookup(id) {
   const look = looks[id]
-  if (!look) throw new Error(`pixspell: no sprite called "${id}". Try spell.list()`)
+  if (!look) throw new Error(`pixspell: no sprite called "${id}".${didYouMean(id, Object.keys(looks))} Every id: spell.list() or catalog.md`)
   return look
 }
 
@@ -244,6 +245,7 @@ spell.pack = createPack(spell, looks)
  *   spell.fx('boom', { size: 64, seed: 3, element: 'ice' })
  */
 const recipeById = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
+const fxNames = (name) => didYouMean(String(name).replace(/^fx-/, ''), RECIPES.map((r) => r.id.replace(/^fx-/, '')))
 // rendered effects are cached: attacks and games ask for the same few over and over
 const fxMemo = new Map()
 const FX_MEMO_MAX = 300
@@ -263,10 +265,13 @@ spell.fx = framed((name, opts = {}) => {
 }, 'center')
 function renderFx(name, { size, seed, frames: count, element, A, B, C, light } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
-  if (!recipe) throw new Error(`pixspell: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
+  if (!recipe) throw new Error(`pixspell: no effect called "${name}".${fxNames(name)} Every effect: spell.fx.list`)
   const run = runRecipe(recipe, { size, seed, frames: count })
   const def = defineSprite({ id: recipe.id, frames: run.frames, ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' } })
   def.light = run.light
+  if (element && !FX_COLORS[element] && !MATERIALS[element] && !(typeof element === 'string' && /^#/.test(element))) {
+    throw new Error(`pixspell: unknown element "${element}". Elements: ${Object.keys(FX_COLORS).join(', ')} (or a material or hex color).${didYouMean(element, [...Object.keys(FX_COLORS), ...Object.keys(MATERIALS)])}`)
+  }
   const ramps = { A: A ?? (element ? FX_COLORS[element] ?? element : undefined), B, C }
   const out = renderFrames(def, { ...Object.fromEntries(Object.entries(ramps).filter(([, v]) => v != null)), light })
   out.fps = recipe.fps ?? 12
@@ -286,7 +291,7 @@ spell.fxPack = createFxPack(spell, looks)
 spell.status = framed((...a) => applyActive(statusFrames(...a)), 'feet')
 function statusFrames(spec, name, { walk, element, size = 32, grid, smooth } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
-  if (!recipe) throw new Error(`pixspell: no effect called "${name}"`)
+  if (!recipe) throw new Error(`pixspell: no effect called "${name}".${fxNames(name)} Every effect: spell.fx.list`)
   const k = gridFactor(grid)
   size *= k
   const effect = spell.fx(recipe.id, { element, size }) // drawn natively at the new size
@@ -355,9 +360,9 @@ const sfxMemo = new Map()
  */
 spell.sfx = (name, opts = {}) => {
   const recipe = soundById[name]
-  if (!recipe) throw new Error(`pixspell: no sound called "${name}". Try spell.sfx.list`)
+  if (!recipe) throw new Error(`pixspell: no sound called "${name}".${didYouMean(name, SOUNDS.map((r) => r.id))} Every sound: spell.sfx.list`)
   const { seed = 0, pitch = 1, volume = 1, element } = opts
-  if (element != null && !FLAVORS[element]) throw new Error(`pixspell sfx: element must be one of ${Object.keys(FLAVORS).join(', ')}`)
+  if (element != null && !FLAVORS[element]) throw new Error(`pixspell: a sound's element must be one of ${Object.keys(FLAVORS).join(', ')}.${didYouMean(element, Object.keys(FLAVORS))}`)
   const key = `${name}|${seed}|${pitch}|${volume}|${element ?? ''}`
   let sound = sfxMemo.get(key)
   if (!sound) {
@@ -438,7 +443,7 @@ const musicMemo = new Map()
  */
 spell.music = (name, opts = {}) => {
   const song = songById[name]
-  if (!song) throw new Error(`pixspell: no music called "${name}". Try spell.music.list`)
+  if (!song) throw new Error(`pixspell: no music called "${name}".${didYouMean(name, SONGS.map((s) => s.id))} Tracks: ${SONGS.map((s) => s.id).join(', ')}`)
   const { seed = 0, key = 0, tempo = 1, volume = 1 } = opts
   const memoKey = `${name}|${seed}|${key}|${tempo}|${volume}`
   let sound = musicMemo.get(memoKey)
