@@ -1128,8 +1128,8 @@ test('CLI imports a PNG as sprite source', async () => {
     const code = execFileSync('node', [cli, 'import', join(dir, 'my-chest.png')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
     assert.match(code, /id: "my-chest"/)
     assert.match(code, /art: `/)
-    execFileSync('node', [cli, 'import', join(dir, 'my-chest.png'), '--id', 'loot', '-o', join(dir, 'loot.js'), '--preview', join(dir, 'p.png')], { stdio: 'ignore' })
-    const mod = await import(join(dir, 'loot.js'))
+    execFileSync('node', [cli, 'import', join(dir, 'my-chest.png'), '--id', 'loot', '-o', join(dir, 'loot.mjs'), '--preview', join(dir, 'p.png')], { stdio: 'ignore' })
+    const mod = await import(join(dir, 'loot.mjs'))
     assert.equal(mod.default.id, 'loot')
     assert.ok(readFileSync(join(dir, 'p.png')).length > 100)
     // a strip of frames
