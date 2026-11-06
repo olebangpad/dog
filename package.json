@@ -1,5 +1,5 @@
 {
-  "name": "dots-of-games",
+  "name": "pixspell",
   "version": "0.1.0",
   "description": "Game assets as code: pixel-art sprites, 2.7M characters, 500+ effects and 66 sound effects you generate, recolor and resize in one line of JavaScript. CC0 art, zero dependencies.",
   "keywords": [
@@ -20,13 +20,13 @@
     "16x16",
     "ai-agents"
   ],
-  "homepage": "https://olebangpad.github.io/dots-of-games/",
+  "homepage": "https://olebangpad.github.io/pixspell/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/olebangpad/dots-of-games.git"
+    "url": "git+https://github.com/olebangpad/pixspell.git"
   },
   "bugs": {
-    "url": "https://github.com/olebangpad/dots-of-games/issues"
+    "url": "https://github.com/olebangpad/pixspell/issues"
   },
   "author": "olebangpad",
   "license": "MIT",
@@ -40,12 +40,12 @@
     }
   },
   "bin": {
-    "dog": "scripts/dog.js"
+    "pixspell": "scripts/pixspell.js"
   },
   "sideEffects": false,
   "files": [
     "src",
-    "scripts/dog.js",
+    "scripts/pixspell.js",
     "skills",
     "templates",
     "llms.txt",

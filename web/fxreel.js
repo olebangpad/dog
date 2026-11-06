@@ -1,6 +1,6 @@
 // Effects reel: the effect count, then themed pages of 25 effects each, every one animating.
 // Recorded to video by scripts/record-promo.cjs (the page clock is stepped frame by frame).
-import { dog, looks, Pixmap } from '../src/index.js'
+import { spell, looks, Pixmap } from '../src/index.js'
 
 const lang = new URLSearchParams(location.search).get('lang') === 'ko' ? 'ko' : 'en'
 if (lang === 'ko') document.body.classList.add('ko')
@@ -62,7 +62,7 @@ document.querySelector('#cta-sub').textContent = lang === 'ko' ? '무료 · CC0 
 // ------------------------------------------------------------- prepare
 const toCanvas = (img) => img.toCanvas(document.createElement('canvas'))
 const tile = (id) => {
-  const t = dog(id, { frame: 0 })
+  const t = spell(id, { frame: 0 })
   return toCanvas(new Pixmap(32, 32).draw(t, 0, 0).draw(t, 16, 0).draw(t, 0, 16).draw(t, 16, 16))
 }
 const BGS = { grass: tile('grass'), water: tile('water') }
@@ -74,8 +74,8 @@ const CAST = [
 
 const pages = PAGES.map((page, p) => page.items.map(([id, element], i) => {
   const frames = page.status
-    ? dog.status(i < 8 ? CAST[i] : dog.char.random(40 + i), id, { element })
-    : dog.fx(id, { element })
+    ? spell.status(i < 8 ? CAST[i] : spell.char.random(40 + i), id, { element })
+    : spell.fx(id, { element })
   return { imgs: frames.map(toCanvas), fps: frames.fps, loop: page.status || frames.loop, bg: page.bg?.(id) ?? 'dark', offset: ((i * 7) % 11) * 0.09 + p * 0.05 }
 }))
 

@@ -1,6 +1,6 @@
 // Pixmap: a tiny immutable RGBA image with pixel-art friendly operations.
 // Every method returns a new Pixmap, so calls chain:
-//   dog('sword').scale(4).outline('#fff').shadow()
+//   spell('sword').scale(4).outline('#fff').shadow()
 
 import { parseColor, rgbToHsl, hslToRgb, clamp01, toHex } from './color.js'
 import { encodePNG, toBase64 } from './png.js'
@@ -368,7 +368,7 @@ export class Pixmap {
 /**
  * Stack layers into one image. Later layers draw on top.
  * Offsets come from .at(x, y); the canvas grows to fit every layer.
- *   compose(dog('hero'), dog('crown').at(0, -5))
+ *   compose(spell('hero'), spell('crown').at(0, -5))
  */
 export function compose(...layers) {
   layers = layers.flat().filter(Boolean)

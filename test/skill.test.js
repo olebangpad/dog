@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const lib = pathToFileURL(join(root, 'src', 'index.js')).href
-const skill = readFileSync(join(root, 'skills', 'dog', 'SKILL.md'), 'utf8')
+const skill = readFileSync(join(root, 'skills', 'pixspell', 'SKILL.md'), 'utf8')
 const blocks = [...skill.matchAll(/```js\n([\s\S]*?)```/g)].map((m) => m[1])
 
 test('SKILL.md has front matter with a name and description', () => {
@@ -20,7 +20,7 @@ test('SKILL.md has front matter with a name and description', () => {
 })
 
 test('every SKILL.md code block runs', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'dog-skill-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-skill-'))
   try {
     let ran = 0
     for (const [i, code] of blocks.entries()) {
@@ -29,7 +29,7 @@ test('every SKILL.md code block runs', async () => {
         .replace(/^import .*$/gm, '')
         .replace(/^\/\/ (preload|create)\(\).*$/gm, '')
       const file = join(dir, `block${i}.mjs`)
-      writeFileSync(file, `import { dog, compose, sheet, text, Pixmap, defineSprite, render } from '${lib}'\n${body}\n`)
+      writeFileSync(file, `import { spell, compose, sheet, text, Pixmap, defineSprite, render } from '${lib}'\n${body}\n`)
       await import(pathToFileURL(file).href)
       ran++
     }
@@ -40,12 +40,12 @@ test('every SKILL.md code block runs', async () => {
 })
 
 test('every sprite id in the catalog exists', async () => {
-  const { looks, dog } = await import(lib)
-  const catalog = readFileSync(join(root, 'skills', 'dog', 'catalog.md'), 'utf8')
+  const { looks, spell } = await import(lib)
+  const catalog = readFileSync(join(root, 'skills', 'pixspell', 'catalog.md'), 'utf8')
   const [spritePart, soundPart = ''] = catalog.split('\n## Sounds')
   const rows = (md) => [...md.matchAll(/^\| `([a-z0-9-]+)` \|/gm)].map((m) => m[1])
   const ids = rows(spritePart)
   assert.ok(ids.length > 100)
   for (const id of ids) assert.ok(looks[id], id)
-  assert.deepEqual(rows(soundPart), dog.sfx.list)
+  assert.deepEqual(rows(soundPart), spell.sfx.list)
 })

@@ -1,8 +1,8 @@
 // Character maker: put gear on bodies by name, no coordinates needed.
 //
-//   dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
-//   dog.char({ body: 'slime-pink', hat: 'wizard' })
-//   dog.char(dog.char.random(42))          // same seed, same character
+//   spell.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
+//   spell.char({ body: 'slime-pink', hat: 'wizard' })
+//   spell.char(spell.char.random(42))          // same seed, same character
 //
 // Bodies declare anchors (head / hand / offhand). Gear declares which anchor
 // it equips to and its own pivot pixel; the pivot is placed on the anchor.
@@ -44,14 +44,14 @@ export function createCharacters(looks) {
     if (!value) return null
     const ref = typeof value === 'string' ? { id: value } : value
     const id = [`${PREFIX[kind]}-${ref.id}`, ref.id].find((c) => looks[c]?.def.equip === kind)
-    if (!id) throw new Error(`dog: "${ref.id}" can't be worn on ${kind}. Try: ${parts[kind].slice(0, 6).join(', ')}...`)
+    if (!id) throw new Error(`pixspell: "${ref.id}" can't be worn on ${kind}. Try: ${parts[kind].slice(0, 6).join(', ')}...`)
     return { look: looks[id], ramps: { ...looks[id].ramps, ...pickRamps(ref) } }
   }
 
   function normalize(body, opts) {
     const spec = typeof body === 'object' && body !== null ? { ...body } : { ...opts, body }
-    if (!looks[spec.body]) throw new Error(`dog: no body called "${spec.body}". Bodies: ${parts.body.filter((b) => !b.includes('-')).join(', ')}`)
-    if (!Object.keys(looks[spec.body].def.anchors).length) throw new Error(`dog: "${spec.body}" has no anchors, so it can't wear gear`)
+    if (!looks[spec.body]) throw new Error(`pixspell: no body called "${spec.body}". Bodies: ${parts.body.filter((b) => !b.includes('-')).join(', ')}`)
+    if (!Object.keys(looks[spec.body].def.anchors).length) throw new Error(`pixspell: "${spec.body}" has no anchors, so it can't wear gear`)
     return spec
   }
 
@@ -110,7 +110,7 @@ export function createCharacters(looks) {
    */
   char.walk = (body, dir = 'down', opts = {}) => {
     if (typeof dir === 'object') [dir, opts] = [dir.dir ?? 'down', dir]
-    if (!WALK_DIRS.includes(dir)) throw new Error(`dog: walk direction must be one of ${WALK_DIRS.join(', ')}`)
+    if (!WALK_DIRS.includes(dir)) throw new Error(`pixspell: walk direction must be one of ${WALK_DIRS.join(', ')}`)
     const spec = normalize(body, opts)
     const base = looks[spec.body].def.id
     const view = dir === 'left' || dir === 'right' ? 'side' : dir

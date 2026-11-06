@@ -12,7 +12,7 @@ labels: bug
 **How to reproduce** (a few lines of code is perfect)
 
 ```js
-import { dog } from 'dots-of-games'
+import { spell } from 'pixspell'
 ```
 
-**Where**: browser + version, or Node version · DOG version or commit
+**Where**: browser + version, or Node version · PixSpell version or commit

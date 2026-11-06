@@ -1,5 +1,5 @@
 // Page glue for game.html: input, sizing, and "play as the character you made".
-import { dog, looks } from '../src/index.js'
+import { spell, looks } from '../src/index.js'
 import { createGame, W, H } from './quest.js'
 import { $, $$, encode, decode, readHash, writeHash } from './ui.js'
 
@@ -29,19 +29,19 @@ function showHero(spec) {
 
 // ------------------------------------------------------------------ sound
 let muted = false
-try { muted = localStorage.getItem('dog-muted') === '1' } catch {}
+try { muted = localStorage.getItem('pixspell-muted') === '1' } catch {}
 const showMute = () => { $('#mute').textContent = muted ? '🔇 Sound off' : '🔊 Sound on'; $('#mute').setAttribute('aria-pressed', String(!muted)) }
 $('#mute').addEventListener('click', (e) => {
   muted = !muted
-  try { localStorage.setItem('dog-muted', muted ? '1' : '0') } catch {}
+  try { localStorage.setItem('pixspell-muted', muted ? '1' : '0') } catch {}
   showMute()
   e.currentTarget.blur()
 })
 showMute()
 // browsers only start audio from a key press or tap: open it on the first one
 let unlocked = false
-const unlock = () => { if (!unlocked && !muted) { unlocked = true; dog.sfx('click').play({ volume: 0 }) } }
-const onSound = (name, opts) => { if (!muted && unlocked) dog.sfx(name, opts).play({ volume: 0.6 }) }
+const unlock = () => { if (!unlocked && !muted) { unlocked = true; spell.sfx('click').play({ volume: 0 }) } }
+const onSound = (name, opts) => { if (!muted && unlocked) spell.sfx(name, opts).play({ volume: 0.6 }) }
 
 const startHero = heroFromLink() ?? DEFAULT
 const game = createGame($('#game'), { spec: startHero, auto: true, seed: 7, onHero: showHero, onSound })
@@ -72,7 +72,7 @@ $('#game').addEventListener('pointerdown', () => game.press('Shift', false))
 
 $('#new-hero').addEventListener('click', (e) => {
   e.currentTarget.blur()
-  game.setHero(dog.char.random())
+  game.setHero(spell.char.random())
 })
 
 // ----------------------------------------------------------------- sizing
@@ -90,6 +90,6 @@ function fit() {
 addEventListener('resize', fit)
 fit()
 
-$('#favicon').href = dog('dog').toDataURL()
+$('#favicon').href = spell('dog').toDataURL()
 game.start()
-Object.assign(window, { game, dog })
+Object.assign(window, { game, spell })

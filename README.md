@@ -1,17 +1,17 @@
 <div align="center">
 
-<img src="docs/img/banner.png" alt="DOG - Dots Of Games: animated pixel-art sprites" width="100%">
+<img src="docs/img/banner.png" alt="PixSpell: animated pixel-art sprites" width="100%">
 
-# DOG · Dots Of Games
+# PixSpell
 
 **Game assets as code.** Pixel-art sprites, characters, animations, effects and sounds you generate, recolor and resize
 in one line of JavaScript. CC0 art, zero dependencies, made for game developers and their AI coding agents.
 
 **441** sprites · **2.7 million** characters that walk and fight · **545** effects · **66** sounds · any tile size from **8 to 64 px** · Phaser & Godot packs
 
-[**▶ Play the demo**](https://olebangpad.github.io/dots-of-games/game.html) ·
-[Open the playground](https://olebangpad.github.io/dots-of-games/) ·
-[Make a game](#-make-a-game-with-dog) ·
+[**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
+[Open the playground](https://olebangpad.github.io/pixspell/) ·
+[Make a game](#-make-a-game-with-pixspell) ·
 [Character maker](#-character-maker) ·
 [Effects](#-545-game-effects) ·
 [Sounds](#-66-game-sounds-made-by-code) ·
@@ -29,57 +29,57 @@ in one line of JavaScript. CC0 art, zero dependencies, made for game developers 
 ![license](https://img.shields.io/badge/art-CC0-a8e05a?style=flat-square)
 ![deps](https://img.shields.io/badge/dependencies-0-a8e05a?style=flat-square)
 ![tiles](https://img.shields.io/badge/tiles-8_·_16_·_32_·_64_px-a8e05a?style=flat-square)
-[![CI](https://github.com/olebangpad/dots-of-games/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/dots-of-games/actions/workflows/ci.yml)
+[![CI](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml/badge.svg)](https://github.com/olebangpad/pixspell/actions/workflows/ci.yml)
 
-<img src="docs/img/scene.png" alt="An animated scene built only from DOG sprites" width="576">
+<img src="docs/img/scene.png" alt="An animated scene built only from PixSpell sprites" width="576">
 
 </div>
 
 ```js
-import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'   // or: npm i dots-of-games
+import { spell } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'   // or: npm i pixspell
 
-const knight = dog.char('hero', { hat: 'knight', hand: 'sword', offhand: 'shield' })   // a 24×24 character, gear snapped on
-const swing = dog.action('hero', 'attack', { element: 'fire', grid: 32 })              // 8 frames at 64×64, with .fps
-dog.sfx('slash', { element: 'fire' }).play()                                           // and its sound
+const knight = spell.char('hero', { hat: 'knight', hand: 'sword', offhand: 'shield' })   // a 24×24 character, gear snapped on
+const swing = spell.action('hero', 'attack', { element: 'fire', grid: 32 })              // 8 frames at 64×64, with .fps
+spell.sfx('slash', { element: 'fire' }).play()                                           // and its sound
 document.body.append(knight.scale(8).toCanvas())
 ```
 
-## Why DOG?
+## Why PixSpell?
 
 Asset packs give you a fixed set of PNGs. When you need the same sword in gold, or a slime in your
 game's exact pink, you're stuck redrawing it.
 
-DOG stores every sprite as **text**, painted with **color slots** instead of fixed colors, so any of them
+PixSpell stores every sprite as **text**, painted with **color slots** instead of fixed colors, so any of them
 can become any color, size or combination in a single call:
 
 ```js
-dog('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
+spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 ```
 
-### 🎮 A game screen made only from DOG
+### 🎮 A game screen made only from PixSpell
 
-[**DOG Quest**](https://olebangpad.github.io/dots-of-games/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
-The hero is a `dog.char()`, it moves with `dog.walk()`, swings with `dog.action('attack')`, enemies flash with
-`dog.action('hit')` and puff away with `dog.action('death')`; crits, coin pops, poofs, level-up confetti, the campfire's glow and the
-fireflies are `dog.fx()`; once you take over, every swing, hit, coin and level-up has a `dog.sfx()` sound;
+[**PixSpell Quest**](https://olebangpad.github.io/pixspell/game.html) is a tiny playable demo: every pixel on screen comes from this repo.
+The hero is a `spell.char()`, it moves with `spell.walk()`, swings with `spell.action('attack')`, enemies flash with
+`spell.action('hit')` and puff away with `spell.action('death')`; crits, coin pops, poofs, level-up confetti, the campfire's glow and the
+fireflies are `spell.fx()`; once you take over, every swing, hit, coin and level-up has a `spell.sfx()` sound;
 tiles, coins, hearts and the HUD text are sprites and the pixel font.
 It plays itself until you press a key, and the character maker has a **▶ Play as this character** button.
 
-<a href="https://olebangpad.github.io/dots-of-games/game.html"><img src="docs/promo/gameplay.gif" alt="DOG Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
+<a href="https://olebangpad.github.io/pixspell/game.html"><img src="docs/promo/gameplay.gif" alt="PixSpell Quest gameplay: a knight fighting slimes, goblins and skeletons" width="512"></a>
 
-Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/dog-reel-en.mp4) · [한국어](docs/promo/dog-reel-ko.mp4) ·
+Short vertical promo clips (made by `scripts/record-promo.cjs`): [English](docs/promo/pixspell-reel-en.mp4) · [한국어](docs/promo/pixspell-reel-ko.mp4) ·
 effects reel [English](docs/promo/fx-reel-en.mp4) · [한국어](docs/promo/fx-reel-ko.mp4)
 
-### 🛠 Make a game with DOG
+### 🛠 Make a game with PixSpell
 
 Three ways in, from zero setup to a full engine:
 
 **1. Copy a starter.** [`templates/canvas/index.html`](templates/canvas/index.html) is a complete little game in one file, with no install
-and no build step. [`templates/phaser/`](templates/phaser) is the same idea with Phaser 3 and DOG game packs.
+and no build step. [`templates/phaser/`](templates/phaser) is the same idea with Phaser 3 and PixSpell game packs.
 
-**2. Download a game pack.** In the [character maker](https://olebangpad.github.io/dots-of-games/#maker) press **📦 Game pack**: one zip with a sprite sheet
+**2. Download a game pack.** In the [character maker](https://olebangpad.github.io/pixspell/#maker) press **📦 Game pack**: one zip with a sprite sheet
 (`idle`, 4-way `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser JSON and a Godot 4 SpriteFrames file.
-In code it's `dog.pack(spec)`; on the command line it's `node scripts/dog.js pack hero --hat crown --hand sword`.
+In code it's `spell.pack(spec)`; on the command line it's `node scripts/pixspell.js pack hero --hat crown --hand sword`.
 
 ```js
 // Phaser 3
@@ -89,19 +89,19 @@ hero.anims.createFromAseprite('hero')
 hero.play({ key: 'walk-left', repeat: -1 })
 ```
 
-**3. Let your AI coding agent build it.** DOG is plain code and text, so an agent can use all of it without
-touching an image file. It ships a skill: [`skills/dog/SKILL.md`](skills/dog/SKILL.md) (the API, rules for crisp pixel art,
-a full game recipe, engine exports, sounds, tile sizes) and [`catalog.md`](skills/dog/catalog.md) (every sprite id). Its code samples run in CI.
+**3. Let your AI coding agent build it.** PixSpell is plain code and text, so an agent can use all of it without
+touching an image file. It ships a skill: [`skills/pixspell/SKILL.md`](skills/pixspell/SKILL.md) (the API, rules for crisp pixel art,
+a full game recipe, engine exports, sounds, tile sizes) and [`catalog.md`](skills/pixspell/catalog.md) (every sprite id). Its code samples run in CI.
 
 - **Claude Code:** install it as a plugin, then just ask.
   ```
-  /plugin marketplace add olebangpad/dots-of-games
-  /plugin install dog@dots-of-games
+  /plugin marketplace add olebangpad/pixspell
+  /plugin install pixspell@pixspell
   ```
 - **Codex, Cursor and other agents:** copy `SKILL.md` into your project (or its contents into your `AGENTS.md` / rules file),
   or point the agent at [`llms.txt`](llms.txt).
 
-Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, with sounds, using DOG"*.
+Then ask something like *"make a top-down game where a goblin with a dagger fights slimes, with sounds, using PixSpell"*.
 
 ### 🧙 Character maker
 
@@ -109,15 +109,15 @@ Put gear on a body **by name**. Bodies know where their head and hands are, gear
 so everything snaps into place, no coordinates needed. Hats ride along with animations (a slime's crown bounces with it).
 
 ```js
-dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })   // 24×24 Pixmap
-dog.char('slime-pink', { hat: 'wizard' })
-dog.char(dog.char.random(42))                     // same seed → same character, great for NPCs
+spell.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })   // 24×24 Pixmap
+spell.char('slime-pink', { hat: 'wizard' })
+spell.char(spell.char.random(42))                     // same seed → same character, great for NPCs
 ```
 
 12 bodies (hero, heroine, skeleton, goblin, robot, dog, cat, chick, slime, ghost, skull, frog) × 18 hats × 15 held items × 6 off-hand items,
 with color variants: **2,756,176 combinations** before you even change the outfit color.
 
-<img src="docs/img/characters.png" alt="24 random characters made with dog.char.random()" width="654">
+<img src="docs/img/characters.png" alt="24 random characters made with spell.char.random()" width="654">
 
 ### ⚔️ Actions & effects
 
@@ -126,11 +126,11 @@ damage numbers and "LV UP" above the hat, smoke over the body. Pick an element a
 on a hit the target burns, freezes or turns sick too.
 
 ```js
-const frames = dog.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')
+const frames = spell.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')
 // always 8 frames of 32×32, play them at frames.fps: drop straight into a sprite sheet
 
-dog.action('slime', 'hit', { element: 'ice', amount: '-12' })
-dog.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as an element
+spell.action('slime', 'hit', { element: 'ice', amount: '-12' })
+spell.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as an element
 ```
 
 **6 actions** (`attack` `hit` `heal` `levelup` `cast` `death`) × **5 elements** (`fire` `ice` `poison` `holy` `dark`) on any of the 2.7 million characters.
@@ -138,24 +138,24 @@ dog.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works as 
 <img src="docs/img/actions.png" alt="Every action in every element, animated" width="672">
 
 Attacks follow the weapon: swords slash, daggers stab, spears thrust, hammers and axes smash, bows shoot, staffs cast,
-whips crack, torches burn, flowers bonk, empty hands punch. `dog.action.styleOf(spec)` tells you which; `{ style: 'whip' }` overrides it.
+whips crack, torches burn, flowers bonk, empty hands punch. `spell.action.styleOf(spec)` tells you which; `{ style: 'whip' }` overrides it.
 
 ### ✨ 545 game effects
 
 **80 effect designs drawn entirely by code**, each in up to 11 colors and at any size, plus the hand-drawn explosions, sparkles and slashes.
 Bursts, magic, elements, projectiles and beams, seamless weather, environment (lava, fog, sunrays, ripples), status overlays,
 weapon slashes and hit feedback (POW, CRIT!, MISS, block, parry), rewards, and big moments (meteor, tornado, black hole, summon, revive, confetti).
-Browse, recolor and download them on the [**effects page**](https://olebangpad.github.io/dots-of-games/fx.html).
+Browse, recolor and download them on the [**effects page**](https://olebangpad.github.io/pixspell/fx.html).
 
-<a href="https://olebangpad.github.io/dots-of-games/fx.html"><img src="docs/img/fx.png" alt="Every procedural effect, animated" width="100%"></a>
+<a href="https://olebangpad.github.io/pixspell/fx.html"><img src="docs/img/fx.png" alt="Every procedural effect, animated" width="100%"></a>
 
 ```js
-dog.fx('meteor')                                   // frames (32×32) with .fps and .loop
-dog.fx('tornado', { element: 'fire', size: 64 })   // 11 colors or any hex, any size, still crisp
-dog.fx('rain', { size: 64 })                       // seamless: repeat the tile over a whole map
-dog.status('slime', 'frozen')                      // a character with a status effect on (32×32)
-dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }])
-dog.fxPack(['meteor', 'poof', 'crit'])             // one sheet + Phaser/Aseprite JSON + Godot .tres
+spell.fx('meteor')                                   // frames (32×32) with .fps and .loop
+spell.fx('tornado', { element: 'fire', size: 64 })   // 11 colors or any hex, any size, still crisp
+spell.fx('rain', { size: 64 })                       // seamless: repeat the tile over a whole map
+spell.status('slime', 'frozen')                      // a character with a status effect on (32×32)
+spell.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }])
+spell.fxPack(['meteor', 'poof', 'crit'])             // one sheet + Phaser/Aseprite JSON + Godot .tres
 ```
 
 Effects are recipes: a few lines that paint light into layers, which the engine turns into shaded, outlined pixel art
@@ -165,15 +165,15 @@ Effects are recipes: a few lines that paint light into layers, which the engine 
 
 Sounds work like the art: **recipes, not files**. Every attack style and action has one, so the right swing sound comes with
 the weapon. Add an **element** the way you'd recolor an effect, change the pitch, or roll small variations so repeated hits
-don't sound identical. Listen and download on the [**sounds page**](https://olebangpad.github.io/dots-of-games/sfx.html).
+don't sound identical. Listen and download on the [**sounds page**](https://olebangpad.github.io/pixspell/sfx.html).
 
 ```js
-dog.sfx('coin').play()                                  // browser (start the first sound from a key press or click)
-dog.sfx(dog.action.styleOf(hero)).play()                // sword -> 'slash', hammer -> 'smash', bow -> 'shoot'...
-dog.sfx('hit', { element: 'ice', seed: 2, pitch: 1.2 }) // 10 element flavors, variations, any pitch
-dog.sfx(dog.sfx.forEffect('fx-meteor'))                 // the sound that goes with an effect
-await dog.sfx('levelup').save('levelup.wav')            // Node; .toWAV() bytes anywhere
-dog.sfxPack(['slash', 'hit', 'coin']).zip()             // WAVs in one zip
+spell.sfx('coin').play()                                  // browser (start the first sound from a key press or click)
+spell.sfx(spell.action.styleOf(hero)).play()                // sword -> 'slash', hammer -> 'smash', bow -> 'shoot'...
+spell.sfx('hit', { element: 'ice', seed: 2, pitch: 1.2 }) // 10 element flavors, variations, any pitch
+spell.sfx(spell.sfx.forEffect('fx-meteor'))                 // the sound that goes with an effect
+await spell.sfx('levelup').save('levelup.wav')            // Node; .toWAV() bytes anywhere
+spell.sfxPack(['slash', 'hit', 'coin']).zip()             // WAVs in one zip
 ```
 
 UI blips, jumps and steps, coins, gems and chests, every weapon swing, hits, crits, blocks and parries, spells, explosions,
@@ -186,7 +186,7 @@ Humanoids have drawn front, back and side poses; gear follows the view (the weap
 the shield tucks behind the body from the side). Animals and monsters hop or float. `left` mirrors `right`.
 
 ```js
-dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // frames (24×24), .fps
+spell.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // frames (24×24), .fps
 ```
 
 <img src="docs/img/walk.png" alt="Six characters walking down, up, left and right" width="630">
@@ -194,7 +194,7 @@ dog.walk({ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'left')   // frames 
 ### 🎨 One drawing, any color
 
 Each sprite paints with up to three 4-shade ramps (`A`, `B`, `C`). Swap a ramp for one of 18 hand-tuned
-materials, or pass **any hex color** and DOG builds a hue-shifted ramp for you.
+materials, or pass **any hex color** and PixSpell builds a hue-shifted ramp for you.
 
 <img src="docs/img/recolor.png" alt="A potion recolored into 18 materials, slimes in 12 hex colors, swords in 9 materials" width="100%">
 
@@ -218,11 +218,11 @@ Characters, wearable gear, weapons, armor, potions, gems, food, monsters, seamle
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [80 procedural effects](#-545-game-effects)
 add 525 more animated looks; all of them are exported in `assets/` too.
 
-<img src="docs/img/gallery.png" alt="Every base sprite in DOG" width="100%">
+<img src="docs/img/gallery.png" alt="Every base sprite in PixSpell" width="100%">
 
 ## 📦 Just want the PNGs?
 
-**Pick your tile size and get everything in one zip:** [**download page**](https://olebangpad.github.io/dots-of-games/#download).
+**Pick your tile size and get everything in one zip:** [**download page**](https://olebangpad.github.io/pixspell/#download).
 Choose 8×8, 16×16, 32×32 or 64×64 (what people call 8-bit / 16-bit / 32-bit pixel art) and you get sprites, characters with
 walk strips, effects and sounds made for that grid:
 
@@ -235,8 +235,8 @@ walk strips, effects and sounds made for that grid:
 
 <img src="docs/img/grids.png" alt="The same sprites, character and effects at 8, 16, 32 and 64 px tiles" width="100%">
 
-In code it's one option: `dog('sword', { grid: 32 })`, `dog.char(spec, { grid: 8 })`, `dog.pack(spec, { grid: 64 })`.
-On the command line: `node scripts/dog.js export --grid 32` writes `dog-32px.zip`.
+In code it's one option: `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 8 })`, `spell.pack(spec, { grid: 64 })`.
+On the command line: `node scripts/pixspell.js export --grid 32` writes `dog-32px.zip`.
 
 The 16 px originals are also pre-exported in [`assets/`](assets). No build step needed.
 
@@ -248,7 +248,7 @@ The 16 px originals are also pre-exported in [`assets/`](assets). No build step 
 | `assets/strips/` | horizontal frame strips (1x) for game engines |
 | `assets/walk/` | walk-cycle strips for every body in every direction |
 | `assets/sfx/` | every sound effect as a 16-bit mono WAV |
-| `assets/atlas.png` + `atlas.json` | one texture atlas with every frame (TexturePacker JSON hash: `this.load.atlas('dog', 'atlas.png', 'atlas.json')`) |
+| `assets/atlas.png` + `atlas.json` | one texture atlas with every frame (TexturePacker JSON hash: `this.load.atlas('pixspell', 'atlas.png', 'atlas.json')`) |
 
 All art is **CC0**: use it in commercial games, remix it, no credit required (credit is appreciated ❤).
 
@@ -258,9 +258,9 @@ All art is **CC0**: use it in commercial games, remix it, no credit required (cr
 
 ```html
 <script type="module">
-  import { dog, compose } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
+  import { spell, compose } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'
 
-  const king = compose(dog('hero'), dog('crown').at(0, -7)).scale(8)
+  const king = compose(spell('hero'), spell('crown').at(0, -7)).scale(8)
   document.body.append(king.toCanvas())
 </script>
 ```
@@ -268,40 +268,40 @@ All art is **CC0**: use it in commercial games, remix it, no credit required (cr
 **npm** (Node 18+, bundlers, TypeScript types included):
 
 ```bash
-npm i dots-of-games
-npx dog render potion -A '#ff4fd8' --scale 8 -o potion.png   # the CLI comes with it
+npm i pixspell
+npx pixspell render potion -A '#ff4fd8' --scale 8 -o potion.png   # the CLI comes with it
 ```
 
 ```js
-import { dog, compose, sheet } from 'dots-of-games'
+import { spell, compose, sheet } from 'pixspell'
 
-await dog('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
+await spell('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
 
-const frames = dog.frames('slime-blue')            // every animation frame
+const frames = spell.frames('slime-blue')            // every animation frame
 await sheet(frames).image.scale(4).save('slime-sheet.png')
 ```
 
-DOG is ES modules only (no `require`). Versions follow semver: until 1.0, a minor release may change the API
+PixSpell is ES modules only (no `require`). Everything hangs off one object, `spell` (`dog` still works: it was the early name). Versions follow semver: until 1.0, a minor release may change the API
 and the [changelog](CHANGELOG.md) says how. Or clone the repo and import `./src/index.js`; nothing to install.
 
-**CLI** (`npx dog ...` after installing, or `node scripts/dog.js ...` in a clone):
+**CLI** (`npx pixspell ...` after installing, or `node scripts/pixspell.js ...` in a clone):
 
 ```bash
-node scripts/dog.js list monsters
-node scripts/dog.js render potion -A '#ff4fd8' --scale 8 --outline '#fff' -o potion.png
-node scripts/dog.js render explosion --anim --scale 4 -o boom.png      # animated PNG
-node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
-node scripts/dog.js char hero-elf --hat wizard --hand staff-fire -A purple --scale 6 -o mage.png
-node scripts/dog.js char --random 42 --scale 6 -o npc.png
-node scripts/dog.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
-node scripts/dog.js char heroine --hat cowboy --hand rod --walk left --anim --scale 4 -o walk.png
-node scripts/dog.js fx meteor --element ice --size 64 -o meteor.png      # any effect, color, size
-node scripts/dog.js fx burning --on slime --strip -o burning.png        # status effect on a character
-node scripts/dog.js fxpack meteor poof crit -o effects.zip              # effects as a game pack
-node scripts/dog.js sfx slash --element fire -o slash.wav              # a sound effect (dog.js sfx lists them)
-node scripts/dog.js sfxpack -o sounds.zip                              # every sound as WAVs
-node scripts/dog.js export --grid 32                                   # everything for 32x32 tiles in one zip
-node scripts/dog.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid works on render, char, fx, pack
+node scripts/pixspell.js list monsters
+node scripts/pixspell.js render potion -A '#ff4fd8' --scale 8 --outline '#fff' -o potion.png
+node scripts/pixspell.js render explosion --anim --scale 4 -o boom.png      # animated PNG
+node scripts/pixspell.js combine hero crown@0,-7 --scale 6 -o king.png
+node scripts/pixspell.js char hero-elf --hat wizard --hand staff-fire -A purple --scale 6 -o mage.png
+node scripts/pixspell.js char --random 42 --scale 6 -o npc.png
+node scripts/pixspell.js char hero --hand sword --action attack --element fire --anim --scale 4 -o slash.png
+node scripts/pixspell.js char heroine --hat cowboy --hand rod --walk left --anim --scale 4 -o walk.png
+node scripts/pixspell.js fx meteor --element ice --size 64 -o meteor.png      # any effect, color, size
+node scripts/pixspell.js fx burning --on slime --strip -o burning.png        # status effect on a character
+node scripts/pixspell.js fxpack meteor poof crit -o effects.zip              # effects as a game pack
+node scripts/pixspell.js sfx slash --element fire -o slash.wav              # a sound effect (spell.js sfx lists them)
+node scripts/pixspell.js sfxpack -o sounds.zip                              # every sound as WAVs
+node scripts/pixspell.js export --grid 32                                   # everything for 32x32 tiles in one zip
+node scripts/pixspell.js char hero --hat crown --walk left --grid 64 -o w.png  # --grid works on render, char, fx, pack
 ```
 
 TypeScript and editors: types ship in [`src/index.d.ts`](src/index.d.ts), so `dog.` autocompletes.
@@ -343,27 +343,27 @@ up in pull requests as plain text diffs.
 ## 📚 API
 
 ```js
-import { dog, compose, sheet, text, Pixmap } from './src/index.js'
+import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 ```
 
 | Call | Does |
 | --- | --- |
-| `dog(id, { A, B, C, frame })` | render a sprite. `A/B/C` take a material name, any hex color, or 4 colors |
-| `dog.frames(id, opts)` | every frame of an animation, in play order |
-| `dog.list({ category, tag, variants })` | ids of all looks |
-| `dog.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
-| `dog.char.frames(spec)` · `dog.char.random(seed)` | animation frames · a reproducible random character |
-| `dog.char.parts` · `dog.char.count()` | every body / hat / hand / off-hand id · number of combinations |
-| `dog.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
-| `dog.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
-| `dog.fx(name, { element, size, seed })` | a procedural effect: frames with `.fps` and `.loop`; `dog.fx.list` has every name |
-| `dog.fx.sequence(steps)` | chain or overlap effects into one animation |
-| `dog.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |
-| `dog.pack(spec)` · `dog.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
-| `dog.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `dog.sfx.list`, `dog.sfx.forEffect(fx)` |
-| `dog.sfxPack(names)` | sounds as WAV files in one zip |
+| `spell(id, { A, B, C, frame })` | render a sprite. `A/B/C` take a material name, any hex color, or 4 colors |
+| `spell.frames(id, opts)` | every frame of an animation, in play order |
+| `spell.list({ category, tag, variants })` | ids of all looks |
+| `spell.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
+| `spell.char.frames(spec)` · `spell.char.random(seed)` | animation frames · a reproducible random character |
+| `spell.char.parts` · `spell.char.count()` | every body / hat / hand / off-hand id · number of combinations |
+| `spell.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
+| `spell.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
+| `spell.fx(name, { element, size, seed })` | a procedural effect: frames with `.fps` and `.loop`; `spell.fx.list` has every name |
+| `spell.fx.sequence(steps)` | chain or overlap effects into one animation |
+| `spell.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |
+| `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
+| `spell.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `spell.sfx.list`, `spell.sfx.forEffect(fx)` |
+| `spell.sfxPack(names)` | sounds as WAV files in one zip |
 | `{ grid: 8 \| 16 \| 32 \| 64 }` | an option on every call above: art for that tile size (`smooth: false` for plain zoom) |
-| `dog.toGrid(img, grid)` · `dog.bundle({ grid })` | convert any DOG image · every file for one tile size, for your own exporter |
+| `spell.toGrid(img, grid)` · `spell.bundle({ grid })` | convert any PixSpell image · every file for one tile size, for your own exporter |
 | `compose(...layers)` | stack layers; place them with `.at(x, y)` |
 | `sheet(images, { columns, gap })` | pack into a sprite sheet → `{ image, frames }` |
 | `text('SCORE 9', { color })` | built-in 3×5 pixel font |
@@ -384,7 +384,7 @@ Materials: `red orange gold lime green mint ice blue purple pink wood leather sk
 
 New sprites are the best contribution, and it takes about two minutes:
 
-1. Open the [playground](https://olebangpad.github.io/dots-of-games/) → **Edit pixels** → draw → **Copy sprite definition**
+1. Open the [playground](https://olebangpad.github.io/pixspell/) → **Edit pixels** → draw → **Copy sprite definition**
 2. Paste it into the right file in [`src/sprites/`](src/sprites) and add a few `variants`
 3. `npm run check && npm run build`, then open a PR
 
@@ -409,7 +409,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the style guide. Sprite requests are 
 
 ## 📄 License
 
-- **Everything DOG draws or plays** (the sprite art, and every image, effect and sound the library generates, at any size): [CC0 1.0](LICENSE-ASSETS), public domain. Use it in commercial games; no credit needed
+- **Everything PixSpell draws or plays** (the sprite art, and every image, effect and sound the library generates, at any size): [CC0 1.0](LICENSE-ASSETS), public domain. Use it in commercial games; no credit needed
 - **Code**: [MIT](LICENSE)
 
-If DOG saved you some drawing time, a ⭐ helps other devs find it.
+If PixSpell saved you some drawing time, a ⭐ helps other devs find it.

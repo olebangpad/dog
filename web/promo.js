@@ -1,6 +1,6 @@
 // Promo frame: the demo playing itself, rotating captions and a strip of
 // random characters. Recorded to video by scripts/record-promo.cjs.
-import { dog, Pixmap } from '../src/index.js'
+import { spell, Pixmap } from '../src/index.js'
 import { createGame } from './quest.js'
 
 const params = new URLSearchParams(location.search)
@@ -8,7 +8,7 @@ const lang = params.get('lang') === 'ko' ? 'ko' : 'en'
 if (params.get('mode') === 'clip') document.body.classList.add('clip')
 if (lang === 'ko') document.body.classList.add('ko')
 
-const count = dog.char.count()
+const count = spell.char.count()
 const CAPTIONS = {
   en: [
     'Every pixel here is <b>code</b>',
@@ -55,7 +55,7 @@ const sctx = strip.getContext('2d')
 let walkers = []
 let seed = 100
 const reroll = () => {
-  walkers = Array.from({ length: 9 }, () => dog.walk(dog.char.random(seed++), 'down').map((f) => f.toCanvas(document.createElement('canvas'))))
+  walkers = Array.from({ length: 9 }, () => spell.walk(spell.char.random(seed++), 'down').map((f) => f.toCanvas(document.createElement('canvas'))))
 }
 reroll()
 setInterval(reroll, 1000)

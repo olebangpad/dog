@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export async function computeSnapshots() {
-  const { dog, looks } = await import('../src/index.js')
+  const { spell, looks } = await import('../src/index.js')
   const fnv = (frames) => {
     let h = 2166136261
     for (const f of frames) {
@@ -19,7 +19,7 @@ export async function computeSnapshots() {
   }
   const out = {}
   // every sprite and variant, all frames
-  for (const id of Object.keys(looks)) out[`look:${id}`] = fnv(looks[id].def.frames.map((_, i) => dog(id, { frame: i })))
+  for (const id of Object.keys(looks)) out[`look:${id}`] = fnv(looks[id].def.frames.map((_, i) => spell(id, { frame: i })))
   // characters, walks, actions, statuses
   const specs = [
     { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' },
@@ -28,36 +28,36 @@ export async function computeSnapshots() {
     { body: 'robot', hat: 'cowboy', hand: 'hammer', A: '#ff4fd8' },
     { body: 'skeleton', hand: 'bow' },
     { body: 'slime-blue', hat: 'crown' },
-    ...Array.from({ length: 12 }, (_, i) => dog.char.random(i)),
+    ...Array.from({ length: 12 }, (_, i) => spell.char.random(i)),
   ]
   specs.forEach((s, i) => {
-    out[`char:${i}`] = fnv(dog.char.frames(s))
-    for (const d of dog.walk.dirs) out[`walk:${i}:${d}`] = fnv(dog.walk(s, d))
+    out[`char:${i}`] = fnv(spell.char.frames(s))
+    for (const d of spell.walk.dirs) out[`walk:${i}:${d}`] = fnv(spell.walk(s, d))
   })
   for (const s of specs.slice(0, 6)) {
-    for (const a of dog.action.list) out[`action:${s.body}:${a}`] = fnv(dog.action(s, a))
-    out[`action:${s.body}:attack-ice`] = fnv(dog.action(s, 'attack', 'ice'))
+    for (const a of spell.action.list) out[`action:${s.body}:${a}`] = fnv(spell.action(s, a))
+    out[`action:${s.body}:attack-ice`] = fnv(spell.action(s, 'attack', 'ice'))
   }
-  for (const st of dog.action.styles) out[`style:${st}`] = fnv(dog.action('hero', 'attack', { style: st }))
-  for (const name of ['burning', 'aura', 'frozen']) out[`status:${name}`] = fnv(dog.status(specs[0], name, { walk: 'left' }))
+  for (const st of spell.action.styles) out[`style:${st}`] = fnv(spell.action('hero', 'attack', { style: st }))
+  for (const name of ['burning', 'aura', 'frozen']) out[`status:${name}`] = fnv(spell.status(specs[0], name, { walk: 'left' }))
   // effects at another size and seed, and a sequence
-  for (const id of dog.fx.list) out[`fx48:${id}`] = fnv(dog.fx(id, { size: 48, seed: 3 }))
-  out['fx:sequence'] = fnv(dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', x: 4 }, { fx: 'boom', with: true, at: 3 }]))
+  for (const id of spell.fx.list) out[`fx48:${id}`] = fnv(spell.fx(id, { size: 48, seed: 3 }))
+  out['fx:sequence'] = fnv(spell.fx.sequence([{ fx: 'charge' }, { fx: 'comet', x: 4 }, { fx: 'boom', with: true, at: 3 }]))
   // image ops
-  out['ops:pipeline'] = fnv([dog('slime-pink').smooth(2).outline('#fff').shadow().hue(40).rotate(90).flipX().scale(0.5)])
-  out['pack:hero'] = fnv([dog.pack(specs[0]).image])
+  out['ops:pipeline'] = fnv([spell('slime-pink').smooth(2).outline('#fff').shadow().hue(40).rotate(90).flipX().scale(0.5)])
+  out['pack:hero'] = fnv([spell.pack(specs[0]).image])
   // other tile grids: halved with outlines, Scale2x, native effects, a character pack
   for (const g of [8, 32, 64]) {
-    for (const id of ['potion', 'sword', 'slime-pink', 'chest-gold', 'tree', 'skull', 'heart', 'grass']) out[`grid${g}:${id}`] = fnv(dog.frames(id, { grid: g }))
-    out[`grid${g}:char`] = fnv(dog.walk(specs[0], 'left', { grid: g }))
-    out[`grid${g}:fx-portal-ice`] = fnv(dog.frames('fx-portal-ice', { grid: g }))
+    for (const id of ['potion', 'sword', 'slime-pink', 'chest-gold', 'tree', 'skull', 'heart', 'grass']) out[`grid${g}:${id}`] = fnv(spell.frames(id, { grid: g }))
+    out[`grid${g}:char`] = fnv(spell.walk(specs[0], 'left', { grid: g }))
+    out[`grid${g}:fx-portal-ice`] = fnv(spell.frames('fx-portal-ice', { grid: g }))
   }
-  out['grid32:pack'] = fnv([dog.pack(specs[1], { grid: 32, actions: ['attack'] }).image])
+  out['grid32:pack'] = fnv([spell.pack(specs[1], { grid: 32, actions: ['attack'] }).image])
   // sounds: the 16-bit PCM bytes, so tiny float differences below one step don't count
   const pcm = (sound) => ({ w: sound.samples.length, h: sound.sampleRate, data: sound.toWAV().subarray(44) })
-  for (const id of dog.sfx.list) out[`sfx:${id}`] = fnv([pcm(dog.sfx(id))])
-  for (const el of dog.sfx.elements) out[`sfx:slash-${el}`] = fnv([pcm(dog.sfx('slash', { element: el }))])
-  out['sfx:hit-seed3-pitch1.3'] = fnv([pcm(dog.sfx('hit', { seed: 3, pitch: 1.3 }))])
+  for (const id of spell.sfx.list) out[`sfx:${id}`] = fnv([pcm(spell.sfx(id))])
+  for (const el of spell.sfx.elements) out[`sfx:slash-${el}`] = fnv([pcm(spell.sfx('slash', { element: el }))])
+  out['sfx:hit-seed3-pitch1.3'] = fnv([pcm(spell.sfx('hit', { seed: 3, pitch: 1.3 }))])
   return out
 }
 

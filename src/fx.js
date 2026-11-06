@@ -1,7 +1,7 @@
 // FX engine: effects as tiny recipes instead of hand-drawn frames.
 //
 // A recipe paints soft shapes into intensity fields (one per color ramp A/B/C),
-// and the engine turns each frame into ordinary DOG text art: shades 1-4 / 5-8 / a-d
+// and the engine turns each frame into ordinary PixSpell text art: shades 1-4 / 5-8 / a-d
 // plus white for hot cores. So every effect is a normal recolorable sprite.
 //
 //   const recipe = {
@@ -314,7 +314,7 @@ export function runRecipe(recipe, opts = {}) {
 
 /**
  * Recipe -> lazy sprite definition for the registry (default color + element variants).
- * Frames are generated the first time something reads them, so importing DOG stays fast.
+ * Frames are generated the first time something reads them, so importing PixSpell stays fast.
  */
 export function effectSprite(recipe) {
   const variants = {}

@@ -1,10 +1,10 @@
-// DOG Quest: a tiny top-down action scene built only from DOG sprites.
-// Characters come from dog.char / dog.walk, attacks and hits from dog.action,
-// crits, coins, poofs, level-ups, firelight and fireflies from dog.fx, sound cues for dog.sfx,
+// PixSpell Quest: a tiny top-down action scene built only from PixSpell sprites.
+// Characters come from spell.char / spell.walk, attacks and hits from spell.action,
+// crits, coins, poofs, level-ups, firelight and fireflies from spell.fx, sound cues for spell.sfx,
 // tiles, pickups, HUD icons and text from the sprite collection and pixel font.
 // It is a showcase, not a game engine: ~400 lines, no dependencies.
 
-import { dog, looks, Pixmap, text } from '../src/index.js'
+import { spell, looks, Pixmap, text } from '../src/index.js'
 
 export const T = 16
 const COLS = 16, ROWS = 11, HUD = 16
@@ -57,23 +57,23 @@ const anim = (frames, fps = frames.fps ?? 8) => ({ imgs: frames.map(toCanvas), f
 
 function kit(spec, element) {
   return once(`kit:${JSON.stringify(spec)}:${element}`, () => {
-    const walk = Object.fromEntries(dog.walk.dirs.map((d) => [d, anim(dog.walk(spec, d))]))
-    const attack = dog.action(spec, 'attack', element)
+    const walk = Object.fromEntries(spell.walk.dirs.map((d) => [d, anim(spell.walk(spec, d))]))
+    const attack = spell.action(spec, 'attack', element)
     return {
       walk,
       attack: { right: anim(attack, 20), left: anim(attack.map((f) => f.flipX()), 20) },
-      hit: anim(dog.action(spec, 'hit', { element, amount: '-1' }), 16),
-      crit: anim(dog.action(spec, 'hit', { element, amount: '-2' }), 16),
-      hurt: anim(dog.action(spec, 'hit', { amount: '-1' }), 16),
-      death: anim(dog.action(spec, 'death'), 12),
-      levelup: anim(dog.action(spec, 'levelup', 'holy'), 12),
-      heal: anim(dog.action(spec, 'heal', { amount: '+2' }), 12),
+      hit: anim(spell.action(spec, 'hit', { element, amount: '-1' }), 16),
+      crit: anim(spell.action(spec, 'hit', { element, amount: '-2' }), 16),
+      hurt: anim(spell.action(spec, 'hit', { amount: '-1' }), 16),
+      death: anim(spell.action(spec, 'death'), 12),
+      levelup: anim(spell.action(spec, 'levelup', 'holy'), 12),
+      heal: anim(spell.action(spec, 'heal', { amount: '+2' }), 12),
     }
   })
 }
 
-const fx = (name, opts = {}) => once(`fx:${name}:${JSON.stringify(opts)}`, () => anim(dog.fx(name, opts)))
-const small = (id, frame) => once(`small:${id}:${frame}`, () => toCanvas(dog(id, { frame }).downscale(2)))
+const fx = (name, opts = {}) => once(`fx:${name}:${JSON.stringify(opts)}`, () => anim(spell.fx(name, opts)))
+const small = (id, frame) => once(`small:${id}:${frame}`, () => toCanvas(spell(id, { frame }).downscale(2)))
 const label = (str, color = '#e8f3e4') => once(`text:${str}:${color}`, () => toCanvas(text(str, { color }).outline('#1b1225')))
 const shadow = once('shadow', () => {
   const p = new Pixmap(12, 4)
@@ -89,9 +89,9 @@ function backgrounds() {
     let img = new Pixmap(COLS * T, ROWS * T)
     MAP.forEach((row, r) => [...row].forEach((ch, c) => {
       const x = c * T, y = r * T
-      img = img.draw(ch === '~' ? dog('water', { frame: wf }) : ch === ',' ? dog('dirt-sand') : dog('grass'), x, y)
+      img = img.draw(ch === '~' ? spell('water', { frame: wf }) : ch === ',' ? spell('dirt-sand') : spell('grass'), x, y)
       const deco = { T: (r + c) % 3 ? 'tree' : 'tree-autumn', f: (r * c) % 2 ? 'flower' : 'flower-blue', b: 'bush', r: 'rock-mossy', x: 'chest-gold', s: 'sign' }[ch]
-      if (deco) img = img.draw(dog(deco), x, y)
+      if (deco) img = img.draw(spell(deco), x, y)
     }))
     return toCanvas(img)
   }))
@@ -143,7 +143,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero, onSoun
   }
 
   const effect = (a, x, y) => g.fx.push({ a, x, y, t: 0 })
-  // sound cues (dog.sfx names); the page decides whether to play them. Silent while the demo plays itself.
+  // sound cues (spell.sfx names); the page decides whether to play them. Silent while the demo plays itself.
   const sound = (name, opts) => { if (!g.auto) onSound?.(name, opts) }
 
   // ------------------------------------------------------------ input
@@ -233,7 +233,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero, onSoun
     g.queued = Math.max(0, (g.queued ?? 0) - dt)
     if ((input.attack || g.queued) && !h.cooldown) {
       Object.assign(h, { state: 'attack', t: 0, struck: false, cooldown: 0.45 })
-      sound(dog.action.styleOf(h.spec), { element: h.element })
+      sound(spell.action.styleOf(h.spec), { element: h.element })
       g.queued = 0
     }
   }
@@ -397,7 +397,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero, onSoun
       x.drawImage(small('coin', 0), 104, 4)
       x.drawImage(label(String(g.coins)), 114, 5)
       x.drawImage(label(`LV ${g.level}`, '#a8e05a'), 146, 5)
-      x.drawImage(label(g.auto ? 'DEMO' : 'DOG QUEST', g.auto ? '#ffd06a' : '#8aa592'), g.auto ? 220 : 204, 5)
+      x.drawImage(label(g.auto ? 'DEMO' : 'PIXSPELL', g.auto ? '#ffd06a' : '#8aa592'), g.auto ? 220 : 214, 5)
       g.hud = c
     }
     ctx.drawImage(g.hud, 0, 0)
@@ -406,7 +406,7 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero, onSoun
   function draw() {
     const bgs = backgrounds()
     ctx.drawImage(bgs[Math.floor(g.time * 4) % 4], 0, HUD)
-    const fire = once('campfire', () => anim(dog.frames('campfire')))
+    const fire = once('campfire', () => anim(spell.frames('campfire')))
     const light = fx('glow', { element: 'fire', size: 48 })
     MAP.forEach((row, r) => [...row].forEach((ch, c) => {
       if (ch !== 'c') return

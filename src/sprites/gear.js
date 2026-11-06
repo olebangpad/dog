@@ -1,4 +1,4 @@
-// Gear for dog.char(): hats (head), held items (hand) and off-hand items. Pivots line up with body anchors.
+// Gear for spell.char(): hats (head), held items (hand) and off-hand items. Pivots line up with body anchors.
 // Legend: . clear  # outline  w white  1-4 ramp A  5-8 ramp B  a-d ramp C (dark -> light)
 
 export const category = "gear"

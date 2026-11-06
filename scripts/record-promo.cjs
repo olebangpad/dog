@@ -20,8 +20,8 @@ const ONLY = process.argv[3] ?? ''
 const OUT = join(__dirname, '..', 'docs', 'promo')
 
 const JOBS = [
-  { name: 'dog-reel-en.mp4', url: '/promo.html?lang=en', viewport: [1080, 1920], seconds: 15, fps: 30 },
-  { name: 'dog-reel-ko.mp4', url: '/promo.html?lang=ko', viewport: [1080, 1920], seconds: 15, fps: 30 },
+  { name: 'pixspell-reel-en.mp4', url: '/promo.html?lang=en', viewport: [1080, 1920], seconds: 15, fps: 30 },
+  { name: 'pixspell-reel-ko.mp4', url: '/promo.html?lang=ko', viewport: [1080, 1920], seconds: 15, fps: 30 },
   { name: 'gameplay.gif', url: '/promo.html?mode=clip', viewport: [1024, 768], seconds: 10, fps: 15, selector: '#game' },
   // a grid of 25 effects is busy footage: a little more compression keeps these near 4 MB
   { name: 'fx-reel-en.mp4', url: '/fxreel.html?lang=en', viewport: [1080, 1920], seconds: 17, fps: 30, crf: 21 },
@@ -29,7 +29,7 @@ const JOBS = [
 ]
 
 async function record(browser, job) {
-  const dir = mkdtempSync(join(os.tmpdir(), 'dog-frames-'))
+  const dir = mkdtempSync(join(os.tmpdir(), 'pixspell-frames-'))
   const page = await browser.newPage({ viewport: { width: job.viewport[0], height: job.viewport[1] } })
   await page.clock.install({ time: 0 })
   await page.goto(BASE + job.url, { waitUntil: 'networkidle' })

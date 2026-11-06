@@ -668,3 +668,34 @@ upload the social preview, add an npm token, publish v0.1.0.
 3. Settings → Social preview: upload `docs/img/social.png`.
 4. npm: create an access token, add it as the `NPM_TOKEN` repository secret, then publish GitHub Release `v0.1.0`.
    The workflow does the rest.
+
+### Addendum: the final name is PixSpell
+
+`dots-of-games` lasted one commit. Two hyphens are hard to say and to remember, and "DOG" isn't a brand worth keeping:
+the word is everywhere. The owner chose **PixSpell** from a list of one-word candidates (the list also had spawnpix,
+spritomatic and spritescript). It's free on npm, no other GitHub repo uses the name, and it says "one line of code and
+the art appears". `codeart` was considered and dropped: it's free on npm, but 953 GitHub repos already use the name.
+
+- **API:** the entry point is now `spell` (`spell('sword')`, `spell.char()`, `spell.fx()`, `spell.sfx()`). `dog` is still
+  exported as an alias, so earlier snippets keep working. Types: `PixSpell` (old `Dog` kept as a deprecated alias).
+- **Everything else follows:**
+  - names: package `pixspell`, CLI `pixspell` (`scripts/pixspell.js`), skill folder `skills/pixspell`, plugin
+    `pixspell@pixspell`, test file `test/pixspell.test.js`
+  - in pages and files: zip names `pixspell-32px.zip`, error messages `pixspell: ...`, pack metadata key `pixspell`,
+    banner and social image ("PIXSPELL · GAME ASSETS AS CODE"), page titles, promo titles; videos re-recorded
+- **How the rename was kept safe:** the `dog` animal sprite is a real sprite id. Strings like `'dog'` and `'dog-shiba'`
+  had to survive, and so did prose such as "the dog walks side-on", while every `dog(` / `dog.` call changed. The
+  rename ran as ordered rules with a dry run first, then the leftovers were reviewed by hand. The review found:
+  - `export default dog` and `...dog.action.list`, which the rules skipped (end of line, after a spread)
+  - Korean text, where `DOG` touching a particle (`DOG는`) isn't a word boundary. The particles also had to change
+    with the new final consonant: `PixSpell은`, `PixSpell이`
+  - two README anchors that changed with their headings
+  - the social image, which still said `GITHUB.COM/OLEBANGPAD/DOG` in capitals: a miss from Round 8's
+    lowercase-only search
+  - the promo title at 190 px, which no longer fit the 1,080 px frame (now 140 px)
+  - the main page's subtitle, which had become "PixSpell PixSpell"
+- Checks: 56 tests, types, build, `claude plugin validate`, the full browser suite (its scripts updated to the new
+  names), and banner, social image and promo frames looked at.
+
+Owner steps are the same as Round 8, with the new name: rename the repository to **`pixspell`**, then the About box,
+the social preview, `NPM_TOKEN`, and a `v0.1.0` release.

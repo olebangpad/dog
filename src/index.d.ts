@@ -1,4 +1,4 @@
-// Type definitions for DOG (Dots Of Games). The library is plain JavaScript; these give editors
+// Type definitions for PixSpell. The library is plain JavaScript; these give editors
 // autocomplete and let TypeScript projects use it. Checked by compiling a usage sample with tsc.
 
 /** A material name, any CSS hex color ('#ff4fd8'), or an explicit 4-color ramp (dark -> light). */
@@ -10,7 +10,7 @@ export type RGBA = [number, number, number, number]
 
 export interface Ramps { A?: Color; B?: Color; C?: Color }
 
-/** The tile size of your game. DOG draws on 16; 8 halves (outline kept), 32 / 64 grow with Scale2x, effects are redrawn. */
+/** The tile size of your game. PixSpell draws on 16; 8 halves (outline kept), 32 / 64 grow with Scale2x, effects are redrawn. */
 export type Grid = 8 | 16 | 32 | 64
 export interface GridOptions {
   grid?: Grid
@@ -86,7 +86,7 @@ export class Pixmap {
 export type Frames = Pixmap[] & { fps: number; loop?: boolean }
 
 export interface CharacterSpec extends Ramps, GridOptions {
-  /** Body id, e.g. 'hero', 'heroine-blonde', 'goblin', 'slime-pink'. See dog.char.parts.body. */
+  /** Body id, e.g. 'hero', 'heroine-blonde', 'goblin', 'slime-pink'. See spell.char.parts.body. */
   body: string
   /** 'crown' or 'hat-crown' (variants: 'crown-silver'). */
   hat?: string
@@ -182,7 +182,7 @@ export interface SfxOptions {
   element?: FxColorName
 }
 
-/** A rendered sound: mono samples in -1..1. Treat it as read-only (dog.sfx caches it). */
+/** A rendered sound: mono samples in -1..1. Treat it as read-only (spell.sfx caches it). */
 export class Sound {
   constructor(samples: Float32Array, opts?: { sampleRate?: number; id?: string; loop?: boolean })
   readonly samples: Float32Array
@@ -210,15 +210,15 @@ export interface SoundPack {
   zip(): Uint8Array
 }
 
-export interface Dog {
-  /** Render any sprite or variant: dog('potion'), dog('potion-mana'), dog('potion', { A: '#ff4fd8' }). */
+export interface PixSpell {
+  /** Render any sprite or variant: spell('potion'), spell('potion-mana'), spell('potion', { A: '#ff4fd8' }). */
   (id: string, opts?: Ramps & GridOptions & { frame?: number; outline?: string; white?: string }): Pixmap
   frames(id: string, opts?: Ramps & GridOptions): Frames
-  /** The tile sizes DOG delivers: [8, 16, 32, 64]. */
+  /** The tile sizes PixSpell delivers: [8, 16, 32, 64]. */
   grids: Grid[]
-  /** Convert any DOG image (or frame list) drawn on the 16 px grid to another grid. */
+  /** Convert any PixSpell image (or frame list) drawn on the 16 px grid to another grid. */
   toGrid<T extends Pixmap | Pixmap[]>(img: T, grid: Grid, opts?: { smooth?: boolean }): T
-  /** Everything at one tile size, as files to render one by one (see scripts/dog.js export). */
+  /** Everything at one tile size, as files to render one by one (see scripts/pixspell.js export). */
   bundle(opts?: { grid?: Grid; sprites?: boolean; characters?: boolean; effects?: boolean; effectColors?: boolean; sounds?: boolean }): { path: string; make(): Pixmap | Uint8Array | string }[]
   list(filter?: { category?: string; tag?: string; variants?: boolean }): string[]
   info(id: string): Look
@@ -236,7 +236,7 @@ export interface Dog {
     size: number
   }
   /** Walk cycle: 24x24 frames with .fps. 'left' mirrors 'right'. */
-  walk: Dog['char']['walk'] & { dirs: WalkDir[] }
+  walk: PixSpell['char']['walk'] & { dirs: WalkDir[] }
   /** 8 frames of 32x32 (feet at 16,31) with .fps. */
   action: {
     (spec: string | CharacterSpec, name: ActionName, opts?: ElementName | Color | ActionOptions): Frames
@@ -253,7 +253,7 @@ export interface Dog {
   pack(spec: string | CharacterSpec, opts?: GridOptions & { name?: string; element?: ElementName | Color; actions?: ActionName[]; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Every effect (or the ids given) as one pack. */
   fxPack(ids?: string[], opts?: { name?: string; grid?: Grid; deflate?: (b: Uint8Array) => Uint8Array }): Pack
-  /** Sound effects made by code: dog.sfx('coin').play(), dog.sfx('slash', { element: 'fire' }). */
+  /** Sound effects made by code: spell.sfx('coin').play(), spell.sfx('slash', { element: 'fire' }). */
   sfx: {
     (name: string, opts?: SfxOptions): Sound
     /** Every sound name. Attack styles and actions have sounds of the same name. */
@@ -267,7 +267,7 @@ export interface Dog {
   /** Sounds (all, or the names given) as WAV files in one zip. */
   sfxPack(names?: string[], opts?: SfxOptions & { name?: string }): SoundPack
   fx: {
-    /** Procedural effect: dog.fx('comet', { element: 'ice', size: 64 }). */
+    /** Procedural effect: spell.fx('comet', { element: 'ice', size: 64 }). */
     (name: string, opts?: FxOptions): Frames
     list: string[]
     colors: Record<FxColorName, MaterialName>
@@ -275,8 +275,13 @@ export interface Dog {
   }
 }
 
-export const dog: Dog
-export default dog
+/** The whole library: spell('sword'), spell.char(), spell.fx(), spell.sfx(), ... */
+export const spell: PixSpell
+/** @deprecated The old name of spell. */
+export const dog: PixSpell
+/** @deprecated The old name of PixSpell. */
+export type Dog = PixSpell
+export default spell
 
 export const sprites: Record<string, SpriteDef>
 export const looks: Record<string, Look>

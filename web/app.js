@@ -1,12 +1,12 @@
-// DOG studio: browse, combine, recolor and resize sprites, then export.
+// PixSpell studio: browse, combine, recolor and resize sprites, then export.
 import {
-  dog, looks, sprites, compose, sheet, defineSprite, render, resolveRamp, rampFrom,
+  spell, looks, sprites, compose, sheet, defineSprite, render, resolveRamp, rampFrom,
   MATERIALS, MATERIAL_NAMES, LEGEND, OUTLINE, encodeAPNG,
 } from '../src/index.js'
 import { $, $$, h, paint, thumb, download, toast, copy, encode, decode, readHash, writeHash } from './ui.js'
 import { initMaker } from './maker.js'
 
-const REPO = 'olebangpad/dots-of-games'
+const REPO = 'olebangpad/pixspell'
 const CATEGORIES = ['all', 'characters', 'gear', 'items', 'monsters', 'tiles', 'icons', 'effects']
 const SCALES = [0.5, 1, 2, 3, 4, 6, 8, 12, 16]
 const PRESETS = [
@@ -84,7 +84,7 @@ function applyFx(img) {
 /** The composite at time t (seconds), or at a frame step for export. */
 function composite({ t = ui.t, step = null } = {}) {
   const layers = state.layers.filter((L) => !L.hidden)
-  if (!layers.length) return applyFx(compose([dog('dog').opacity(0)]))
+  if (!layers.length) return applyFx(compose([spell('dog').opacity(0)]))
   return applyFx(compose(layers.map((L) => {
     const def = layerDef(L)
     const frame = step == null ? frameAt(def, t) : def.sequence[step % def.sequence.length]
@@ -316,7 +316,7 @@ function fmtRamps(r) {
 function codeSnippet() {
   const layers = state.layers.filter((L) => !L.hidden)
   const calls = layers.map((L) => {
-    let s = `dog('${L.id}'${fmtRamps(L.ramps)})`
+    let s = `spell('${L.id}'${fmtRamps(L.ramps)})`
     if (L.flip) s += '.flipX()'
     if (L.x || L.y) s += `.at(${L.x}, ${L.y})`
     return s
@@ -338,8 +338,8 @@ function codeSnippet() {
   if (f.smooth) chain.push('.smooth()')
   if (f.scale !== 1) chain.push(`.scale(${f.scale})`)
   const many = calls.length > 1
-  const imports = many ? '{ dog, compose }' : '{ dog }'
-  const body = many ? `compose(\n  ${calls.join(',\n  ')},\n)` : calls[0] ?? `dog('dog')`
+  const imports = many ? '{ spell, compose }' : '{ spell }'
+  const body = many ? `compose(\n  ${calls.join(',\n  ')},\n)` : calls[0] ?? `spell('dog')`
   const edited = layers.some((L) => L.custom) ? '\n// note: edited pixels are not included - copy them from "Edit pixels"' : ''
   return `import ${imports} from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\nconst img = ${body}${chain.length ? '\n  ' + chain.join('\n  ') : ''}\n\ndocument.body.append(img.toCanvas())${edited}`
 }
@@ -385,7 +385,7 @@ art.addEventListener('input', () => {
     L.custom = frames
     update({ gallery: false, editor: false })
   } catch (e) {
-    $('#art-error').textContent = e.message.replace(/^dog: /, '')
+    $('#art-error').textContent = e.message.replace(/^pixspell: /, '')
   }
 })
 $('#art-reset').addEventListener('click', () => {
@@ -425,7 +425,7 @@ const seen = new IntersectionObserver((entries) => {
     t.visible = e.isIntersecting
     if (t.visible && !t.painted) {
       t.painted = true
-      paint(t.canvas, dog(t.look.id, { frame: t.look.def.cover }))
+      paint(t.canvas, spell(t.look.id, { frame: t.look.def.cover }))
     }
   }
 }, { rootMargin: '200px' })
@@ -501,17 +501,17 @@ function update({ gallery = true, colors = true, layers = true, editor = true } 
 
 // mascot + favicon + background tile + stats
 function decorate() {
-  const frames = dog.frames('dog')
+  const frames = spell.frames('dog')
   const mascot = $('#mascot')
   let i = 0
   setInterval(() => { paint(mascot, frames[i++ % frames.length]) }, 1000 / 6)
   paint(mascot, frames[0])
-  $('#favicon').href = dog('dog').toDataURL()
+  $('#favicon').href = spell('dog').toDataURL()
   const style = document.createElement('style')
-  style.textContent = `.stage[data-bg='grass'] { background-image: url(${dog('grass').scale(4).toDataURL()}); }`
+  style.textContent = `.stage[data-bg='grass'] { background-image: url(${spell('grass').scale(4).toDataURL()}); }`
   document.head.append(style)
   const base = Object.keys(sprites).length, all = Object.keys(looks).length
-  $('#stats').textContent = `${base} sprites · ${all} looks · ${dog.char.count().toLocaleString('en-US')} characters · CC0`
+  $('#stats').textContent = `${base} sprites · ${all} looks · ${spell.char.count().toLocaleString('en-US')} characters · CC0`
 }
 
 // animation loop: stage + animated gallery tiles
@@ -530,7 +530,7 @@ function loop(now) {
       const frame = frameAt(look.def, now / 1000)
       if (canvas.dataset.f !== String(frame)) {
         canvas.dataset.f = frame
-        paint(canvas, dog(look.id, { frame }))
+        paint(canvas, spell(look.id, { frame }))
       }
     }
   }
@@ -556,5 +556,5 @@ addEventListener('resize', () => drawStage(true))
 requestAnimationFrame(loop)
 
 // expose for tinkering in the console
-Object.assign(window, { dog, compose, looks })
-console.log('%cDOG', 'font: bold 20px monospace; color: #a8e05a', "- try: dog('slime', { A: '#ff00aa' }).scale(8).toCanvas()")
+Object.assign(window, { spell, compose, looks })
+console.log('%cDOG', 'font: bold 20px monospace; color: #a8e05a', "- try: spell('slime', { A: '#ff00aa' }).scale(8).toCanvas()")

@@ -15,7 +15,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { deflateSync } from 'node:zlib'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { dog, looks, sprites, compose, sheet, Pixmap, text, encodeAPNG, MATERIAL_NAMES, MATERIALS as MATERIALS_FOR_DOCS } from '../src/index.js'
+import { spell, looks, sprites, compose, sheet, Pixmap, text, encodeAPNG, MATERIAL_NAMES, MATERIALS as MATERIALS_FOR_DOCS } from '../src/index.js'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const deflate = (b) => deflateSync(b, { level: 9 })
@@ -37,23 +37,23 @@ async function buildAssets() {
   let files = 0
   for (const look of Object.values(looks)) {
     const { id, def } = look
-    const frames = dog.frames(id)
-    const still = dog(id, { frame: def.cover })
+    const frames = spell.frames(id)
+    const still = spell(id, { frame: def.cover })
     await write(join(out, 'png', `${id}.png`), png(still))
     await write(join(out, 'png@4x', `${id}.png`), png(still.scale(4)))
     files += 2
     if (def.frames.length > 1) {
       await write(join(out, 'anim', `${id}.png`), apng(frames.map((f) => f.scale(4)), def.fps))
-      const unique = def.frames.map((_, i) => dog(id, { frame: i }))
+      const unique = def.frames.map((_, i) => spell(id, { frame: i }))
       await write(join(out, 'strips', `${id}.png`), png(sheet(unique).image))
       files += 2
     }
-    def.frames.forEach((_, i) => atlasFrames.push({ name: def.frames.length > 1 ? `${id}#${i}` : id, img: dog(id, { frame: i }) }))
+    def.frames.forEach((_, i) => atlasFrames.push({ name: def.frames.length > 1 ? `${id}#${i}` : id, img: spell(id, { frame: i }) }))
   }
-  // walk strips for every base body in every direction (variants: use dog.walk with that body)
-  for (const body of dog.char.parts.body.filter((b) => !looks[b].variant)) {
-    for (const dir of dog.walk.dirs) {
-      await write(join(out, 'walk', `${body}-${dir}.png`), png(sheet(dog.walk(body, dir)).image))
+  // walk strips for every base body in every direction (variants: use spell.walk with that body)
+  for (const body of spell.char.parts.body.filter((b) => !looks[b].variant)) {
+    for (const dir of spell.walk.dirs) {
+      await write(join(out, 'walk', `${body}-${dir}.png`), png(sheet(spell.walk(body, dir)).image))
       files++
     }
   }
@@ -66,7 +66,7 @@ async function buildAssets() {
       frame: { x: f.x, y: f.y, w: f.w, h: f.h }, rotated: false, trimmed: false,
       spriteSourceSize: { x: 0, y: 0, w: f.w, h: f.h }, sourceSize: { w: f.w, h: f.h },
     }])),
-    meta: { app: 'https://github.com/olebangpad/dots-of-games', version: '1', image: 'atlas.png', format: 'RGBA8888', size: { w: image.w, h: image.h }, scale: '1' },
+    meta: { app: 'https://github.com/olebangpad/pixspell', version: '1', image: 'atlas.png', format: 'RGBA8888', size: { w: image.w, h: image.h }, scale: '1' },
     // not part of the TexturePacker format, ignored by loaders: frame names per animation
     animations: Object.fromEntries(
       Object.values(looks)
@@ -118,21 +118,21 @@ function framed(img, pad = 8) {
 
 // Every base sprite in one grid.
 function gallery() {
-  const ids = dog.list({ variants: false })
-  const { image } = sheet(ids.map((id) => dog(id, { frame: looks[id].def.cover })), { columns: 14, gap: 4 })
+  const ids = spell.list({ variants: false })
+  const { image } = sheet(ids.map((id) => spell(id, { frame: looks[id].def.cover })), { columns: 14, gap: 4 })
   return framed(image, 6).scale(3)
 }
 
 // One drawing, many colors.
 function recolor() {
-  const potions = MATERIAL_NAMES.map((m) => dog('potion', { A: m }))
+  const potions = MATERIAL_NAMES.map((m) => spell('potion', { A: m }))
   const hexes = ['#ff5555', '#ff9f43', '#ffd93d', '#6bcB77', '#4d96ff', '#9b5de5', '#f15bb5', '#00bbf9', '#00f5d4', '#fee440', '#c0c0c0', '#8d6e63']
-  const slimes = hexes.map((h) => dog('slime', { A: h }))
-  const swords = ['iron', 'gold', 'ice', 'red', 'purple', 'green', 'shadow', 'bone', 'orange'].map((m) => dog('sword', { A: m, C: m === 'gold' ? 'red' : 'gold' }))
+  const slimes = hexes.map((h) => spell('slime', { A: h }))
+  const swords = ['iron', 'gold', 'ice', 'red', 'purple', 'green', 'shadow', 'bone', 'orange'].map((m) => spell('sword', { A: m, C: m === 'gold' ? 'red' : 'gold' }))
   const img = column([
-    label("dog('potion', { A: material })"), row(potions, 2),
-    label("dog('slime', { A: '#ANYHEX' })"), row(slimes, 2),
-    label("dog('sword', { A, C })"), row(swords, 2),
+    label("spell('potion', { A: material })"), row(potions, 2),
+    label("spell('slime', { A: '#ANYHEX' })"), row(slimes, 2),
+    label("spell('sword', { A, C })"), row(swords, 2),
   ], 4)
   return framed(img, 6).scale(3)
 }
@@ -141,25 +141,25 @@ function recolor() {
 function combine() {
   const plus = label('+', INK), eq = label('=', ACCENT)
   const recipe = (parts, result) => row([...parts.flatMap((p, i) => (i ? [plus, p] : [p])), eq, result], 4)
-  const hero = dog('hero'), crown = dog('crown')
-  const knight = compose(dog('hero', { A: 'red' }), dog('helmet').at(0, -6))
-  const mage = compose(dog('hero-mage'), dog('wizard-hat').at(1, -9), dog('staff').at(7, 2))
+  const hero = spell('hero'), crown = spell('crown')
+  const knight = compose(spell('hero', { A: 'red' }), spell('helmet').at(0, -6))
+  const mage = compose(spell('hero-mage'), spell('wizard-hat').at(1, -9), spell('staff').at(7, 2))
   const king = compose(hero, crown.at(0, -7))
-  const pup = compose(dog('dog'), dog('wizard-hat', { A: 'pink' }).at(4, -8))
-  const ring = compose(dog('ring', { C: 'blue' }), dog('sparkle', { frame: 2, A: 'ice' }).at(6, -6))
+  const pup = compose(spell('dog'), spell('wizard-hat', { A: 'pink' }).at(4, -8))
+  const ring = compose(spell('ring', { C: 'blue' }), spell('sparkle', { frame: 2, A: 'ice' }).at(6, -6))
   const img = column([
     recipe([hero, crown], king),
-    recipe([dog('hero', { A: 'red' }), dog('helmet')], knight),
-    recipe([dog('hero-mage'), dog('wizard-hat'), dog('staff')], mage),
-    recipe([dog('dog'), dog('wizard-hat', { A: 'pink' })], pup),
-    recipe([dog('ring', { C: 'blue' }), dog('sparkle', { frame: 2, A: 'ice' })], ring),
+    recipe([spell('hero', { A: 'red' }), spell('helmet')], knight),
+    recipe([spell('hero-mage'), spell('wizard-hat'), spell('staff')], mage),
+    recipe([spell('dog'), spell('wizard-hat', { A: 'pink' })], pup),
+    recipe([spell('ring', { C: 'blue' }), spell('sparkle', { frame: 2, A: 'ice' })], ring),
   ], 6)
   return framed(img, 6).scale(3)
 }
 
 // Size: crisp upscale, Scale2x smoothing, majority downscale.
 function sizes() {
-  const s = dog('slime-pink')
+  const s = spell('slime-pink')
   const big = s.scale(4)
   const items = [
     column([s.scale(4).crop(0, 0, 1, 1).opacity(0), s, label('1X')], 4, 'center'),
@@ -182,13 +182,13 @@ function scene() {
     const look = looks[id]
     const seq = look.def.sequence
     const i = seq[Math.floor((t * look.def.fps) / fpsBase) % seq.length]
-    return dog(id, { frame: i })
+    return spell(id, { frame: i })
   }
   const frames = []
   for (let t = 0; t < nFrames; t++) {
     let img = new Pixmap(W * 16, H * 16)
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const tile = y >= 5 ? frameOf('water', t) : y === 4 && x > 7 ? dog('dirt-sand') : dog('grass')
+      const tile = y >= 5 ? frameOf('water', t) : y === 4 && x > 7 ? spell('dirt-sand') : spell('grass')
       img = img.draw(tile, x * 16, y * 16)
     }
     const place = (id, x, y) => { img = img.draw(id instanceof Pixmap ? id : frameOf(id, t), x, y) }
@@ -197,14 +197,14 @@ function scene() {
     place('flower-sun', 66, 66); place('sign', 172, 50)
     place('campfire', 74, 34)
     place('dog', 52, 36)
-    place(compose(dog('hero'), dog('crown').at(0, -7)), 96, 40)
+    place(compose(spell('hero'), spell('crown').at(0, -7)), 96, 40)
     place('slime', 132, 40); place('slime-blue', 150, 30)
     place('chest-gold', 8, 48); place('coin', 28, 52)
     place('ghost', 172, 14)
     place('bat', 120, 6 + Math.round(Math.sin((t / nFrames) * Math.PI * 2) * 3))
     place('chick', 140, 60)
     place('fish-salmon', 40 + ((t * 2) % 160), 92)
-    const walker = dog.walk({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, 'left')
+    const walker = spell.walk({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, 'left')
     place(walker[t % walker.length], 186 - t * 3, 58)
     if (t >= 10 && t < 18) place(frameOf('sparkle', t - 10), 26, 40)
     frames.push(img.scale(3))
@@ -215,14 +215,14 @@ function scene() {
 function banner() {
   const ids = ['dog', 'slime', 'coin', 'torch', 'ghost', 'potion-mana', 'sword-gold', 'chick', 'bat', 'explosion', 'eye', 'campfire', 'cat']
   const n = 16
-  const title = text('DOG', { color: ACCENT }).scale(3)
-  const sub = text('DOTS OF GAMES', { color: DIM })
+  const title = text('PIXSPELL', { color: ACCENT }).scale(3)
+  const sub = text('GAME ASSETS AS CODE', { color: DIM })
   const frames = []
   for (let t = 0; t < n; t++) {
     const sprites = ids.map((id) => {
       const look = looks[id]
       const seq = look.def.sequence
-      return dog(id, { frame: seq[Math.floor((t * look.def.fps) / 8) % seq.length] })
+      return spell(id, { frame: seq[Math.floor((t * look.def.fps) / 8) % seq.length] })
     })
     const img = column([row([title, sub], 6), row(sprites, 6)], 6)
     frames.push(framed(img, 8).scale(3))
@@ -230,12 +230,12 @@ function banner() {
   return frames
 }
 
-// Random characters from dog.char.random(seed) - deterministic, so the image is stable.
+// Random characters from spell.char.random(seed) - deterministic, so the image is stable.
 function characters() {
-  const specs = Array.from({ length: 24 }, (_, i) => dog.char.random(i + 1))
-  const all = specs.map((s) => dog.char.frames(s))
+  const specs = Array.from({ length: 24 }, (_, i) => spell.char.random(i + 1))
+  const all = specs.map((s) => spell.char.frames(s))
   const n = 12
-  const title = text(`DOG.CHAR.RANDOM()  ${dog.char.count().toLocaleString('en-US')} COMBINATIONS`, { color: DIM })
+  const title = text(`PixSpell.CHAR.RANDOM()  ${spell.char.count().toLocaleString('en-US')} COMBINATIONS`, { color: DIM })
   return Array.from({ length: n }, (_, t) => {
     const { image } = sheet(all.map((f) => f[t % f.length]), { columns: 8, gap: 2 })
     return framed(column([title, image], 6), 6).scale(3)
@@ -252,8 +252,8 @@ function actions() {
     cast: { body: 'hero-mage', hat: 'wizard', hand: 'staff' },
     death: { body: 'slime-purple', hat: 'party' },
   }
-  const elements = [null, ...dog.action.elements]
-  const grid = dog.action.list.map((name) => elements.map((el) => dog.action(cast[name], name, el ?? undefined)))
+  const elements = [null, ...spell.action.elements]
+  const grid = spell.action.list.map((name) => elements.map((el) => spell.action(cast[name], name, el ?? undefined)))
   const cellW = 32, labelW = 34, gap = 4
   return Array.from({ length: 8 }, (_, t) => {
     let img = new Pixmap(labelW + elements.length * (cellW + gap), 10 + grid.length * (cellW + gap))
@@ -263,7 +263,7 @@ function actions() {
     })
     grid.forEach((cells, r) => {
       const y = 10 + r * (cellW + gap)
-      img = img.draw(text(dog.action.list[r].toUpperCase(), { color: ACCENT }), 0, y + 14)
+      img = img.draw(text(spell.action.list[r].toUpperCase(), { color: ACCENT }), 0, y + 14)
       cells.forEach((frames, c) => { img = img.draw(frames[t], labelW + c * (cellW + gap), y) })
     })
     return framed(img, 8).scale(3)
@@ -280,12 +280,12 @@ function walks() {
     { body: 'hero-orc', hat: 'horns', hand: 'hammer', offhand: 'buckler' },
     { body: 'dog-shiba', hat: 'party' },
   ]
-  const grid = dog.walk.dirs.map((dir) => cast.map((c) => dog.walk(c, dir)))
+  const grid = spell.walk.dirs.map((dir) => cast.map((c) => spell.walk(c, dir)))
   const cell = 24, gap = 4, labelW = 26
   return Array.from({ length: 8 }, (_, t) => {
     let img = new Pixmap(labelW + cast.length * (cell + gap), grid.length * (cell + gap))
     grid.forEach((row, r) => {
-      img = img.draw(text(dog.walk.dirs[r].toUpperCase(), { color: ACCENT }), 0, r * (cell + gap) + 10)
+      img = img.draw(text(spell.walk.dirs[r].toUpperCase(), { color: ACCENT }), 0, r * (cell + gap) + 10)
       row.forEach((frames, c) => { img = img.draw(frames[t % frames.length], labelW + c * (cell + gap), r * (cell + gap)) })
     })
     return framed(img, 8).scale(3)
@@ -294,8 +294,8 @@ function walks() {
 
 // Every procedural effect, animated, labeled.
 function fxShowcase() {
-  const ids = dog.fx.list
-  const all = ids.map((id) => dog.frames(id))
+  const ids = spell.fx.list
+  const all = ids.map((id) => spell.frames(id))
   const cols = 7, cell = 32, gap = 10, labelH = 8
   const rows = Math.ceil(ids.length / cols)
   const steps = 16
@@ -316,17 +316,17 @@ function fxShowcase() {
 // 1280x640 image for GitHub's social preview (Settings -> General -> Social preview).
 function social() {
   let img = Pixmap.create(320, 160, BG)
-  img = img.draw(text('DOG', { color: ACCENT }).scale(5), 16, 18)
-  img = img.draw(text('DOTS OF GAMES', { color: DIM }), 16, 48)
+  img = img.draw(text('PIXSPELL', { color: ACCENT }).scale(5), 16, 18)
+  img = img.draw(text('GAME ASSETS AS CODE', { color: DIM }), 16, 48)
   const lines = [
-    ['PIXEL ART AS CODE', INK],
-    [`${dog.char.count().toLocaleString('en-US')} CHARACTERS`, ACCENT],
+    ['545 EFFECTS - 66 SOUNDS', INK],
+    [`${spell.char.count().toLocaleString('en-US')} CHARACTERS`, ACCENT],
     ['WALK - ATTACK - CAST - LEVEL UP', INK],
     ['FREE - CC0 - ZERO DEPENDENCIES', DIM],
   ]
   lines.forEach(([str, color], i) => { img = img.draw(text(str, { color }), 16, 70 + i * 11) })
-  img = img.draw(text('GITHUB.COM/OLEBANGPAD/DOG', { color: ACCENT }), 16, 136)
-  const chars = Array.from({ length: 20 }, (_, i) => dog.char(dog.char.random(i + 40)))
+  img = img.draw(text('GITHUB.COM/OLEBANGPAD/PIXSPELL', { color: ACCENT }), 16, 136)
+  const chars = Array.from({ length: 20 }, (_, i) => spell.char(spell.char.random(i + 40)))
   const { image } = sheet(chars, { columns: 5, gap: 2 })
   img = img.draw(image, 320 - image.w - 14, (160 - image.h) >> 1)
   return img.scale(4)
@@ -337,11 +337,11 @@ function social() {
 function gridsShowcase() {
   const BOX = 136, PAD = 8, BG = '#16201a'
   const items = [
-    (g) => dog('sword', { grid: g }), (g) => dog('potion-mana', { grid: g }), (g) => dog('slime-pink', { grid: g, frame: 0 }),
-    (g) => dog('chest-gold', { grid: g }), (g) => dog.char({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', grid: g }),
-    (g) => dog('fx-meteor', { grid: g, frame: 7 }),
+    (g) => spell('sword', { grid: g }), (g) => spell('potion-mana', { grid: g }), (g) => spell('slime-pink', { grid: g, frame: 0 }),
+    (g) => spell('chest-gold', { grid: g }), (g) => spell.char({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', grid: g }),
+    (g) => spell('fx-meteor', { grid: g, frame: 7 }),
   ]
-  const rows = dog.grids.map((g) => {
+  const rows = spell.grids.map((g) => {
     const zoom = 64 / g // a 16 px tile always shows 64 px wide
     const tiles = items.map((make) => {
       const img = make(g).scale(zoom)
@@ -385,15 +385,15 @@ async function buildTemplates() {
     ['slime', { body: 'slime' }],
   ]
   for (const [name, spec] of packs) {
-    const pack = dog.pack(spec, { name, deflate, actions: ['attack', 'hit', 'death'] })
+    const pack = spell.pack(spec, { name, deflate, actions: ['attack', 'hit', 'death'] })
     await write(join(dir, `${name}.png`), pack.files[`${name}.png`])
     await write(join(dir, `${name}.json`), pack.files[`${name}.json`])
   }
-  await write(join(dir, 'grass.png'), png(dog('grass')))
-  for (const s of ['slash', 'hit', 'poof']) await write(join(dir, `${s}.wav`), dog.sfx(s).toWAV())
+  await write(join(dir, 'grass.png'), png(spell('grass')))
+  for (const s of ['slash', 'hit', 'poof']) await write(join(dir, `${s}.wav`), spell.sfx(s).toWAV())
 }
 
-// skills/dog/catalog.md: every sprite id, so people (and AI assistants) can pick sprites by name.
+// skills/pixspell/catalog.md: every sprite id, so people (and AI assistants) can pick sprites by name.
 async function buildCatalog() {
   const defs = Object.values(sprites)
   const variants = (d) => Object.keys(d.variants).join(', ') || '-'
@@ -403,13 +403,13 @@ async function buildCatalog() {
   const bodies = defs.filter((d) => Object.keys(d.anchors).length && !d.tags.includes('walk'))
   const gear = (slot) => defs.filter((d) => d.equip === slot)
   const byCat = (cat) => defs.filter((d) => d.category === cat && !Object.keys(d.anchors).length && !d.equip)
-  const md = `# DOG sprite catalog
+  const md = `# PixSpell sprite catalog
 
 Generated by \`scripts/build.js\`: ${defs.length} sprites, ${Object.keys(looks).length} looks with variants,
-${dog.char.count().toLocaleString('en-US')} character combinations. Use a variant by appending its name: \`potion\` -> \`potion-mana\`.
-Any sprite can also be recolored with \`dog(id, { A: 'material' | '#hex' })\`.
+${spell.char.count().toLocaleString('en-US')} character combinations. Use a variant by appending its name: \`potion\` -> \`potion-mana\`.
+Any sprite can also be recolored with \`spell(id, { A: 'material' | '#hex' })\`.
 
-## Character bodies: \`dog.char({ body })\`
+## Character bodies: \`spell.char({ body })\`
 
 Humanoids hold \`hand\` and \`offhand\` items and have drawn front / back / side walk poses: ${bodies.filter(humanoid).map((d) => `\`${d.id}\``).join(', ')}.
 Others wear hats only: ${bodies.filter((d) => !humanoid(d)).map((d) => `\`${d.id}\``).join(', ')} (the dog walks side-on, the rest hop or float).
@@ -428,33 +428,33 @@ ${table(gear('hand'))}
 
 ${table(gear('offhand'))}
 
-## Actions and elements: \`dog.action(spec, action, element)\`
+## Actions and elements: \`spell.action(spec, action, element)\`
 
-Actions: ${dog.action.list.map((a) => `\`${a}\``).join(' ')}. Elements: ${dog.action.elements.map((e) => `\`${e}\``).join(' ')}, or any material / hex.
-Walk directions: ${dog.walk.dirs.map((d) => `\`${d}\``).join(' ')}.
+Actions: ${spell.action.list.map((a) => `\`${a}\``).join(' ')}. Elements: ${spell.action.elements.map((e) => `\`${e}\``).join(' ')}, or any material / hex.
+Walk directions: ${spell.walk.dirs.map((d) => `\`${d}\``).join(' ')}.
 
 ${['tiles', 'items', 'monsters', 'icons', 'effects'].map((cat) => `## ${cat[0].toUpperCase() + cat.slice(1)}\n\n${table(byCat(cat))}`).join('\n\n')}
 
-## Sounds: \`dog.sfx(name, { element, pitch, seed })\`
+## Sounds: \`spell.sfx(name, { element, pitch, seed })\`
 
-Elements: ${dog.sfx.elements.map((e) => `\`${e}\``).join(' ')}. Every attack style and action has a sound of the same name:
-\`dog.sfx(dog.action.styleOf(spec))\`. \`dog.sfx.forEffect('fx-meteor')\` gives an effect's sound.
+Elements: ${spell.sfx.elements.map((e) => `\`${e}\``).join(' ')}. Every attack style and action has a sound of the same name:
+\`spell.sfx(spell.action.styleOf(spec))\`. \`spell.sfx.forEffect('fx-meteor')\` gives an effect's sound.
 
 | sound | length | tags |
 | --- | --- | --- |
-${dog.sfx.list.map((id) => `| \`${id}\` | ${dog.sfx(id).duration.toFixed(2)}s${dog.sfx(id).loop ? ' loop' : ''} | ${dog.sfx.tags(id).join(', ')} |`).join('\n')}
+${spell.sfx.list.map((id) => `| \`${id}\` | ${spell.sfx(id).duration.toFixed(2)}s${spell.sfx(id).loop ? ' loop' : ''} | ${spell.sfx.tags(id).join(', ')} |`).join('\n')}
 
 ## Materials
 
 ${Object.entries(MATERIALS_FOR_DOCS).map(([name, ramp]) => `\`${name}\` ${ramp.join(' ')}`).join('  \n')}
 `
-  await write(join(root, 'skills', 'dog', 'catalog.md'), md)
+  await write(join(root, 'skills', 'pixspell', 'catalog.md'), md)
 }
 
 // --------------------------------------------------------------- sounds
 async function buildSounds() {
-  for (const id of dog.sfx.list) await write(join(root, 'assets', 'sfx', `${id}.wav`), dog.sfx(id).toWAV())
-  return dog.sfx.list.length
+  for (const id of spell.sfx.list) await write(join(root, 'assets', 'sfx', `${id}.wav`), spell.sfx(id).toWAV())
+  return spell.sfx.list.length
 }
 
 // time every stage, so slow builds point at their cause
@@ -470,4 +470,4 @@ const files = await stage('assets', buildAssets) + await stage('sounds', buildSo
 await stage('templates', buildTemplates)
 await stage('catalog', buildCatalog)
 await stage('showcase', buildShowcase)
-console.log(`dog: ${Object.keys(sprites).length} sprites, ${Object.keys(looks).length} looks -> ${files} asset files + showcase in ${Date.now() - t0}ms (${timings.join(', ')})`)
+console.log(`pixspell: ${Object.keys(sprites).length} sprites, ${Object.keys(looks).length} looks -> ${files} asset files + showcase in ${Date.now() - t0}ms (${timings.join(', ')})`)

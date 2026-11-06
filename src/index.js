@@ -1,8 +1,8 @@
-// DOG - Dots Of Games
+// PixSpell
 // Pixel art as code: combine, resize and recolor game sprites in a few lines.
 //
-//   import { dog, compose } from './src/index.js'
-//   const img = compose(dog('hero'), dog('crown').at(4, -2)).scale(8).outline('#fff')
+//   import { spell, compose } from './src/index.js'
+//   const img = compose(spell('hero'), spell('crown').at(4, -2)).scale(8).outline('#fff')
 
 import { groups } from './sprites/index.js'
 import { defineSprite, render, renderFrames, resolveRamp, LEGEND, SLOTS } from './sprite.js'
@@ -30,7 +30,7 @@ for (const group of groups) {
   for (const raw of group.default) {
     // lazy sprites (procedural effects) are already normalized and must not be spread (that would generate them)
     const def = raw.animated === true && Object.getOwnPropertyDescriptor(raw, 'frames')?.get ? raw : defineSprite({ ...raw, category: raw.category ?? group.category })
-    if (sprites[def.id]) throw new Error(`dog: duplicate sprite id "${def.id}"`)
+    if (sprites[def.id]) throw new Error(`pixspell: duplicate sprite id "${def.id}"`)
     sprites[def.id] = def
     looks[def.id] = { id: def.id, def, variant: null, ramps: { ...def.ramps } }
     for (const [name, ramps] of Object.entries(def.variants)) {
@@ -42,19 +42,19 @@ for (const group of groups) {
 
 function lookup(id) {
   const look = looks[id]
-  if (!look) throw new Error(`dog: no sprite called "${id}". Try dog.list()`)
+  if (!look) throw new Error(`pixspell: no sprite called "${id}". Try spell.list()`)
   return look
 }
 
 /**
  * Render a sprite as a Pixmap.
- *   dog('potion')                          default look
- *   dog('potion-mana')                     a named variant
- *   dog('potion', { A: 'gold' })           swap a ramp to another material
- *   dog('potion', { A: '#ff4fd8' })        ...or to any color (4 shades are generated)
- *   dog('coin', { frame: 2 })              animation frame
+ *   spell('potion')                          default look
+ *   spell('potion-mana')                     a named variant
+ *   spell('potion', { A: 'gold' })           swap a ramp to another material
+ *   spell('potion', { A: '#ff4fd8' })        ...or to any color (4 shades are generated)
+ *   spell('coin', { frame: 2 })              animation frame
  */
-export function dog(id, opts = {}) {
+export function spell(id, opts = {}) {
   const look = lookup(id)
   const { grid, smooth, ...rest } = opts
   const k = gridFactor(grid)
@@ -66,7 +66,7 @@ export function dog(id, opts = {}) {
 }
 
 /** All frames of an animated sprite. */
-dog.frames = (id, opts = {}) => {
+spell.frames = (id, opts = {}) => {
   const look = lookup(id)
   const { grid, smooth, ...rest } = opts
   const k = gridFactor(grid)
@@ -75,11 +75,11 @@ dog.frames = (id, opts = {}) => {
 }
 
 // ---------------------------------------------------------------- grids
-/** Tile sizes DOG can deliver: the art is drawn on a 16 px grid and converted from there. */
+/** Tile sizes PixSpell can deliver: the art is drawn on a 16 px grid and converted from there. */
 export const GRIDS = [8, 16, 32, 64]
 function gridFactor(grid) {
   if (grid == null || grid === 16) return 1
-  if (!GRIDS.includes(grid)) throw new Error(`dog: grid must be one of ${GRIDS.join(', ')} (the tile size of your game)`)
+  if (!GRIDS.includes(grid)) throw new Error(`pixspell: grid must be one of ${GRIDS.join(', ')} (the tile size of your game)`)
   return grid / 16
 }
 /**
@@ -142,24 +142,24 @@ function regridAll(frames, k, smooth) {
 }
 // a procedural effect look (fx-meteor, fx-meteor-ice) redrawn natively at k times its size
 function effectAtGrid(look, k, { A, B, C } = {}) {
-  const frames = dog.fx(look.def.id, { size: look.def.w * k, element: look.variant ?? undefined, A, B, C })
+  const frames = spell.fx(look.def.id, { size: look.def.w * k, element: look.variant ?? undefined, A, B, C })
   return frames
 }
 
 /** Ids of every look, optionally filtered by category or tag. */
-dog.list = ({ category, tag, variants = true } = {}) =>
+spell.list = ({ category, tag, variants = true } = {}) =>
   Object.values(looks)
     .filter((l) => variants || !l.variant)
     .filter((l) => !category || l.def.category === category)
     .filter((l) => !tag || l.def.tags.includes(tag))
     .map((l) => l.id)
 
-dog.info = (id) => lookup(id)
+spell.info = (id) => lookup(id)
 
 /**
  * Character maker - gear snaps onto bodies by name.
- *   dog.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
- *   dog.char.frames(spec)   dog.char.random(seed)   dog.char.parts   dog.char.count()
+ *   spell.char('hero', { hat: 'crown', hand: 'sword', offhand: 'shield', A: 'red' })
+ *   spell.char.frames(spec)   spell.char.random(seed)   spell.char.parts   spell.char.count()
  */
 // grid: { grid: 32 } can ride along in whichever options object a call takes (or in the spec itself)
 function takeGrid(args) {
@@ -181,46 +181,46 @@ const gridded = (fn, many) => Object.assign((...a) => {
   return many ? regridAll(out, k, smooth) : regrid(out, k, smooth)
 }, fn)
 
-/** Convert any DOG image or frame list to another tile grid: dog.toGrid(dog('sword'), 32). */
-dog.toGrid = (img, grid, { smooth } = {}) => (Array.isArray(img) ? regridAll(img, gridFactor(grid), smooth) : regrid(img, gridFactor(grid), smooth))
-dog.grids = GRIDS
+/** Convert any PixSpell image or frame list to another tile grid: spell.toGrid(spell('sword'), 32). */
+spell.toGrid = (img, grid, { smooth } = {}) => (Array.isArray(img) ? regridAll(img, gridFactor(grid), smooth) : regrid(img, gridFactor(grid), smooth))
+spell.grids = GRIDS
 
 const characters = createCharacters(looks)
-dog.char = Object.assign(gridded(characters, false), characters, {
+spell.char = Object.assign(gridded(characters, false), characters, {
   frames: gridded(characters.frames, true),
   walk: gridded(characters.walk, true),
 })
 
 /**
  * Situation effects - a character doing something, effects attached to hands / head / body.
- *   dog.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')   -> 8 frames, 32x32, .fps
+ *   spell.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')   -> 8 frames, 32x32, .fps
  *   actions: attack hit heal levelup cast death   elements: fire ice poison holy dark
  */
-dog.action = gridded(createActions(dog, looks), true)
+spell.action = gridded(createActions(spell, looks), true)
 
 /**
- * Walk cycles: dog.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
+ * Walk cycles: spell.walk({ body: 'hero', hat: 'crown', hand: 'sword' }, 'left') -> frames (24x24, .fps)
  * directions: down up left right
  */
-dog.walk = dog.char.walk
+spell.walk = spell.char.walk
 
 /**
  * Game pack: sprite sheet + Aseprite/Phaser JSON + Godot SpriteFrames for one character.
- *   const pack = dog.pack({ body: 'hero', hat: 'crown', hand: 'sword' })
+ *   const pack = spell.pack({ body: 'hero', hat: 'crown', hand: 'sword' })
  *   pack.files  -> { 'hero-crown-sword.png': bytes, '.json', '.tres', 'README.txt' }   pack.zip() -> .zip bytes
  */
-dog.pack = createPack(dog, looks)
+spell.pack = createPack(spell, looks)
 
 /**
  * Procedural effects at any size / seed / color (the registered fx-* sprites are the 32px defaults).
- *   dog.fx('firework')                         -> frames (.fps, .loop)
- *   dog.fx('boom', { size: 64, seed: 3, element: 'ice' })
+ *   spell.fx('firework')                         -> frames (.fps, .loop)
+ *   spell.fx('boom', { size: 64, seed: 3, element: 'ice' })
  */
 const recipeById = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
 // rendered effects are cached: attacks and games ask for the same few over and over
 const fxMemo = new Map()
 const FX_MEMO_MAX = 300
-dog.fx = (name, opts = {}) => {
+spell.fx = (name, opts = {}) => {
   if (opts.grid != null) { // effects are code: a grid just means drawing them at another size
     const { grid, smooth, ...rest } = opts
     opts = { ...rest, size: (rest.size ?? 32) * gridFactor(grid) }
@@ -236,7 +236,7 @@ dog.fx = (name, opts = {}) => {
 }
 function renderFx(name, { size, seed, frames: count, element, A, B, C } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
-  if (!recipe) throw new Error(`dog: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
+  if (!recipe) throw new Error(`pixspell: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
   const { frames } = runRecipe(recipe, { size, seed, frames: count })
   const def = defineSprite({ id: recipe.id, frames, ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' } })
   const ramps = { A: A ?? (element ? FX_COLORS[element] ?? element : undefined), B, C }
@@ -245,23 +245,23 @@ function renderFx(name, { size, seed, frames: count, element, A, B, C } = {}) {
   out.loop = !!recipe.loop
   return out
 }
-dog.fx.list = RECIPES.map((r) => r.id)
+spell.fx.list = RECIPES.map((r) => r.id)
 
 /** Every effect (or the ids you pass) as one game pack: sheet + Phaser/Aseprite JSON + Godot .tres. */
-dog.fxPack = createFxPack(dog, looks)
+spell.fxPack = createFxPack(spell, looks)
 
 /**
- * A character with a status effect on it, idle or walking: 32x32 frames like dog.action.
- *   dog.status({ body: 'hero', hat: 'crown' }, 'burning')
- *   dog.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
+ * A character with a status effect on it, idle or walking: 32x32 frames like spell.action.
+ *   spell.status({ body: 'hero', hat: 'crown' }, 'burning')
+ *   spell.status('slime', 'frozen', { walk: 'left', element: 'arcane' })
  */
-dog.status = (spec, name, { walk, element, size = 32, grid, smooth } = {}) => {
+spell.status = (spec, name, { walk, element, size = 32, grid, smooth } = {}) => {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
-  if (!recipe) throw new Error(`dog: no effect called "${name}"`)
+  if (!recipe) throw new Error(`pixspell: no effect called "${name}"`)
   const k = gridFactor(grid)
   size *= k
-  const effect = dog.fx(recipe.id, { element, size }) // drawn natively at the new size
-  const base = regridAll(walk ? dog.walk(spec, walk) : dog.char.frames(spec), k, smooth)
+  const effect = spell.fx(recipe.id, { element, size }) // drawn natively at the new size
+  const base = regridAll(walk ? spell.walk(spec, walk) : spell.char.frames(spec), k, smooth)
   const cs = base[0].w
   const gcd = (a, b) => (b ? gcd(b, a % b) : a)
   const lcm = (base.length * effect.length) / gcd(base.length, effect.length)
@@ -278,17 +278,17 @@ dog.status = (spec, name, { walk, element, size = 32, grid, smooth } = {}) => {
 
 /**
  * Play effects one after another or overlapping, as one frame list.
- *   dog.fx.sequence([
+ *   spell.fx.sequence([
  *     { fx: 'charge' },                         // starts at frame 0
  *     { fx: 'comet', repeat: 2, x: 6 },         // starts when the previous step ends
  *     { fx: 'boom', with: true, at: -2 },       // 'with': same start as the previous step, shifted by 'at'
  *   ], { size: 32, fps: 12 })
  * Each step: fx, element, seed, x/y offset, repeat (for loops), at (frame offset), with.
  */
-dog.fx.sequence = (steps, { size = 32, fps } = {}) => {
+spell.fx.sequence = (steps, { size = 32, fps } = {}) => {
   let prevStart = 0, prevEnd = 0
   const placed = steps.map((st) => {
-    const one = dog.fx(st.fx, { size: st.size ?? size, element: st.element, seed: st.seed })
+    const one = spell.fx(st.fx, { size: st.size ?? size, element: st.element, seed: st.seed })
     const frames = Array.from({ length: one.length * (st.repeat ?? 1) }, (_, i) => one[i % one.length])
     const start = Math.max(0, (st.with ? prevStart : prevEnd) + (st.at ?? 0))
     prevStart = start
@@ -310,7 +310,7 @@ dog.fx.sequence = (steps, { size = 32, fps } = {}) => {
   out.fps = fps ?? placed[0]?.fps ?? 12
   return out
 }
-dog.fx.colors = FX_COLORS
+spell.fx.colors = FX_COLORS
 
 // ------------------------------------------------------------------ sound
 const soundById = Object.fromEntries(SOUNDS.map((r) => [r.id, r]))
@@ -318,17 +318,17 @@ const sfxMemo = new Map()
 
 /**
  * Game sound effects made by code, as a Sound you can play or export.
- *   dog.sfx('coin').play()                          browser (call it from a click or key handler first)
- *   dog.sfx('slash', { element: 'fire' })            an element adds its flavor, like an effect's color
- *   dog.sfx('hit', { seed: 3, pitch: 1.2 })          variations: seed changes it a little, pitch a lot
- *   await dog.sfx('boom').save('boom.wav')           Node
- * Names match the rest of DOG: every attack style (dog.action.styleOf(spec)), every action, the effects.
+ *   spell.sfx('coin').play()                          browser (call it from a click or key handler first)
+ *   spell.sfx('slash', { element: 'fire' })            an element adds its flavor, like an effect's color
+ *   spell.sfx('hit', { seed: 3, pitch: 1.2 })          variations: seed changes it a little, pitch a lot
+ *   await spell.sfx('boom').save('boom.wav')           Node
+ * Names match the rest of PixSpell: every attack style (spell.action.styleOf(spec)), every action, the effects.
  */
-dog.sfx = (name, opts = {}) => {
+spell.sfx = (name, opts = {}) => {
   const recipe = soundById[name]
-  if (!recipe) throw new Error(`dog: no sound called "${name}". Try dog.sfx.list`)
+  if (!recipe) throw new Error(`pixspell: no sound called "${name}". Try spell.sfx.list`)
   const { seed = 0, pitch = 1, volume = 1, element } = opts
-  if (element != null && !FLAVORS[element]) throw new Error(`dog.sfx: element must be one of ${Object.keys(FLAVORS).join(', ')}`)
+  if (element != null && !FLAVORS[element]) throw new Error(`pixspell sfx: element must be one of ${Object.keys(FLAVORS).join(', ')}`)
   const key = `${name}|${seed}|${pitch}|${volume}|${element ?? ''}`
   let sound = sfxMemo.get(key)
   if (!sound) {
@@ -340,12 +340,12 @@ dog.sfx = (name, opts = {}) => {
   }
   return sound
 }
-dog.sfx.list = SOUNDS.map((r) => r.id)
-dog.sfx.elements = Object.keys(FLAVORS)
-dog.sfx.tags = (name) => [...(soundById[name]?.tags ?? [])]
-dog.sfx.sampleRate = SAMPLE_RATE
+spell.sfx.list = SOUNDS.map((r) => r.id)
+spell.sfx.elements = Object.keys(FLAVORS)
+spell.sfx.tags = (name) => [...(soundById[name]?.tags ?? [])]
+spell.sfx.sampleRate = SAMPLE_RATE
 /** The sound that goes with an effect: 'fx-meteor', 'meteor-ice' or 'explosion' -> 'meteor' / 'boom'. null for silent ones. */
-dog.sfx.forEffect = (fx) => {
+spell.sfx.forEffect = (fx) => {
   const id = String(fx).replace(/^fx-/, '')
   if (EFFECT_SOUNDS[id] !== undefined) return EFFECT_SOUNDS[id]
   const base = Object.keys(EFFECT_SOUNDS).filter((k) => id.startsWith(`${k}-`)).sort((a, b) => b.length - a.length)[0]
@@ -354,17 +354,17 @@ dog.sfx.forEffect = (fx) => {
 
 /**
  * Everything at one tile size, as a list of files to render one by one: [{ path, make }].
- *   dog.bundle({ grid: 32, sprites: true, characters: true, effects: true, effectColors: false, sounds: true })
- * make() returns a Pixmap (encode as PNG), WAV bytes or text. scripts/dog.js export and the web page zip it.
+ *   spell.bundle({ grid: 32, sprites: true, characters: true, effects: true, effectColors: false, sounds: true })
+ * make() returns a Pixmap (encode as PNG), WAV bytes or text. scripts/pixspell.js export and the web page zip it.
  */
-dog.bundle = createBundle(dog, looks, new Set(RECIPES.map((r) => r.id)))
+spell.bundle = createBundle(spell, looks, new Set(RECIPES.map((r) => r.id)))
 
-/** Sounds (all, or the names you pass) as WAV files in one zip. Same options as dog.sfx apply to every sound. */
-dog.sfxPack = (names = dog.sfx.list, { name = 'sounds', ...opts } = {}) => {
+/** Sounds (all, or the names you pass) as WAV files in one zip. Same options as spell.sfx apply to every sound. */
+spell.sfxPack = (names = spell.sfx.list, { name = 'sounds', ...opts } = {}) => {
   const files = {}
-  for (const n of names) files[`${n}.wav`] = dog.sfx(n, opts).toWAV()
+  for (const n of names) files[`${n}.wav`] = spell.sfx(n, opts).toWAV()
   files['README.txt'] = [
-    `${name}: ${names.length} sound effects from DOG (Dots Of Games), https://github.com/olebangpad/dots-of-games`,
+    `${name}: ${names.length} sound effects from PixSpell, https://github.com/olebangpad/pixspell`,
     `16-bit mono WAV, ${SAMPLE_RATE} Hz. Made by code; CC0, use them anywhere.`,
     'Loops (seamless): ' + (names.filter((n) => soundById[n]?.loop).join(', ') || 'none'),
     '',
@@ -380,4 +380,6 @@ export {
   parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip, FX_COLORS, RECIPES,
   Sound, renderSound, note, SAMPLE_RATE, SOUNDS,
 }
-export default dog
+/** The old name of spell, kept so early code keeps working. */
+export { spell as dog }
+export default spell

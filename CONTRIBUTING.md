@@ -1,17 +1,17 @@
-# Contributing to DOG
+# Contributing to PixSpell
 
 Thanks for helping grow the collection! New sprites are the most welcome contribution.
 
 ## Add a sprite in two minutes
 
-1. Open the [playground](https://olebangpad.github.io/dots-of-games/), pick a similar sprite, open **Edit pixels** and draw.
+1. Open the [playground](https://olebangpad.github.io/pixspell/), pick a similar sprite, open **Edit pixels** and draw.
    Or write the text art in any editor.
 2. Click **Copy sprite definition** and paste it into the matching file in `src/sprites/`:
 
    | File | For |
    | --- | --- |
    | `characters.js` | people, animals |
-   | `gear.js` | hats and held items for `dog.char()` (see below) |
+   | `gear.js` | hats and held items for `spell.char()` (see below) |
    | `items.js` | weapons, armor, treasure, food |
    | `monsters.js` | enemies |
    | `tiles.js` | seamless ground tiles and world props |
@@ -31,7 +31,7 @@ Thanks for helping grow the collection! New sprites are the most welcome contrib
 Tip: draw only the fill, then let the CLI add outlines for you:
 
 ```bash
-node scripts/dog.js outline < my-sprite.txt
+node scripts/pixspell.js outline < my-sprite.txt
 ```
 
 ## Add gear for the character maker
@@ -81,8 +81,8 @@ the result as an ordinary animated sprite, so recoloring, packs and the gallery 
   A test draws every recipe at 32 and 64 px and fails if it drifts or stops growing.
 - Flags: `loop: true` for loops; `wrap: true` for seamless tiles (tag them `seamless`); `behind: true` for things drawn under a character;
   `dither`, `outline: 'none' | 'glow'`, `top: 'B'` (layer B wins where both are lit), `clean: false` for text.
-- `variants` lists colors from `dog.fx.colors` (`fire ice poison holy dark water nature blood arcane steel`); each one becomes a look.
-- Check it with `node scripts/dog.js fx pulse --size 64 --scale 4 -o pulse.png` (or the effects page), then `npm run snapshots` and `npm test`.
+- `variants` lists colors from `spell.fx.colors` (`fire ice poison holy dark water nature blood arcane steel`); each one becomes a look.
+- Check it with `node scripts/pixspell.js fx pulse --size 64 --scale 4 -o pulse.png` (or the effects page), then `npm run snapshots` and `npm test`.
 
 ## Adding a sound
 
@@ -100,7 +100,7 @@ Sounds are recipes too, in [`src/sfx/sounds.js`](src/sfx/sounds.js): a list of l
 - `level` is loudness relative to the others (the engine evens out loudness, so a square-wave jingle and an explosion sit
   together). `loop: 2` makes a seamless 2-second loop.
 - Keep sounds short (most are under 0.6 s) and give them something above ~300 Hz: phone speakers can't play deep bass.
-- Check it: `node scripts/dog.js sfx coin -o coin.wav` and listen, try it with an `--element`, then `npm run snapshots` and `npm test`.
+- Check it: `node scripts/pixspell.js sfx coin -o coin.wav` and listen, try it with an `--element`, then `npm run snapshots` and `npm test`.
 
 ## Text art legend
 

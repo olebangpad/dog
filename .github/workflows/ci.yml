@@ -35,7 +35,7 @@ jobs:
         run: |
           npm pack --dry-run --json > pack.json
           node -e "const [p] = require('./pack.json'); const files = p.files.map((f) => f.path); \
-            for (const must of ['src/index.js', 'src/index.d.ts', 'scripts/dog.js', 'skills/dog/SKILL.md', 'README.md', 'LICENSE', 'LICENSE-ASSETS']) if (!files.includes(must)) throw new Error('missing ' + must); \
+            for (const must of ['src/index.js', 'src/index.d.ts', 'scripts/pixspell.js', 'skills/pixspell/SKILL.md', 'README.md', 'LICENSE', 'LICENSE-ASSETS']) if (!files.includes(must)) throw new Error('missing ' + must); \
             if (p.size > 400000) throw new Error('package too big: ' + p.size); console.log(files.length + ' files, ' + p.size + ' bytes')"
       - name: Claude Code plugin manifest
         run: node -e "const m = require('./.claude-plugin/marketplace.json'); if (!m.name || !m.owner || !m.plugins?.length) throw new Error('bad marketplace.json'); require('fs').accessSync(m.plugins[0].source + '/SKILL.md')"

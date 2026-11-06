@@ -816,7 +816,7 @@
   }
  ],
  "meta": {
-  "app": "https://github.com/olebangpad/dots-of-games",
+  "app": "https://github.com/olebangpad/pixspell",
   "version": "1",
   "image": "hero.png",
   "format": "RGBA8888",
@@ -875,7 +875,7 @@
     "direction": "forward"
    }
   ],
-  "dog": {
+  "pixspell": {
    "cell": 32,
    "spec": {
     "body": "hero",

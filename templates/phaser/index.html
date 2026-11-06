@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DOG + Phaser starter</title>
+  <title>PixSpell + Phaser starter</title>
   <style>
     html, body { margin: 0; height: 100%; background: #101712; display: grid; place-items: center; }
     canvas { image-rendering: pixelated; }
@@ -12,12 +12,12 @@
 </head>
 <body>
 <script>
-// DOG + Phaser 3 starter: a hero who walks in 4 directions and fights slimes.
+// PixSpell + Phaser 3 starter: a hero who walks in 4 directions and fights slimes.
 //
-// hero.png/json and slime.png/json are DOG "game packs": make your own in the
-// character maker (📦 Game pack) or with `node scripts/dog.js pack hero --hat crown`,
-// then drop the files in here with the same names. The .wav files are DOG sounds
-// (`node scripts/dog.js sfx slash -o slash.wav`, or the sounds page).
+// hero.png/json and slime.png/json are PixSpell "game packs": make your own in the
+// character maker (📦 Game pack) or with `node scripts/pixspell.js pack hero --hat crown`,
+// then drop the files in here with the same names. The .wav files are PixSpell sounds
+// (`node scripts/pixspell.js sfx slash -o slash.wav`, or the sounds page).
 //
 // Run: serve this folder (python3 -m http.server) and open it. Arrows move, space attacks.
 
@@ -34,7 +34,7 @@ class Play extends Phaser.Scene {
   create() {
     this.add.tileSprite(0, 0, W, H, 'grass').setOrigin(0)
 
-    // Every cell in a DOG pack has the feet at (16, 31): use that as the origin.
+    // Every cell in a PixSpell pack has the feet at (16, 31): use that as the origin.
     this.hero = this.physics.add.sprite(W / 2, H / 2, 'hero').setOrigin(0.5, 31 / 32)
     this.hero.anims.createFromAseprite('hero') // idle, walk-down/up/left/right, attack, hit, heal, levelup, cast, death
     this.hero.body.setSize(10, 6).setOffset(11, 25)

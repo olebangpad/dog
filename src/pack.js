@@ -1,6 +1,6 @@
 // Game packs: one character -> everything a game engine needs.
 //
-//   const pack = dog.pack({ body: 'hero', hat: 'crown', hand: 'sword' })
+//   const pack = spell.pack({ body: 'hero', hat: 'crown', hand: 'sword' })
 //   pack.files   // { 'hero.png', 'hero.json', 'hero.tres', 'README.txt' }
 //   pack.zip()   // the same as one .zip (Uint8Array)
 //
@@ -15,31 +15,31 @@ import { zip } from './zip.js'
 export const PACK_CELL = 32
 const ORIGIN = { x: 16, y: 31 }
 
-export function createPack(dog, looks) {
+export function createPack(spell, looks) {
   const slug = (s) => [s.body, s.hat, s.hand, s.offhand].filter(Boolean)
     .map((p) => p.replace(/^(hat|held)-/, '')).join('-').replace(/[^a-z0-9-]/g, '').slice(0, 60)
 
-  function pack(spec, { name, element, actions = dog.action.list, deflate, grid = 16, smooth } = {}) {
+  function pack(spec, { name, element, actions = spell.action.list, deflate, grid = 16, smooth } = {}) {
     const s = typeof spec === 'string' ? { body: spec } : { ...spec }
     for (const k of ['action', 'element', 'frame', 'dir']) delete s[k]
     const id = name ?? slug(s)
     const pad = (f) => new Pixmap(PACK_CELL, PACK_CELL).draw(f, 4, 8) // 24x24 -> 32x32, same feet spot as actions
 
-    const idle = dog.char.frames(s)
+    const idle = spell.char.frames(s)
     const bodyFps = looks[s.body].def.frames.length > 1 ? looks[s.body].def.fps : 4
     const rows = [{ tag: 'idle', frames: idle.map(pad), fps: bodyFps, loop: true }]
-    for (const dir of dog.walk.dirs) {
-      const w = dog.walk(s, dir)
+    for (const dir of spell.walk.dirs) {
+      const w = spell.walk(s, dir)
       rows.push({ tag: `walk-${dir}`, frames: w.map(pad), fps: w.fps, loop: true })
     }
     for (const a of actions) {
-      const f = dog.action(s, a, element)
+      const f = spell.action(s, a, element)
       rows.push({ tag: a, frames: f, fps: f.fps, loop: false })
     }
 
     // another tile size: the same rows, converted (cell 32 -> 16 / 64 / 128, feet stay at the bottom center)
     const k = grid / 16
-    if (k !== 1) for (const r of rows) r.frames = dog.toGrid(r.frames, grid, { smooth })
+    if (k !== 1) for (const r of rows) r.frames = spell.toGrid(r.frames, grid, { smooth })
     const origin = { x: ORIGIN.x * k, y: (ORIGIN.y + 1) * k - 1 }
     return writePack(id, rows, { readme: readmeFor(id, s, rows, origin, PACK_CELL * k), meta: { spec: s, origin, grid }, deflate, extra: { spec: s } })
   }
@@ -76,9 +76,9 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
   const json = {
     frames,
     meta: {
-      app: 'https://github.com/olebangpad/dots-of-games', version: '1', image: `${id}.png`, format: 'RGBA8888',
+      app: 'https://github.com/olebangpad/pixspell', version: '1', image: `${id}.png`, format: 'RGBA8888',
       size: { w: image.w, h: image.h }, scale: '1', frameTags,
-      dog: { cell: cellW, ...meta, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
+      pixspell: { cell: cellW, ...meta, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
     },
   }
   const tres = godot(id, rows, frames)
@@ -92,19 +92,19 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
 }
 
 /**
- * Effect packs: dog.fxPack(['fx-boom', 'fx-comet-ice']) or dog.fxPack() for every effect.
+ * Effect packs: spell.fxPack(['fx-boom', 'fx-comet-ice']) or spell.fxPack() for every effect.
  * One row per effect, same files as a character pack.
  */
-export function createFxPack(dog, looks) {
-  return function fxPack(ids = dog.fx.list, { name = 'effects', deflate, grid } = {}) {
+export function createFxPack(spell, looks) {
+  return function fxPack(ids = spell.fx.list, { name = 'effects', deflate, grid } = {}) {
     const rows = ids.map((raw) => {
       const id = looks[raw] ? raw : `fx-${raw}`
-      if (!looks[id]) throw new Error(`dog: no effect called "${raw}"`)
+      if (!looks[id]) throw new Error(`pixspell: no effect called "${raw}"`)
       const { def } = looks[id]
-      return { tag: id.replace(/^fx-/, ''), frames: dog.frames(id, { grid }), fps: def.fps, loop: def.tags.includes('loop') }
+      return { tag: id.replace(/^fx-/, ''), frames: spell.frames(id, { grid }), fps: def.fps, loop: def.tags.includes('loop') }
     })
-    const readme = `DOG effects pack: ${name}
-Made with DOG - https://github.com/olebangpad/dots-of-games - CC0, use it anywhere.
+    const readme = `PixSpell effects pack: ${name}
+Made with PixSpell - https://github.com/olebangpad/pixspell - CC0, use it anywhere.
 
 ${name}.png   one effect per row (${rows.length} effects), frames left to right
 ${name}.json  Aseprite / TexturePacker JSON array, one frameTag per effect (Phaser: load.aseprite + createFromAseprite)
@@ -142,8 +142,8 @@ function godot(id, rows, frames) {
 
 function readmeFor(id, spec, rows, origin = ORIGIN, cell = PACK_CELL) {
   const opts = ['hat', 'hand', 'offhand', 'A', 'B', 'C'].filter((k) => spec[k]).map((k) => `${k}: '${spec[k]}'`)
-  return `DOG character pack: ${id}
-Made with DOG - https://github.com/olebangpad/dots-of-games
+  return `PixSpell character pack: ${id}
+Made with PixSpell - https://github.com/olebangpad/pixspell
 The art is CC0 (public domain): use it in any game, commercial or not. Credit is welcome, not required.
 
 FILES
@@ -173,6 +173,6 @@ ANYTHING ELSE
   ${id}.json lists every frame's x / y / w / h and duration in milliseconds.
 
 REBUILD IT IN CODE
-  dog.pack({ body: '${spec.body}'${opts.length ? ', ' + opts.join(', ') : ''} }${cell !== PACK_CELL ? `, { grid: ${cell / 2} }` : ''})
+  spell.pack({ body: '${spec.body}'${opts.length ? ', ' + opts.join(', ') : ''} }${cell !== PACK_CELL ? `, { grid: ${cell / 2} }` : ''})
 `
 }

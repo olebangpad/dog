@@ -1,15 +1,15 @@
-// Character maker: body + hat + held item + off-hand, snapped together by dog.char().
-import { dog, looks, sheet, encodeAPNG, Pixmap, zip, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
+// Character maker: body + hat + held item + off-hand, snapped together by spell.char().
+import { spell, looks, sheet, encodeAPNG, Pixmap, zip, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
 import { $, h, paint, thumb, download, copy, toast, encode, decode, readHash, writeHash } from './ui.js'
 
-const REPO = 'olebangpad/dots-of-games'
+const REPO = 'olebangpad/pixspell'
 const KINDS = [
   { key: 'body', label: 'Body', kind: 'body' },
   { key: 'hat', label: 'Hat', kind: 'head' },
   { key: 'hand', label: 'Hand', kind: 'hand' },
   { key: 'offhand', label: 'Off-hand', kind: 'offhand' },
 ]
-const GRIDS = [8, 16, 32, 64] // tile size of your game: downloads are converted to it (dog.toGrid)
+const GRIDS = [8, 16, 32, 64] // tile size of your game: downloads are converted to it (spell.toGrid)
 const ACTION_LABELS = { attack: 'Attack', hit: 'Hit', heal: 'Heal', levelup: 'Level up', cast: 'Cast', death: 'Death' }
 const ELEMENT_ICONS = { fire: '🔥', ice: '❄', poison: '☠', holy: '✦', dark: '☾' }
 const WALK_ARROWS = { down: '↓', up: '↑', left: '←', right: '→' }
@@ -19,9 +19,9 @@ let spec = { body: 'hero', hat: 'hat-crown', hand: 'held-sword', offhand: 'held-
 let frames = []
 let fps = 6
 let grid = 32
-try { grid = Number(localStorage.getItem('dog-grid')) || 32 } catch {}
+try { grid = Number(localStorage.getItem('pixspell-grid')) || 32 } catch {}
 if (!GRIDS.includes(grid)) grid = 32
-const atGrid = (img) => dog.toGrid(img, grid)
+const atGrid = (img) => spell.toGrid(img, grid)
 let history = []
 let seed = null
 let action = null // null = idle
@@ -44,16 +44,16 @@ function codeFor(s) {
   if (s.hand && anchorsOf(s.body).hand) opts.push(`hand: '${short(s.hand, 'hand')}'`)
   if (s.offhand && anchorsOf(s.body).offhand) opts.push(`offhand: '${short(s.offhand, 'offhand')}'`)
   if (s.A) opts.push(`A: '${s.A}'`)
-  const imp = `import { dog } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\n`
+  const imp = `import { spell } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\n`
   if (walkDir()) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
-    return `${imp}const frames = dog.walk(${obj}, '${walkDir()}')\n// ${frames.length} frames, ${CHAR_SIZE}x${CHAR_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[1].scale(8).toCanvas())`
+    return `${imp}const frames = spell.walk(${obj}, '${walkDir()}')\n// ${frames.length} frames, ${CHAR_SIZE}x${CHAR_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[1].scale(8).toCanvas())`
   }
   if (action) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
-    return `${imp}const frames = dog.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${ACTION_SIZE}x${ACTION_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
+    return `${imp}const frames = spell.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${ACTION_SIZE}x${ACTION_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
   }
-  const call = `dog.char('${s.body}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`
+  const call = `spell.char('${s.body}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`
   return `${imp}const character = ${call}\ndocument.body.append(character.scale(8).toCanvas())`
 }
 
@@ -61,15 +61,15 @@ function codeFor(s) {
 function refresh({ pickers = true } = {}) {
   spec = cleanSpec(spec)
   if (walkDir()) {
-    frames = dog.walk(spec, walkDir())
+    frames = spell.walk(spec, walkDir())
     fps = frames.fps
     preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE).draw(f, 4, 8))
   } else if (action) {
-    frames = dog.action(spec, action, element ?? undefined)
+    frames = spell.action(spec, action, element ?? undefined)
     fps = frames.fps
     preview = [...frames, ...Array(5).fill(frames[frames.length - 1])] // short pause between loops
   } else {
-    frames = dog.char.frames(spec)
+    frames = spell.char.frames(spec)
     const animated = [spec.body, spec.hat, spec.hand, spec.offhand].filter((id) => id && looks[id] && looks[id].def.frames.length > 1)
     fps = animated.length ? looks[animated[0]].def.fps : 6
     preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE).draw(f, 4, 8))
@@ -92,7 +92,7 @@ function tile(img, label, selected, onclick, disabled = false) {
 function renderPickers() {
   const box = $('#pickers')
   box.replaceChildren(...KINDS.map(({ key, label, kind }) => {
-    const ids = dog.char.parts[kind]
+    const ids = spell.char.parts[kind]
     const ok = fits(kind)
     const current = spec[key]
     const strip = h('div', { class: 'strip' },
@@ -100,7 +100,7 @@ function renderPickers() {
         class: 'pick none', title: `No ${label.toLowerCase()}`, 'aria-label': `No ${label.toLowerCase()}`,
         'aria-pressed': String(!current), disabled: !ok, onclick: () => { delete spec[key]; seed = null; refresh() },
       }, '✕'),
-      ids.map((id) => tile(dog(id, { frame: looks[id].def.cover }), id, current === id, () => { spec[key] = id; seed = null; refresh() }, !ok)),
+      ids.map((id) => tile(spell(id, { frame: looks[id].def.cover }), id, current === id, () => { spec[key] = id; seed = null; refresh() }, !ok)),
     )
     const head = h('div', { class: 'picker-head' },
       h('b', {}, label),
@@ -139,12 +139,12 @@ function actionPicker() {
     h('div', { class: 'picker-head' }, h('b', {}, 'Action'), h('span', { class: 'muted' }, action ? `${action}${element && !walkDir() ? ' · ' + element : ''}` : 'idle')),
     h('div', { class: 'seg wrap moves' },
       btn('Idle', !action, () => { action = null; refresh() }),
-      dog.walk.dirs.map((d) => btn(`Walk ${WALK_ARROWS[d]}`, action === `walk-${d}`, () => { action = `walk-${d}`; refresh() }, `Walk ${d}`))),
+      spell.walk.dirs.map((d) => btn(`Walk ${WALK_ARROWS[d]}`, action === `walk-${d}`, () => { action = `walk-${d}`; refresh() }, `Walk ${d}`))),
     h('div', { class: 'seg wrap actions' },
-      dog.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() }))),
+      spell.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() }))),
     h('div', { class: 'seg wrap elements' + (action && !walkDir() ? '' : ' muted-seg') },
       btn('Default', !element, () => { element = null; if (!action || walkDir()) action = 'attack'; refresh() }, 'Default effect colors'),
-      dog.action.elements.map((e) => btn(`${ELEMENT_ICONS[e] ?? ''} ${e}`, element === e, () => { element = e; if (!action || walkDir()) action = 'attack'; refresh() }))),
+      spell.action.elements.map((e) => btn(`${ELEMENT_ICONS[e] ?? ''} ${e}`, element === e, () => { element = e; if (!action || walkDir()) action = 'attack'; refresh() }))),
   )
 }
 
@@ -153,14 +153,14 @@ function renderHistory() {
   const box = $('#history')
   box.hidden = !history.length
   $('#history-list').replaceChildren(...history.map((s) =>
-    h('button', { class: 'pick', title: dogLabel(s), 'aria-label': dogLabel(s), onclick: () => { spec = { ...s }; seed = null; refresh() } }, thumb(dog.char(s), 40))))
+    h('button', { class: 'pick', title: dogLabel(s), 'aria-label': dogLabel(s), onclick: () => { spec = { ...s }; seed = null; refresh() } }, thumb(spell.char(s), 40))))
 }
 const dogLabel = (s) => [s.body, s.hat && short(s.hat, 'head'), s.hand && short(s.hand, 'hand'), s.offhand && short(s.offhand, 'offhand')].filter(Boolean).join(' + ')
 
 function roll(n = 1) {
   const fresh = Array.from({ length: n }, () => {
     seed = Math.floor(Math.random() * 1e6)
-    return dog.char.random(seed)
+    return spell.char.random(seed)
   })
   spec = { ...fresh[fresh.length - 1] }
   history = [...fresh.reverse(), ...history].slice(0, 32)
@@ -175,7 +175,7 @@ export function initMaker({ openInStudio }) {
   if (fromLink) try {
     const s = decode(fromLink)
     if (looks[s.body]) {
-      action = dog.action.list.includes(s.action) || /^walk-(down|up|left|right)$/.test(s.action) ? s.action : null
+      action = spell.action.list.includes(s.action) || /^walk-(down|up|left|right)$/.test(s.action) ? s.action : null
       element = ELEMENTS[s.element] ? s.element : null
       spec = s
     }
@@ -185,19 +185,19 @@ export function initMaker({ openInStudio }) {
   $('#roll-16').addEventListener('click', () => roll(16))
   $('#maker-scale').append(h('span', { class: 'seg-label' }, 'Tile'), ...GRIDS.map((g) => h('button', {
     'aria-pressed': String(g === grid), 'data-s': g, title: `Downloads for a ${g}×${g} px tile grid`,
-    onclick: () => { pickGrid(g); dispatchEvent(new CustomEvent('dog-grid', { detail: g })) },
+    onclick: () => { pickGrid(g); dispatchEvent(new CustomEvent('pixspell-grid', { detail: g })) },
   }, `${g}px`)))
   function pickGrid(g) {
     grid = g
-    try { localStorage.setItem('dog-grid', g) } catch {}
+    try { localStorage.setItem('pixspell-grid', g) } catch {}
     for (const b of $('#maker-scale').querySelectorAll('button')) b.setAttribute('aria-pressed', String(Number(b.dataset.s) === g))
   }
-  addEventListener('dog-grid', (e) => { if (e.detail !== grid) pickGrid(e.detail) }) // the download panel picked one
+  addEventListener('pixspell-grid', (e) => { if (e.detail !== grid) pickGrid(e.detail) }) // the download panel picked one
   const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element && !walkDir() ? '-' + element : ''}` : '')
   $('#mk-png').addEventListener('click', () => download(`${name()}-${grid}px.png`, atGrid(frames[action && !walkDir() ? 2 : 0]).toPNG()))
   $('#mk-anim').addEventListener('click', () => download(`${name()}-${grid}px-anim.png`, encodeAPNG(atGrid(frames), { fps })))
   $('#mk-pack').addEventListener('click', async () => {
-    const pack = dog.pack(spec, { element: element ?? undefined, grid })
+    const pack = spell.pack(spec, { element: element ?? undefined, grid })
     // let the browser's PNG encoder compress the sheet (the built-in encoder writes uncompressed PNGs)
     const blob = await new Promise((resolve) => pack.image.toCanvas().toBlob(resolve, 'image/png'))
     const bytes = zip({ ...pack.files, [`${pack.id}.png`]: new Uint8Array(await blob.arrayBuffer()) })
@@ -208,7 +208,7 @@ export function initMaker({ openInStudio }) {
     toast(`${pack.id}.zip: ${pack.animations.length} animations, ${grid * 2}px cells, for Phaser, Godot or any engine`)
   })
   $('#mk-strip').addEventListener('click', () => download(`${name()}-${grid}px-strip.png`, sheet(atGrid(frames)).image.toPNG()))
-  $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}-${grid}px.png`, sheet(history.map((s) => atGrid(dog.char(s))), { columns: 8 }).image.toPNG()))
+  $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}-${grid}px.png`, sheet(history.map((s) => atGrid(spell.char(s))), { columns: 8 }).image.toPNG()))
   $('#mk-code-copy').addEventListener('click', () => copy(codeFor(spec), 'Code copied'))
   $('#mk-link').addEventListener('click', () => { writeHash('c', encode({ ...spec, action, element })); copy(location.href, 'Link copied') })
   $('#mk-studio').addEventListener('click', () => {
@@ -223,7 +223,7 @@ export function initMaker({ openInStudio }) {
     openInStudio(layers)
     toast('Opened in the studio - every piece is its own layer now')
   })
-  $('#maker-count').textContent = `${dog.char.count().toLocaleString('en-US')} gear combinations × any outfit color`
+  $('#maker-count').textContent = `${spell.char.count().toLocaleString('en-US')} gear combinations × any outfit color`
 
   refresh()
   renderHistory()

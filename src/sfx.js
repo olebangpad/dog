@@ -34,7 +34,7 @@ const NOTE_INDEX = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 }
 export function note(n) {
   if (typeof n === 'number') return n
   const m = /^([A-G])([#b]?)(-?\d)$/.exec(n)
-  if (!m) throw new Error(`dog.sfx: "${n}" is not a note (try 'C5' or 440)`)
+  if (!m) throw new Error(`pixspell sfx: "${n}" is not a note (try 'C5' or 440)`)
   const semis = NOTE_INDEX[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (Number(m[3]) - 4) * 12
   return 440 * 2 ** (semis / 12)
 }
@@ -185,7 +185,7 @@ let audioContext = null
 function getAudioContext() {
   if (!audioContext) {
     const AC = globalThis.AudioContext ?? globalThis.webkitAudioContext
-    if (!AC) throw new Error('dog.sfx: play() needs a browser (Web Audio). In Node use .save(path) or .toWAV()')
+    if (!AC) throw new Error('pixspell sfx: play() needs a browser (Web Audio). In Node use .save(path) or .toWAV()')
     audioContext = new AC()
   }
   if (audioContext.state === 'suspended') audioContext.resume()

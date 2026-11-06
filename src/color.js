@@ -6,7 +6,7 @@ export function parseColor(c) {
   if (s === 'transparent' || s === 'none') return [0, 0, 0, 0]
   if (s[0] === '#') s = s.slice(1)
   if (s.length === 3 || s.length === 4) s = [...s].map((ch) => ch + ch).join('')
-  if (!/^[0-9a-f]{6}([0-9a-f]{2})?$/i.test(s)) throw new Error(`dog: invalid color "${c}"`)
+  if (!/^[0-9a-f]{6}([0-9a-f]{2})?$/i.test(s)) throw new Error(`pixspell: invalid color "${c}"`)
   const n = parseInt(s.slice(0, 6), 16)
   const a = s.length === 8 ? parseInt(s.slice(6), 16) : 255
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255, a]

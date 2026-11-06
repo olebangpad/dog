@@ -1,5 +1,5 @@
-// "Download everything, at your tile size": dog.bundle() rendered in the browser, one zip.
-import { dog, zip, Pixmap } from '../src/index.js'
+// "Download everything, at your tile size": spell.bundle() rendered in the browser, one zip.
+import { spell, zip, Pixmap } from '../src/index.js'
 import { $, $$, h, download, toast } from './ui.js'
 
 const GRIDS = [
@@ -9,16 +9,16 @@ const GRIDS = [
   { g: 64, label: '64×64', note: 'smooth 4×' },
 ]
 const SAMPLES = [
-  ['sword', (g) => dog('sword', { grid: g })],
-  ['potion', (g) => dog('potion-mana', { grid: g })],
-  ['slime', (g) => dog('slime-pink', { grid: g, frame: 0 })],
-  ['chest', (g) => dog('chest-gold', { grid: g })],
-  ['tree', (g) => dog('tree', { grid: g })],
-  ['knight', (g) => dog.char({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', grid: g })],
-  ['meteor', (g) => dog('fx-meteor', { grid: g, frame: 7 })],
+  ['sword', (g) => spell('sword', { grid: g })],
+  ['potion', (g) => spell('potion-mana', { grid: g })],
+  ['slime', (g) => spell('slime-pink', { grid: g, frame: 0 })],
+  ['chest', (g) => spell('chest-gold', { grid: g })],
+  ['tree', (g) => spell('tree', { grid: g })],
+  ['knight', (g) => spell.char({ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', grid: g })],
+  ['meteor', (g) => spell('fx-meteor', { grid: g, frame: 7 })],
 ]
 let grid = 32
-try { grid = Number(localStorage.getItem('dog-grid')) || 32 } catch {}
+try { grid = Number(localStorage.getItem('pixspell-grid')) || 32 } catch {}
 if (!GRIDS.some((x) => x.g === grid)) grid = 32
 
 function showPreview() {
@@ -34,14 +34,14 @@ function showPreview() {
 
 function setGrid(g) {
   grid = g
-  try { localStorage.setItem('dog-grid', g) } catch {}
+  try { localStorage.setItem('pixspell-grid', g) } catch {}
   showPreview()
 }
-addEventListener('dog-grid', (e) => { if (e.detail !== grid) setGrid(e.detail) }) // the character maker picked one
+addEventListener('pixspell-grid', (e) => { if (e.detail !== grid) setGrid(e.detail) }) // the character maker picked one
 
 $('#grid-pick').append(...GRIDS.map(({ g, label, note }) => h('button', {
   'data-g': g, 'aria-pressed': 'false',
-  onclick: () => { setGrid(g); dispatchEvent(new CustomEvent('dog-grid', { detail: g })) },
+  onclick: () => { setGrid(g); dispatchEvent(new CustomEvent('pixspell-grid', { detail: g })) },
 }, h('b', {}, label), h('small', {}, note))))
 
 // PNGs: let the browser compress them (the built-in encoder stores pixels uncompressed)
@@ -53,9 +53,9 @@ $('#dl-bundle').addEventListener('click', async () => {
   if (busy) return
   busy = true
   const parts = Object.fromEntries($$('#dl-opts input').map((i) => [i.dataset.part, i.checked]))
-  const items = dog.bundle({ grid, ...parts })
+  const items = spell.bundle({ grid, ...parts })
   const status = $('#dl-status'), t0 = performance.now()
-  const files = {}, root = `dog-${grid}px/`
+  const files = {}, root = `pixspell-${grid}px/`
   $('#dl-bundle').disabled = true
   try {
     for (let i = 0; i < items.length; i += 24) {
@@ -67,10 +67,10 @@ $('#dl-bundle').addEventListener('click', async () => {
       await nextFrame()
     }
     const out = zip(files)
-    download(`dog-${grid}px.zip`, out, 'application/zip')
+    download(`pixspell-${grid}px.zip`, out, 'application/zip')
     const secs = ((performance.now() - t0) / 1000).toFixed(1)
-    status.textContent = `dog-${grid}px.zip: ${items.length} files, ${(out.length / 1048576).toFixed(1)} MB, made in ${secs}s`
-    toast(`dog-${grid}px.zip is ready`)
+    status.textContent = `pixspell-${grid}px.zip: ${items.length} files, ${(out.length / 1048576).toFixed(1)} MB, made in ${secs}s`
+    toast(`pixspell-${grid}px.zip is ready`)
   } finally {
     busy = false
     $('#dl-bundle').disabled = false

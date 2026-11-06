@@ -1,5 +1,5 @@
-// Sound recipes. Names line up with the rest of DOG on purpose:
-//   - every attack style:  dog.sfx(dog.action.styleOf(hero))   slash stab thrust whip smash burn bonk punch shoot magic
+// Sound recipes. Names line up with the rest of PixSpell on purpose:
+//   - every attack style:  spell.sfx(spell.action.styleOf(hero))   slash stab thrust whip smash burn bonk punch shoot magic
 //   - every action:        hit heal levelup cast death (+ hurt for the player)
 //   - effects:             boom meteor quake firework poof laser zap shockwave crit miss block parry teleport ...
 // Times are seconds, pitches Hz or note names. See src/sfx.js for every layer field.
@@ -32,7 +32,7 @@ export const SOUNDS = [
   { id: 'powerup', tags: ['pickup', 'buff'], level: 0.86, layers: [{ wave: 'square', duty: 0.35, freq: 220, to: 880, steps: [1, 1.26, 1.5, 2], every: 0.035, vibrato: [8, 0.02], attack: 0.01, hold: 0.45, decay: 0.15, slideTime: 0.6 }] },
   { id: 'chest', tags: ['pickup', 'reward'], level: 0.86, layers: [{ wave: 'saw', freq: 140, to: 190, lowpass: 700, attack: 0.02, hold: 0.12, decay: 0.05, volume: 0.5 }, thud(160, 80, 0.08, 0.6, { delay: 0.18 }), { wave: 'square', notes: ['C6', 'E6', 'G6', 'C7'], every: 0.05, delay: 0.24, hold: 0.2, decay: 0.25, volume: 0.35 }] },
 
-  // ------------------------------------------------- attack styles (dog.action)
+  // ------------------------------------------------- attack styles (spell.action)
   { id: 'slash', tags: ['attack', 'combat'], level: 1, layers: [whoosh(900, 7000, 0.16, 0.7), { wave: 'pulse', duty: 0.12, freq: 2600, to: 1900, attack: 0.002, decay: 0.09, volume: 0.12, delay: 0.05 }] },
   { id: 'stab', tags: ['attack', 'combat'], level: 1, layers: [whoosh(3000, 6000, 0.06, 0.6, { attack: 0.01 }), { wave: 'triangle', freq: 900, to: 300, attack: 0.001, decay: 0.06, volume: 0.4, delay: 0.04 }] },
   { id: 'thrust', tags: ['attack', 'combat'], level: 1, layers: [whoosh(500, 3500, 0.2, 0.7), { wave: 'square', freq: 260, to: 130, lowpass: 1200, attack: 0.03, decay: 0.12, volume: 0.25 }] },
@@ -96,7 +96,7 @@ export const SOUNDS = [
 ]
 
 // Element flavors: extra layers sized to the sound they join (len = its length in seconds).
-// dog.sfx('slash', { element: 'fire' }) is a slash with crackle on it, the way an effect takes a color.
+// spell.sfx('slash', { element: 'fire' }) is a slash with crackle on it, the way an effect takes a color.
 const pops = (len, highpass, volume) => ({ wave: 'noise', freq: 22050, highpass, attack: 0.001, decay: 0.014, volume, delay: len * 0.2, repeat: { count: Math.max(5, Math.round(len / 0.03) + 4), every: 0.03, jitter: 0.6, fade: 0.04 } })
 const after = (len) => Math.max(0.15, len * 0.6) // flavors ring a little past the sound they join
 export const FLAVORS = {

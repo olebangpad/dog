@@ -1,9 +1,9 @@
 // Situation effects: a character performing an action, with effects attached
 // to the right spot (slash at the hand, numbers above the head, smoke over the body).
 //
-//   dog.action('hero', 'attack')                                 // 8 frames, 32x32
-//   dog.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')
-//   dog.action('slime', 'hit', { element: 'ice', amount: '-12' })
+//   spell.action('hero', 'attack')                                 // 8 frames, 32x32
+//   spell.action({ body: 'hero', hand: 'sword' }, 'attack', 'fire')
+//   spell.action('slime', 'hit', { element: 'ice', amount: '-12' })
 //
 // Every action returns exactly 8 same-sized frames, with `.fps` on the array,
 // so it drops straight into a sprite sheet or game engine.
@@ -24,12 +24,12 @@ export const ELEMENTS = { fire: 'orange', ice: 'ice', poison: 'lime', holy: 'gol
 // small sparkles drifting up around a point: [dx, dy, first frame]
 const PARTICLES = [[-8, 4, 0], [7, 2, 1], [-3, -3, 2], [6, -6, 3], [-7, -5, 4], [2, 6, 1]]
 
-export function createActions(dog, looks) {
+export function createActions(spell, looks) {
   const blank = () => new Pixmap(ACTION_SIZE, ACTION_SIZE)
   const frame = (...layers) => layers.flat().filter(Boolean).reduce((c, l) => c.draw(l), blank())
   const centered = (img, cx, cy) => img.at(Math.round(cx - img.w / 2), Math.round(cy - img.h / 2))
   const charAt = (img, dx = 0, dy = 0) => img.at(CHAR_AT[0] + dx, CHAR_AT[1] + dy)
-  const fx = (id, f, material) => dog(id, { A: material, frame: f })
+  const fx = (id, f, material) => spell(id, { A: material, frame: f })
   const label = (str, color) => text(str, { color }).outline(OUTLINE)
   const clampTop = (img, y) => Math.max(0, y)
 
@@ -43,7 +43,7 @@ export function createActions(dog, looks) {
   /** Attach points in action-frame coordinates. */
   function points(spec, first) {
     const body = looks[spec.body].def
-    const b = bbox(dog.char({ body: spec.body, A: spec.A, B: spec.B, C: spec.C }))
+    const b = bbox(spell.char({ body: spec.body, A: spec.A, B: spec.B, C: spec.C }))
     const all = bbox(first)
     const cx = CHAR_AT[0] + ((b.x0 + b.x1 + 1) >> 1), cy = CHAR_AT[1] + ((b.y0 + b.y1 + 1) >> 1)
     const anchor = (k) => body.anchors[k] && [CHAR_AT[0] + BODY_AT[0] + body.anchors[k][0][0], CHAR_AT[1] + BODY_AT[1] + body.anchors[k][0][1]]
@@ -59,7 +59,7 @@ export function createActions(dog, looks) {
     const o = typeof opts === 'string' ? { element: opts } : { ...opts }
     const material = o.element ? (ELEMENTS[o.element] ?? o.element) : fallback
     const ramp = resolveRamp(material)
-    const frames = dog.char.frames(s)
+    const frames = spell.char.frames(s)
     const char = (i) => frames[i % frames.length]
     return { s, o, material, ramp, char, pts: points(s, frames[0]), tinted: !!o.element }
   }
@@ -87,7 +87,7 @@ export function createActions(dog, looks) {
     return WEAPON_STYLE[base] ?? 'slash'
   }
   // effect frames, recolored only when an element was asked for
-  const fxf = (c, name, size) => dog.fx(name, { size, A: c.tinted ? c.material : undefined })
+  const fxf = (c, name, size) => spell.fx(name, { size, A: c.tinted ? c.material : undefined })
   const play = (frames, i, from) => (i >= from && i - from < frames.length ? frames[i - from] : null)
   const at = (img, x, y) => img && img.at(Math.round(x), Math.round(y))
 
@@ -200,7 +200,7 @@ export function createActions(dog, looks) {
   /** 8 frames (32x32) of `spec` performing `name`. `opts`: element name, or { element, amount, text, label }. */
   function action(spec, name, opts = {}) {
     const a = ACTIONS[name]
-    if (!a) throw new Error(`dog: unknown action "${name}". Try: ${Object.keys(ACTIONS).join(', ')}`)
+    if (!a) throw new Error(`pixspell: unknown action "${name}". Try: ${Object.keys(ACTIONS).join(', ')}`)
     const c = setup(spec, opts, a.fallback)
     const frames = a.build(c)
     frames.fps = a.fps

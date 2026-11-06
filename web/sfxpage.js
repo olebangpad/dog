@@ -1,18 +1,18 @@
-// Sounds page: every dog.sfx sound as a card with a pixel waveform. Click to play.
-import { dog, zip, MATERIALS, FX_COLORS } from '../src/index.js'
+// Sounds page: every spell.sfx sound as a card with a pixel waveform. Click to play.
+import { spell, zip, MATERIALS, FX_COLORS } from '../src/index.js'
 import { $, $$, h, download, copy, toast } from './ui.js'
 
 const KINDS = ['all', 'ui', 'move', 'pickup', 'attack', 'action', 'magic', 'explosion', 'element', 'jingle', 'loop']
 const KIND_COLOR = { ui: 'ice', move: 'sand', pickup: 'gold', attack: 'orange', action: 'red', magic: 'pink', explosion: 'orange', element: 'purple', jingle: 'lime', loop: 'blue' }
-const ids = dog.sfx.list
+const ids = spell.sfx.list
 const state = { kind: 'all', element: null, pitch: 1, vary: false, last: 'coin' }
 
 $('#sfx-count').textContent = ids.length
-$('#sfx-designs').textContent = `${ids.length} sounds × ${dog.sfx.elements.length + 1} element flavors × any pitch · every attack style and action has one`
+$('#sfx-designs').textContent = `${ids.length} sounds × ${spell.sfx.elements.length + 1} element flavors × any pitch · every attack style and action has one`
 
-const kindOf = (id) => KINDS.find((k) => k !== 'all' && dog.sfx.tags(id).includes(k)) ?? 'element'
+const kindOf = (id) => KINDS.find((k) => k !== 'all' && spell.sfx.tags(id).includes(k)) ?? 'element'
 const opts = (seed = 0) => ({ element: state.element ?? undefined, pitch: state.pitch, seed })
-const sound = (id, seed = 0) => dog.sfx(id, opts(seed))
+const sound = (id, seed = 0) => spell.sfx(id, opts(seed))
 
 // --------------------------------------------------------------- cards
 const cards = new Map()
@@ -39,7 +39,7 @@ function buildGrid() {
     const canvas = h('canvas', { width: 48, height: 24, 'aria-hidden': 'true' })
     const card = h('div', { class: 'fx-card', 'data-id': id },
       h('button', { class: 'play', title: `Play ${id}`, onclick: () => play(id) },
-        canvas, h('span', {}, id), h('span', { class: 'kind' }, `${kindOf(id)}${dog.sfx(id).loop ? ' · loop' : ''}`)),
+        canvas, h('span', {}, id), h('span', { class: 'kind' }, `${kindOf(id)}${spell.sfx(id).loop ? ' · loop' : ''}`)),
       h('button', { class: 'dl', title: `Download ${id}.wav`, 'aria-label': `Download ${id}.wav`, onclick: () => saveOne(id) }, '⬇'))
     cards.set(id, { card, canvas })
     grid.append(card)
@@ -51,7 +51,7 @@ function redraw() { for (const [id, c] of cards) waveform(c.canvas, id) }
 function filter() {
   let n = 0
   for (const [id, c] of cards) {
-    const show = state.kind === 'all' || dog.sfx.tags(id).includes(state.kind)
+    const show = state.kind === 'all' || spell.sfx.tags(id).includes(state.kind)
     c.card.hidden = !show
     if (show) n++
   }
@@ -83,11 +83,11 @@ function play(id) {
 function showCode(seed = 0) {
   const id = state.last
   const o = [state.element && `element: '${state.element}'`, state.pitch !== 1 && `pitch: ${state.pitch}`, seed && `seed: ${seed}`].filter(Boolean)
-  const call = `dog.sfx('${id}'${o.length ? `, { ${o.join(', ')} }` : ''})`
+  const call = `spell.sfx('${id}'${o.length ? `, { ${o.join(', ')} }` : ''})`
   $('#code').textContent = [
-    `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'`,
+    `import { spell } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'`,
     '',
-    `${call}.play()${dog.sfx(id).loop ? '          // seamless loop: .play({ loop: true }) / .stop()' : '          // call from a click or key handler the first time'}`,
+    `${call}.play()${spell.sfx(id).loop ? '          // seamless loop: .play({ loop: true }) / .stop()' : '          // call from a click or key handler the first time'}`,
     `await ${call}.save('${id}.wav')   // Node`,
     `${call}.toWAV()                   // bytes for any engine`,
   ].join('\n')
@@ -100,8 +100,8 @@ function saveOne(id) {
 
 $('#dl-all').addEventListener('click', () => {
   const list = ids.filter((id) => !cards.get(id).card.hidden)
-  const name = `dog-${state.kind === 'all' ? '' : state.kind + '-'}sounds${state.element ? '-' + state.element : ''}`
-  const pack = dog.sfxPack(list, { name, element: state.element ?? undefined, pitch: state.pitch })
+  const name = `pixspell-${state.kind === 'all' ? '' : state.kind + '-'}sounds${state.element ? '-' + state.element : ''}`
+  const pack = spell.sfxPack(list, { name, element: state.element ?? undefined, pitch: state.pitch })
   download(`${name}.zip`, zip(pack.files), 'application/zip')
   toast(`${name}.zip: ${list.length} WAV file${list.length > 1 ? 's' : ''}`)
 })
@@ -112,7 +112,7 @@ $('#kinds').append(...KINDS.map((k) => h('button', { 'data-kind': k, onclick: ()
 const swatch = (m) => `linear-gradient(135deg, ${MATERIALS[m][3]} 0 30%, ${MATERIALS[m][2]} 30% 65%, ${MATERIALS[m][1]} 65%)`
 $('#elements').append(
   h('button', { 'data-element': '', 'aria-pressed': 'true', onclick: () => setElement(null) }, h('i', { style: { '--sw': '#55665a' } }), 'plain'),
-  ...dog.sfx.elements.map((name) => h('button', { 'data-element': name, 'aria-pressed': 'false', onclick: () => setElement(name) }, h('i', { style: { '--sw': swatch(FX_COLORS[name]) } }), name)),
+  ...spell.sfx.elements.map((name) => h('button', { 'data-element': name, 'aria-pressed': 'false', onclick: () => setElement(name) }, h('i', { style: { '--sw': swatch(FX_COLORS[name]) } }), name)),
 )
 function setElement(el) {
   state.element = el
@@ -127,8 +127,8 @@ $('#vary').addEventListener('click', (e) => {
   e.currentTarget.setAttribute('aria-pressed', String(state.vary))
 })
 
-$('#favicon').href = dog('fx-notes', { frame: 4 }).toDataURL()
+$('#favicon').href = spell('fx-notes', { frame: 4 }).toDataURL()
 buildGrid()
 filter()
 showCode()
-window.dog = dog
+window.spell = spell

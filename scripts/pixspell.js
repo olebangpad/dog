@@ -1,42 +1,42 @@
 #!/usr/bin/env node
-// Command line for DOG.
+// Command line for PixSpell.
 //
-//   node scripts/dog.js list [category]
-//   node scripts/dog.js render potion -A gold --scale 8 --outline '#fff' -o potion.png
-//   node scripts/dog.js render slime -A '#ff4fd8' --anim -o slime.png     (animated PNG)
-//   node scripts/dog.js combine hero crown@0,-7 --scale 6 -o king.png
-//   node scripts/dog.js outline < my-art.txt                              (auto-outline helper)
+//   node scripts/pixspell.js list [category]
+//   node scripts/pixspell.js render potion -A gold --scale 8 --outline '#fff' -o potion.png
+//   node scripts/pixspell.js render slime -A '#ff4fd8' --anim -o slime.png     (animated PNG)
+//   node scripts/pixspell.js combine hero crown@0,-7 --scale 6 -o king.png
+//   node scripts/pixspell.js outline < my-art.txt                              (auto-outline helper)
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { deflateSync } from 'node:zlib'
-import { dog, looks, sprites, compose, sheet, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
+import { spell, looks, sprites, compose, sheet, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
 
-const HELP = `dog - pixel art as code
+const HELP = `pixspell - game assets as code
 
 usage:
-  dog list [category]                      list every sprite look
-  dog info <id>                            size, slots, variants, frames
-  dog render <id> [options] -o out.png     export one sprite
-  dog combine <id>[@x,y] <id>[@x,y] ...    stack sprites into one image
-  dog char <body> [--hat x] [--hand x] [--offhand x] [-A color] -o out.png
-  dog char --random [seed] -o out.png      a random character (same seed, same character)
-  dog char <body> ... --action attack [--element fire] --anim -o hit.png
+  pixspell list [category]                      list every sprite look
+  pixspell info <id>                            size, slots, variants, frames
+  pixspell render <id> [options] -o out.png     export one sprite
+  pixspell combine <id>[@x,y] <id>[@x,y] ...    stack sprites into one image
+  pixspell char <body> [--hat x] [--hand x] [--offhand x] [-A color] -o out.png
+  pixspell char --random [seed] -o out.png      a random character (same seed, same character)
+  pixspell char <body> ... --action attack [--element fire] --anim -o hit.png
                                            actions: attack hit heal levelup cast death
-  dog char <body> ... --walk left --anim -o walk.png   directions: down up left right
-  dog pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
+  pixspell char <body> ... --walk left --anim -o walk.png   directions: down up left right
+  pixspell pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
                                            game pack: sprite sheet + Phaser/Aseprite JSON + Godot .tres
-  dog fx <name> [--element ice] [--size 64] [--seed n] [--on <body>] -o out.png
+  pixspell fx <name> [--element ice] [--size 64] [--seed n] [--on <body>] -o out.png
                                            procedural effect as an animated PNG (--strip: frame strip,
                                            --frame n: one frame, --on slime: on a character as a status)
-  dog fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
-  dog sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
-                                           a sound effect as a WAV file (dog sfx alone lists them)
-  dog sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
-  dog export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o dog-32px.zip
+  pixspell fxpack [name ...] [-o effects.zip | --dir out/]   effects as one game pack (default: all of them)
+  pixspell sfx <name> [--element fire] [--pitch 1.2] [--seed n] [--volume 0.8] -o out.wav
+                                           a sound effect as a WAV file (pixspell sfx alone lists them)
+  pixspell sfxpack [name ...] [-o sounds.zip | --dir out/]   sounds as WAV files in one zip (default: all)
+  pixspell export [--grid 32] [--no-effects] [--no-sounds] [--all-colors] -o dog-32px.zip
                                            everything for one tile size in one zip
-  dog outline                              read text art on stdin, add # outlines
-  dog materials                            list named materials
+  pixspell outline                              read text art on stdin, add # outlines
+  pixspell materials                            list named materials
 
 options:
   --grid <8|16|32|64>          tile size of your game: art is converted to fit it (render, char, fx, pack, fxpack)
@@ -129,47 +129,47 @@ const [cmd, ...args] = o._
 if (!cmd || o.help) {
   console.log(HELP)
 } else if (cmd === 'list') {
-  const ids = dog.list({ category: args[0] })
+  const ids = spell.list({ category: args[0] })
   console.log(ids.join('\n'))
   console.error(`\n${ids.length} looks`)
 } else if (cmd === 'materials') {
   console.log(MATERIAL_NAMES.join('\n'))
 } else if (cmd === 'info') {
-  const { def, ramps: r } = dog.info(args[0])
+  const { def, ramps: r } = spell.info(args[0])
   console.log({ id: args[0], size: `${def.w}x${def.h}`, category: def.category, slots: def.slots, ramps: r, frames: def.frames.length, fps: def.fps, variants: Object.keys(def.variants) })
 } else if (cmd === 'render') {
   const id = args[0]
-  if (!looks[id]) throw new Error(`unknown sprite "${id}" - run: dog list`)
+  if (!looks[id]) throw new Error(`unknown sprite "${id}" - run: pixspell list`)
   const out = o.out ?? `${id}.png`
   if (o.anim) {
-    const frames = dog.frames(id, { ...ramps(o), grid: o.grid }).map((f) => finish(f, o))
+    const frames = spell.frames(id, { ...ramps(o), grid: o.grid }).map((f) => finish(f, o))
     save(out, encodeAPNG(frames, { fps: looks[id].def.fps, deflate }))
   } else {
-    save(out, finish(dog(id, { ...ramps(o), grid: o.grid, frame: o.frame ?? looks[id].def.cover }), o).toPNG({ deflate }))
+    save(out, finish(spell(id, { ...ramps(o), grid: o.grid, frame: o.frame ?? looks[id].def.cover }), o).toPNG({ deflate }))
   }
 } else if (cmd === 'combine') {
   const layers = args.map((spec) => {
     const [id, pos = '0,0'] = spec.split('@')
     const [x, y] = pos.split(',').map(Number)
-    return dog(id).at(x, y)
+    return spell(id).at(x, y)
   })
   save(o.out ?? 'combined.png', finish(compose(layers), o).toPNG({ deflate }))
 } else if (cmd === 'char') {
-  const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
+  const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
   console.log(spec)
   const name = o.out ?? `${spec.body}${o.walk ? '-walk-' + o.walk : o.action ? '-' + o.action : ''}.png`
   const g = { grid: o.grid }
-  const frames = o.walk ? dog.walk(spec, o.walk, g) : o.action ? dog.action(spec, o.action, { element: o.element, grid: o.grid }) : dog.char.frames(spec, g)
+  const frames = o.walk ? spell.walk(spec, o.walk, g) : o.action ? spell.action(spec, o.action, { element: o.element, grid: o.grid }) : spell.char.frames(spec, g)
   const fps = frames.fps ?? looks[spec.body].def.fps
   if (o.anim) save(name, encodeAPNG(frames.map((f) => finish(f, o)), { fps, deflate }))
   else if (o.strip || o.action || o.walk) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
-  else save(name, finish(dog.char(spec, g), o).toPNG({ deflate }))
+  else save(name, finish(spell.char(spec, g), o).toPNG({ deflate }))
 } else if (cmd === 'pack') {
-  const spec = o.random ? dog.char.random(o.random === true ? undefined : o.random)
+  const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
   for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
-  const pack = dog.pack(spec, { element: o.element, deflate, grid: o.grid })
+  const pack = spell.pack(spec, { element: o.element, deflate, grid: o.grid })
   if (o.dir) {
     mkdirSync(o.dir, { recursive: true })
     for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
@@ -179,16 +179,16 @@ if (!cmd || o.help) {
   console.log(`${pack.animations.length} animations: ${pack.animations.join(', ')}`)
 } else if (cmd === 'fx') {
   const name = args[0]
-  if (!name) throw new Error(`which effect? one of:\n${dog.fx.list.map((id) => id.replace(/^fx-/, '')).join(' ')}`)
+  if (!name) throw new Error(`which effect? one of:\n${spell.fx.list.map((id) => id.replace(/^fx-/, '')).join(' ')}`)
   const fxOpts = { element: o.element, size: o.size, seed: o.seed, grid: o.grid, ...ramps(o) }
-  const frames = o.on ? dog.status(o.on, name, { element: o.element, size: o.size, grid: o.grid }) : dog.fx(name, fxOpts)
+  const frames = o.on ? spell.status(o.on, name, { element: o.element, size: o.size, grid: o.grid }) : spell.fx(name, fxOpts)
   const out = o.out ?? `${name.replace(/^fx-/, '')}${o.element ? '-' + o.element : ''}.png`
   if (o.frame != null) save(out, finish(frames[o.frame % frames.length], o).toPNG({ deflate }))
   else if (o.strip) save(out, finish(sheet(frames).image, o).toPNG({ deflate }))
   else save(out, encodeAPNG(frames.map((f) => finish(f, o)), { fps: frames.fps, deflate }))
   console.log(`${frames.length} frames @ ${frames.fps}fps, ${frames.loop ? 'loops' : 'plays once'}`)
 } else if (cmd === 'fxpack') {
-  const pack = dog.fxPack(args.length ? args : undefined, { deflate, grid: o.grid })
+  const pack = spell.fxPack(args.length ? args : undefined, { deflate, grid: o.grid })
   if (o.dir) {
     mkdirSync(o.dir, { recursive: true })
     for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
@@ -199,15 +199,15 @@ if (!cmd || o.help) {
 } else if (cmd === 'sfx') {
   const name = args[0]
   if (!name) {
-    console.log(dog.sfx.list.map((id) => `${id.padEnd(10)} ${dog.sfx.tags(id).join(', ')}`).join('\n'))
-    console.error(`\n${dog.sfx.list.length} sounds · elements: ${dog.sfx.elements.join(' ')}`)
+    console.log(spell.sfx.list.map((id) => `${id.padEnd(10)} ${spell.sfx.tags(id).join(', ')}`).join('\n'))
+    console.error(`\n${spell.sfx.list.length} sounds · elements: ${spell.sfx.elements.join(' ')}`)
   } else {
-    const sound = dog.sfx(name, { element: o.element, pitch: o.pitch, seed: o.seed, volume: o.volume })
+    const sound = spell.sfx(name, { element: o.element, pitch: o.pitch, seed: o.seed, volume: o.volume })
     save(o.out ?? `${sound.id}.wav`, sound.toWAV())
     console.log(`${sound.duration.toFixed(2)}s${sound.loop ? ', seamless loop' : ''}`)
   }
 } else if (cmd === 'sfxpack') {
-  const pack = dog.sfxPack(args.length ? args : undefined, { element: o.element, pitch: o.pitch })
+  const pack = spell.sfxPack(args.length ? args : undefined, { element: o.element, pitch: o.pitch })
   if (o.dir) {
     mkdirSync(o.dir, { recursive: true })
     for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
@@ -217,15 +217,15 @@ if (!cmd || o.help) {
   console.log(`${pack.sounds.length} sounds`)
 } else if (cmd === 'export') {
   const grid = o.grid ?? 16
-  const items = dog.bundle({ grid, effects: !o.noEffects, sounds: !o.noSounds, effectColors: Boolean(o.allColors) })
-  const files = {}, root = `dog-${grid}px/`
+  const items = spell.bundle({ grid, effects: !o.noEffects, sounds: !o.noSounds, effectColors: Boolean(o.allColors) })
+  const files = {}, root = `pixspell-${grid}px/`
   items.forEach((it, i) => {
     const r = it.make()
     files[root + it.path] = r.toPNG ? r.toPNG({ deflate }) : r
     if (i % 100 === 0) process.stderr.write(`\r${i}/${items.length}`)
   })
   process.stderr.write('\r')
-  save(o.out ?? `dog-${grid}px.zip`, zip(files))
+  save(o.out ?? `pixspell-${grid}px.zip`, zip(files))
   console.log(`${items.length} files for ${grid}x${grid} tiles`)
 } else if (cmd === 'outline') {
   console.log(autoOutline(readFileSync(0, 'utf8')))

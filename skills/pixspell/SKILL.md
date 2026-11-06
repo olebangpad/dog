@@ -1,23 +1,23 @@
 ---
 name: game-assets
-description: Build 2D pixel-art games and game assets with DOG (Dots Of Games), a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
+description: Build 2D pixel-art games and game assets with PixSpell, a zero-dependency JavaScript library of CC0 sprites. Use when the user wants pixel-art sprites, game characters (2.7M combinations of bodies, hats and weapons), 4-direction walk cycles, attack/hit/heal/level-up/death animations, 500+ game effects (explosions, magic, slashes, weather, status overlays, crits, meteors), 60+ sound effects made by code (hits, coins, jumps, magic, jingles, loops), tiles, UI icons, recolored or resized sprites, sprite sheets for Phaser or Godot, or a quick browser game prototype.
 ---
 
-# DOG: pixel art as code
+# PixSpell: pixel art as code
 
-DOG renders every sprite from text art, so anything can be recolored, combined, resized and exported in one call.
-Art is CC0 (no credit needed), code is MIT. Repo: https://github.com/olebangpad/dots-of-games. Every sprite id is in [catalog.md](catalog.md).
+PixSpell renders every sprite from text art, so anything can be recolored, combined, resized and exported in one call.
+Art is CC0 (no credit needed), code is MIT. Repo: https://github.com/olebangpad/pixspell. Every sprite id is in [catalog.md](catalog.md).
 
 ## Setup
 
 Browser, no install or build step (ES module):
 
 ```js
-import { dog, compose, sheet, text, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
+import { spell, compose, sheet, text, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'
 ```
 
-Node / bundlers: `npm i dots-of-games`, then `import { dog } from 'dots-of-games'` (ES modules only, TypeScript types included).
-Save images with `await img.save('out.png')`. The CLI comes along: `npx dog render sword --grid 32 -o sword.png`.
+Node / bundlers: `npm i pixspell`, then `import { spell } from 'pixspell'` (ES modules only, TypeScript types included).
+Save images with `await img.save('out.png')`. The CLI comes along: `npx pixspell render sword --grid 32 -o sword.png`.
 
 Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): export a **game pack**, see below.
 
@@ -25,16 +25,16 @@ Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): e
 
 1. `ctx.imageSmoothingEnabled = false` and CSS `image-rendering: pixelated`. Prefer whole-number zoom.
 2. Build sprites **once** at startup and turn them into canvases: `img.toCanvas(document.createElement('canvas'))`.
-   Then only `ctx.drawImage()` in the game loop. Never call `dog()`, `dog.walk()` or `dog.action()` per frame.
-3. Sizes and anchors: tiles/items are 16×16. Characters (`dog.char`, `dog.walk`) are **24×24 with the feet at (12, 23)**.
+   Then only `ctx.drawImage()` in the game loop. Never call `spell()`, `spell.walk()` or `spell.action()` per frame.
+3. Sizes and anchors: tiles/items are 16×16. Characters (`spell.char`, `spell.walk`) are **24×24 with the feet at (12, 23)**.
    Actions and game packs are **32×32 with the feet at (16, 31)**. Draw a character standing at (x, y) with
    `drawImage(walkFrame, x - 12, y - 23)` or `drawImage(actionFrame, x - 16, y - 31)`.
 4. Action frames face **right**. For a character facing left, mirror them (`frames.map(f => f.flipX())` or `ctx.scale(-1, 1)`).
    Walk cycles already exist for `left`.
 5. Every animation is an array of Pixmaps with a `.fps` property. Frame at time t: `frames[Math.floor(t * frames.fps) % frames.length]`.
 6. **Match the game's tile size with `grid`** (8, 16, 32 or 64; the art is drawn on 16). Every call takes it:
-   `dog('sword', { grid: 32 })`, `dog.char(spec, { grid: 32 })`, `dog.walk(spec, 'left', { grid: 32 })`,
-   `dog.action(spec, 'attack', { element: 'fire', grid: 32 })`, `dog.fx('boom', { grid: 32 })`, `dog.pack(spec, { grid: 32 })`.
+   `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 32 })`, `spell.walk(spec, 'left', { grid: 32 })`,
+   `spell.action(spec, 'attack', { element: 'fire', grid: 32 })`, `spell.fx('boom', { grid: 32 })`, `spell.pack(spec, { grid: 32 })`.
    Sizes and anchors scale with it: at grid 32, characters are 48×48 (feet at 24, 47), actions and packs 64×64 (feet at 32, 63).
    Use one grid for the whole game; `smooth: false` gives plain zoom instead of Scale2x.
 
@@ -50,34 +50,34 @@ A character is a spec: `{ body, hat?, hand?, offhand?, A?, B?, C? }`.
 ```js
 const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', A: 'red' }
 
-dog.char(knight)                         // 24x24 Pixmap, standing
-dog.walk(knight, 'left')                 // walk cycle frames (24x24) + .fps   dirs: down up left right
-dog.action(knight, 'attack', 'fire')     // 8 frames (32x32) + .fps
-dog.action(knight, 'hit', { element: 'ice', amount: '-12' })
-dog.char.random(42)                      // a reproducible random spec, great for NPCs
-dog.char.parts                           // { body, head, hand, offhand }: every valid id
+spell.char(knight)                         // 24x24 Pixmap, standing
+spell.walk(knight, 'left')                 // walk cycle frames (24x24) + .fps   dirs: down up left right
+spell.action(knight, 'attack', 'fire')     // 8 frames (32x32) + .fps
+spell.action(knight, 'hit', { element: 'ice', amount: '-12' })
+spell.char.random(42)                      // a reproducible random spec, great for NPCs
+spell.char.parts                           // { body, head, hand, offhand }: every valid id
 ```
 
 Actions: `attack` (lunge + slash at the weapon hand), `hit` (flash, knock-back, damage number), `heal` (+number, sparkles),
 `levelup` ("LV UP", jump, aura), `cast` (aura + charging star at the hand), `death` (fade into smoke).
 Elements: `fire` `ice` `poison` `holy` `dark`, or any material name or hex color. Options: `{ element, amount: '-7', text: 'LV UP', label: false }`.
-The attack effect follows the held weapon (`dog.action.styleOf(spec)`): sword/scythe slash, dagger stab, spear/trident thrust,
+The attack effect follows the held weapon (`spell.action.styleOf(spec)`): sword/scythe slash, dagger stab, spear/trident thrust,
 axe/hammer/pickaxe smash, bow shoot, staff/wand magic, rod whip, torch burn, flower/lollipop bonk, empty hand punch.
 Force one with `{ style: 'whip' }`.
 
 ## Effects
 
-80 procedural effects (`dog.fx.list`), each in up to 11 colors and at any size; every id, its frames and colors are in [catalog.md](catalog.md).
+80 procedural effects (`spell.fx.list`), each in up to 11 colors and at any size; every id, its frames and colors are in [catalog.md](catalog.md).
 Kinds (`tags`): burst, magic, element, projectile, beam, weather, environment, status, combat, reward, spectacle; `seamless` ones tile.
 
 ```js
-const meteor = dog.fx('meteor')                          // frames (32x32) + .fps + .loop (false: play once, then remove)
-dog.fx('tornado', { element: 'fire', size: 64 })         // fire ice poison holy dark water nature blood arcane steel, or hex
-dog.fx('rain', { size: 64 })                             // seamless loop: repeat the tile over the whole map
-dog.status({ body: 'slime' }, 'frozen')                  // character + overlay, 32x32 frames, feet at (16, 31)
-dog.status('hero', 'burning', { walk: 'down' })          // walking while burning
-dog.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }]) // chain or overlap
-dog.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row per effect, + Aseprite JSON / Godot .tres
+const meteor = spell.fx('meteor')                          // frames (32x32) + .fps + .loop (false: play once, then remove)
+spell.fx('tornado', { element: 'fire', size: 64 })         // fire ice poison holy dark water nature blood arcane steel, or hex
+spell.fx('rain', { size: 64 })                             // seamless loop: repeat the tile over the whole map
+spell.status({ body: 'slime' }, 'frozen')                  // character + overlay, 32x32 frames, feet at (16, 31)
+spell.status('hero', 'burning', { walk: 'down' })          // walking while burning
+spell.fx.sequence([{ fx: 'charge' }, { fx: 'comet', repeat: 2 }, { fx: 'boom', with: true, at: -2 }]) // chain or overlap
+spell.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row per effect, + Aseprite JSON / Godot .tres
 ```
 
 - Center an effect on its target: `drawImage(frame, x - size / 2, y - size / 2)`. Pick the size for the job:
@@ -89,17 +89,17 @@ dog.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row per
 
 ## Sounds
 
-66 sound effects made by code (`dog.sfx.list`), listed in [catalog.md](catalog.md). Every attack style and every action
-has a sound of the same name, and `dog.sfx.forEffect()` gives an effect's sound.
+66 sound effects made by code (`spell.sfx.list`), listed in [catalog.md](catalog.md). Every attack style and every action
+has a sound of the same name, and `spell.sfx.forEffect()` gives an effect's sound.
 
 ```js
 const hero = { body: 'hero', hand: 'axe' }
-const swing = dog.sfx(dog.action.styleOf(hero))          // the attack sound for the weapon ('smash' for an axe)
-dog.sfx('hit', { element: 'ice', seed: 2 })              // element flavor (like an effect color), seed = small variation
-dog.sfx('coin', { pitch: 1.5 })                          // pitch multiplier
-dog.sfx(dog.sfx.forEffect('fx-meteor'))                  // the sound that goes with an effect
-const wav = dog.sfx('levelup').toWAV()                   // 16-bit mono WAV bytes; .toDataURL(); .save(path) in Node
-const sounds = dog.sfxPack(['slash', 'hit', 'coin'])     // WAVs in one zip: .files, .zip()
+const swing = spell.sfx(spell.action.styleOf(hero))          // the attack sound for the weapon ('smash' for an axe)
+spell.sfx('hit', { element: 'ice', seed: 2 })              // element flavor (like an effect color), seed = small variation
+spell.sfx('coin', { pitch: 1.5 })                          // pitch multiplier
+spell.sfx(spell.sfx.forEffect('fx-meteor'))                  // the sound that goes with an effect
+const wav = spell.sfx('levelup').toWAV()                   // 16-bit mono WAV bytes; .toDataURL(); .save(path) in Node
+const sounds = spell.sfxPack(['slash', 'hit', 'coin'])     // WAVs in one zip: .files, .zip()
 console.log(swing.duration, wav.length, Object.keys(sounds.files))
 ```
 
@@ -110,21 +110,21 @@ console.log(swing.duration, wav.length, Object.keys(sounds.files))
   powerup chest`, jingles `win lose fanfare`, plus the attack styles, actions and effects. Use `seed: 1..4` on repeated
   sounds (hits, steps) so they don't all sound the same.
 - Phaser 3: `this.load.audio('coin', 'coin.wav')` with exported files, or with no files
-  `this.sound.decodeAudio('coin', dog.sfx('coin').toWAV().buffer)` and play after the `decoded` event.
+  `this.sound.decodeAudio('coin', spell.sfx('coin').toWAV().buffer)` and play after the `decoded` event.
   Godot: drop the WAVs in and use an `AudioStreamPlayer`. Every sound is also in `assets/sfx/<name>.wav`.
 
 ## Everything else
 
 ```js
-dog('potion')                            // 16x16 Pixmap of any sprite id
-dog('potion-mana')                       // a named variant
-dog('potion', { A: '#ff4fd8' })          // any color: 4 shades are generated from it
-dog('coin', { frame: 2 })                // one frame of an animated sprite
-dog.frames('water')                      // all frames, in play order
-dog.list({ category: 'tiles' })          // ids; categories: characters gear items monsters tiles icons effects
+spell('potion')                            // 16x16 Pixmap of any sprite id
+spell('potion-mana')                       // a named variant
+spell('potion', { A: '#ff4fd8' })          // any color: 4 shades are generated from it
+spell('coin', { frame: 2 })                // one frame of an animated sprite
+spell.frames('water')                      // all frames, in play order
+spell.list({ category: 'tiles' })          // ids; categories: characters gear items monsters tiles icons effects
 
-compose(dog('chest-gold'), dog('sparkle', { frame: 3 }).at(8, -6))   // stack layers, place with .at(x, y)
-sheet(dog.frames('coin'), { columns: 8 }) // -> { image, frames: [{ x, y, w, h }] }
+compose(spell('chest-gold'), spell('sparkle', { frame: 3 }).at(8, -6))   // stack layers, place with .at(x, y)
+sheet(spell.frames('coin'), { columns: 8 }) // -> { image, frames: [{ x, y, w, h }] }
 text('SCORE 120', { color: '#ffd06a' }) // 3x5 pixel font, uppercase
 ```
 
@@ -139,7 +139,7 @@ Materials: `red orange gold lime green mint ice blue purple pink wood leather sk
 ```html
 <canvas id="game" width="256" height="176" style="width:768px;image-rendering:pixelated"></canvas>
 <script type="module">
-import { dog, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'
+import { spell, Pixmap } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'
 
 const ctx = document.getElementById('game').getContext('2d')
 ctx.imageSmoothingEnabled = false
@@ -148,11 +148,11 @@ const anim = (frames) => ({ imgs: frames.map(toCanvas), fps: frames.fps ?? 6 })
 
 // 1. build everything once
 const HERO = { body: 'heroine', hat: 'wizard', hand: 'staff-fire' }
-const walk = Object.fromEntries(dog.walk.dirs.map((d) => [d, anim(dog.walk(HERO, d))]))
-const swing = dog.action(HERO, 'attack', 'fire') // faces right
+const walk = Object.fromEntries(spell.walk.dirs.map((d) => [d, anim(spell.walk(HERO, d))]))
+const swing = spell.action(HERO, 'attack', 'fire') // faces right
 const attack = { right: anim(swing), left: { imgs: swing.map((f) => toCanvas(f.flipX())), fps: swing.fps } }
 let map = new Pixmap(256, 176)
-for (let y = 0; y < 11; y++) for (let x = 0; x < 16; x++) map = map.draw(dog('grass'), x * 16, y * 16)
+for (let y = 0; y < 11; y++) for (let x = 0; x < 16; x++) map = map.draw(spell('grass'), x * 16, y * 16)
 const background = toCanvas(map)
 
 // 2. state + input
@@ -186,23 +186,23 @@ requestAnimationFrame(function loop(now) {
 </script>
 ```
 
-Grow it from there: enemies are more specs (`{ body: 'slime' }`, `{ body: 'goblin', hand: 'dagger' }`) using `dog.walk` +
-`dog.action(enemy, 'hit')` / `'death'`; pickups are `dog('coin', { frame })` and `dog('heart')` (`.downscale(2)` gives 8×8);
-HUD numbers use `text()`; hit sparks, crits, coin pops and poofs are `dog.fx()` (see Effects), and every one of those
-moments has a `dog.sfx()` sound (see Sounds). A complete example with collisions, enemies, coins, crits, effects and a HUD is `web/quest.js` in the repo;
+Grow it from there: enemies are more specs (`{ body: 'slime' }`, `{ body: 'goblin', hand: 'dagger' }`) using `spell.walk` +
+`spell.action(enemy, 'hit')` / `'death'`; pickups are `spell('coin', { frame })` and `spell('heart')` (`.downscale(2)` gives 8×8);
+HUD numbers use `text()`; hit sparks, crits, coin pops and poofs are `spell.fx()` (see Effects), and every one of those
+moments has a `spell.sfx()` sound (see Sounds). A complete example with collisions, enemies, coins, crits, effects and a HUD is `web/quest.js` in the repo;
 a commented starter is `templates/canvas/index.html`.
 
 ## Recipe: export for Phaser, Godot or any engine
 
 ```js
-const pack = dog.pack({ body: 'robot', hat: 'cowboy', hand: 'hammer' }, { name: 'hero' })
+const pack = spell.pack({ body: 'robot', hat: 'cowboy', hand: 'hammer' }, { name: 'hero' })
 pack.files   // { 'hero.png', 'hero.json', 'hero.tres', 'README.txt' }
 pack.zip()   // the same files as one .zip (Uint8Array)
 ```
 
 The sheet has 32×32 cells, one animation per row: `idle`, `walk-down`, `walk-up`, `walk-left`, `walk-right`, `attack`, `hit`,
 `heal`, `levelup`, `cast`, `death` (pass `{ actions: ['attack', 'hit'] }` to include fewer). Feet at (16, 31).
-CLI: `node scripts/dog.js pack hero --hat crown --hand sword -o hero.zip`. In the web maker: **📦 Game pack**.
+CLI: `node scripts/pixspell.js pack hero --hat crown --hand sword -o hero.zip`. In the web maker: **📦 Game pack**.
 
 Phaser 3:
 
@@ -223,14 +223,14 @@ Godot 4: copy `hero.png` + `hero.tres` to the project root, add an `AnimatedSpri
 
 Every sprite and variant is pre-exported in the repo: `assets/png/<id>.png` (16×16), `assets/png@4x/`, `assets/anim/` (animated PNG),
 `assets/strips/` (frame strips), `assets/walk/<body>-<dir>.png`, and `assets/atlas.png` + `assets/atlas.json`
-(TexturePacker JSON hash, so `this.load.atlas('dog', 'atlas.png', 'atlas.json')` works).
+(TexturePacker JSON hash, so `this.load.atlas('pixspell', 'atlas.png', 'atlas.json')` works).
 
 ## Making new sprites
 
 Text art legend: `.` clear, `#` outline, `w` white, `1-4` ramp A, `5-8` ramp B, `a-d` ramp C (dark to light). Example:
 
 ```js
-import { defineSprite, render } from 'dots-of-games'
+import { defineSprite, render } from 'pixspell'
 const star = defineSprite({ id: 'tiny-star', ramps: { A: 'gold' }, art: `
   ..#..
   .#4#.
@@ -241,4 +241,4 @@ const star = defineSprite({ id: 'tiny-star', ramps: { A: 'gold' }, art: `
 render(star, { A: 'pink' }).scale(8)
 ```
 
-Hats and held items for `dog.char` also need `equip: 'head' | 'hand' | 'offhand'` and `pivot: [x, y]`; see CONTRIBUTING.md in the repo.
+Hats and held items for `spell.char` also need `equip: 'head' | 'hand' | 'offhand'` and `pivot: [x, y]`; see CONTRIBUTING.md in the repo.

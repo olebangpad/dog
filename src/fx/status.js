@@ -1,4 +1,4 @@
-// Status effects that sit on a character. Made for 32x32 character frames (dog.action / game packs,
+// Status effects that sit on a character. Made for 32x32 character frames (spell.action / game packs,
 // feet at 16,31): draw them at the same spot as the character and they line up with the body and head.
 
 const TAU = Math.PI * 2

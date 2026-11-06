@@ -1,9 +1,12 @@
 # Changelog
 
-DOG follows [semantic versioning](https://semver.org). Until 1.0, a minor version (0.x) may change the API;
+PixSpell follows [semantic versioning](https://semver.org). Until 1.0, a minor version (0.x) may change the API;
 patch versions never do. Art changes that alter how a sprite looks are listed here too.
 
 ## 0.1.0 · first release
+
+- **One entry point, `spell`:** `spell('sword')`, `spell.char()`, `spell.fx()`, `spell.sfx()` and the rest. The project's
+  early name was DOG, so `dog` is exported as an alias of `spell` and old snippets keep working.
 
 - **Sprites as code:** 126 sprites, 441 looks with variants. Recolor any of them to 18 materials or any hex
   color, combine them, resize them crisply, export PNG / animated PNG / sheets / atlas.

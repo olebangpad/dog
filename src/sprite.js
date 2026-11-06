@@ -30,12 +30,12 @@ export function parseArt(art) {
 /** Material name, any CSS hex color, or an explicit 4-color array -> 4 hex shades. */
 export function resolveRamp(value) {
   if (Array.isArray(value)) {
-    if (value.length !== 4) throw new Error('dog: a ramp needs 4 colors (dark -> light)')
+    if (value.length !== 4) throw new Error('pixspell: a ramp needs 4 colors (dark -> light)')
     return value
   }
   if (MATERIALS[value]) return MATERIALS[value]
   if (isColor(value)) return rampFrom(value)
-  throw new Error(`dog: unknown material "${value}"`)
+  throw new Error(`pixspell: unknown material "${value}"`)
 }
 
 /** Which ramp slots (A/B/C) a sprite actually paints with. */
@@ -50,9 +50,9 @@ export const EQUIP_SLOTS = ['head', 'hand', 'offhand']
 function normalizeAnchors(def, n) {
   const out = {}
   for (const [name, v] of Object.entries(def.anchors ?? {})) {
-    if (!EQUIP_SLOTS.includes(name)) throw new Error(`dog: "${def.id}" has unknown anchor "${name}"`)
+    if (!EQUIP_SLOTS.includes(name)) throw new Error(`pixspell: "${def.id}" has unknown anchor "${name}"`)
     const perFrame = Array.isArray(v[0]) ? v : Array.from({ length: n }, () => v)
-    if (perFrame.length !== n) throw new Error(`dog: "${def.id}" anchor "${name}" needs one point per frame`)
+    if (perFrame.length !== n) throw new Error(`pixspell: "${def.id}" anchor "${name}" needs one point per frame`)
     out[name] = perFrame
   }
   return out
@@ -62,15 +62,15 @@ function normalizeAnchors(def, n) {
 export function defineSprite(def) {
   const frames = (def.frames ?? [def.art]).map((f) => (Array.isArray(f) ? f : parseArt(f)))
   const h = frames[0].length, w = frames[0][0]?.length ?? 0
-  if (def.sequence?.some((i) => !frames[i])) throw new Error(`dog: "${def.id}" sequence points at a missing frame`)
-  if (def.cover != null && !frames[def.cover]) throw new Error(`dog: "${def.id}" cover points at a missing frame`)
-  if (def.equip && !EQUIP_SLOTS.includes(def.equip)) throw new Error(`dog: "${def.id}" equip must be one of ${EQUIP_SLOTS.join(', ')}`)
-  if (def.equip && !Array.isArray(def.pivot)) throw new Error(`dog: "${def.id}" needs a pivot: [x, y]`)
+  if (def.sequence?.some((i) => !frames[i])) throw new Error(`pixspell: "${def.id}" sequence points at a missing frame`)
+  if (def.cover != null && !frames[def.cover]) throw new Error(`pixspell: "${def.id}" cover points at a missing frame`)
+  if (def.equip && !EQUIP_SLOTS.includes(def.equip)) throw new Error(`pixspell: "${def.id}" equip must be one of ${EQUIP_SLOTS.join(', ')}`)
+  if (def.equip && !Array.isArray(def.pivot)) throw new Error(`pixspell: "${def.id}" needs a pivot: [x, y]`)
   frames.forEach((rows, fi) => {
-    if (rows.length !== h) throw new Error(`dog: "${def.id}" frame ${fi} has ${rows.length} rows, expected ${h}`)
+    if (rows.length !== h) throw new Error(`pixspell: "${def.id}" frame ${fi} has ${rows.length} rows, expected ${h}`)
     rows.forEach((row, y) => {
-      if (row.length !== w) throw new Error(`dog: "${def.id}" frame ${fi} row ${y} is ${row.length} wide, expected ${w}`)
-      for (const ch of row) if (!VALID.has(ch)) throw new Error(`dog: "${def.id}" uses unknown pixel "${ch}" (frame ${fi}, row ${y})`)
+      if (row.length !== w) throw new Error(`pixspell: "${def.id}" frame ${fi} row ${y} is ${row.length} wide, expected ${w}`)
+      for (const ch of row) if (!VALID.has(ch)) throw new Error(`pixspell: "${def.id}" uses unknown pixel "${ch}" (frame ${fi}, row ${y})`)
     })
   })
   const out = {

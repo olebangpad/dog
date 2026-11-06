@@ -1,11 +1,11 @@
 // Effects gallery: every procedural effect animating at once, recolor, preview, download.
-import { dog, looks, sheet, encodeAPNG, zip, MATERIALS, FX_COLORS } from '../src/index.js'
+import { spell, looks, sheet, encodeAPNG, zip, MATERIALS, FX_COLORS } from '../src/index.js'
 import { $, $$, h, download, copy, toast } from './ui.js'
 
 const KINDS = ['all', 'burst', 'magic', 'element', 'projectile', 'beam', 'weather', 'environment', 'status', 'combat', 'reward', 'spectacle', 'loop']
-const ids = dog.fx.list
+const ids = spell.fx.list
 const state = { kind: 'all', color: null, bg: 'dark', grid: 16 }
-try { state.grid = [8, 16, 32, 64].includes(Number(localStorage.getItem('dog-grid'))) ? Number(localStorage.getItem('dog-grid')) : 16 } catch {}
+try { state.grid = [8, 16, 32, 64].includes(Number(localStorage.getItem('pixspell-grid'))) ? Number(localStorage.getItem('pixspell-grid')) : 16 } catch {}
 const fxSize = () => state.grid * 2 // effects are 2 tiles wide: 16 px on an 8 px grid ... 128 px on a 64 px grid
 
 // how many effects people can actually pick: every fx look plus the hand-drawn effects and their variants
@@ -20,7 +20,7 @@ const rendered = new Map()
 function framesFor(id, color = state.color, size) {
   const key = `${id}|${color}|${size}`
   if (!rendered.has(key)) {
-    const frames = dog.fx(id, { element: color ?? undefined, size })
+    const frames = spell.fx(id, { element: color ?? undefined, size })
     rendered.set(key, { frames, imgs: frames.map(toCanvas), fps: frames.fps, loop: frames.loop })
   }
   return rendered.get(key)
@@ -78,15 +78,15 @@ function renderDetail() {
   const opts = [state.color && `element: '${state.color}'`, state.grid !== 16 && `grid: ${state.grid}`].filter(Boolean)
   const lookId = state.color ? `${id}-${state.color}` : id
   const lines = [
-    `import { dog } from 'https://cdn.jsdelivr.net/gh/olebangpad/dots-of-games@main/src/index.js'`,
+    `import { spell } from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js'`,
     '',
-    `const frames = dog.fx('${short}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`,
+    `const frames = spell.fx('${short}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`,
     `// ${r.frames.length} Pixmaps, play at frames.fps (${r.fps})${r.loop ? ', loops' : ''}`,
   ]
-  if (size === 32 && looks[lookId]) lines.push(`// also a regular sprite: dog.frames('${lookId}')`)
-  const sfx = dog.sfx.forEffect(id)
+  if (size === 32 && looks[lookId]) lines.push(`// also a regular sprite: spell.frames('${lookId}')`)
+  const sfx = spell.sfx.forEffect(id)
   $('#detail-sound').hidden = !sfx
-  if (sfx) lines.push(`dog.sfx('${sfx}'${state.color ? `, { element: '${state.color}' }` : ''}).play()   // its sound`)
+  if (sfx) lines.push(`spell.sfx('${sfx}'${state.color ? `, { element: '${state.color}' }` : ''}).play()   // its sound`)
   $('#detail-code').textContent = lines.join('\n')
 }
 const fileName = (id) => `${id}${state.color ? '-' + state.color : ''}-${state.grid}px`
@@ -106,18 +106,18 @@ function gridButtons() {
 }
 function setGrid(g) {
   state.grid = g
-  try { localStorage.setItem('dog-grid', g) } catch {}
+  try { localStorage.setItem('pixspell-grid', g) } catch {}
   $('#fx-grid-pick').replaceChildren(gridButtons())
   if ($('#detail').open) renderDetail()
   filter()
 }
 $('#detail-pack').addEventListener('click', () => downloadPack([detail.id], detail.id.replace(/^fx-/, '')))
 $('#detail-copy').addEventListener('click', () => copy($('#detail-code').textContent, 'Code copied'))
-$('#detail-sound').addEventListener('click', () => dog.sfx(dog.sfx.forEffect(detail.id), { element: state.color ?? undefined }).play())
+$('#detail-sound').addEventListener('click', () => spell.sfx(spell.sfx.forEffect(detail.id), { element: state.color ?? undefined }).play())
 
 async function downloadPack(list, name) {
   const lookIds = list.map((id) => (state.color && looks[`${id}-${state.color}`] ? `${id}-${state.color}` : id))
-  const pack = dog.fxPack(lookIds, { name, grid: state.grid })
+  const pack = spell.fxPack(lookIds, { name, grid: state.grid })
   // let the browser compress the sheet (the built-in PNG writer stores it uncompressed)
   const blob = await new Promise((resolve) => pack.image.toCanvas().toBlob(resolve, 'image/png'))
   const bytes = zip({ ...pack.files, [`${name}.png`]: new Uint8Array(await blob.arrayBuffer()) })
@@ -129,7 +129,7 @@ async function downloadPack(list, name) {
 }
 $('#dl-all').addEventListener('click', () => {
   const list = ids.filter((id) => !cards.get(id).card.hidden)
-  downloadPack(list, state.kind === 'all' ? 'dog-effects' : `dog-${state.kind}-effects`)
+  downloadPack(list, state.kind === 'all' ? 'pixspell-effects' : `pixspell-${state.kind}-effects`)
 })
 
 // -------------------------------------------------------------- controls
@@ -181,8 +181,8 @@ function loop(now) {
 }
 
 $('#fx-grid-pick').replaceChildren(gridButtons())
-$('#favicon').href = dog('fx-burst', { frame: 3 }).toDataURL()
+$('#favicon').href = spell('fx-burst', { frame: 3 }).toDataURL()
 buildGrid()
 filter()
 requestAnimationFrame(loop)
-window.dog = dog
+window.spell = spell

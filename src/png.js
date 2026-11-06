@@ -105,7 +105,7 @@ export function encodeAPNG(frames, { fps = 8, loops = 0, deflate = zlibStore } =
   const parts = [SIGNATURE, ihdr(w, h), chunk('acTL', new Uint8Array([...u32(frames.length), ...u32(loops)]))]
   let seq = 0
   frames.forEach((f, i) => {
-    if (f.w !== w || f.h !== h) throw new Error('dog: APNG frames must share one size')
+    if (f.w !== w || f.h !== h) throw new Error('pixspell: APNG frames must share one size')
     parts.push(chunk('fcTL', new Uint8Array([
       ...u32(seq++), ...u32(w), ...u32(h), ...u32(0), ...u32(0),
       ...u16(1), ...u16(fps), 1, 0, // delay 1/fps, dispose: background, blend: source
