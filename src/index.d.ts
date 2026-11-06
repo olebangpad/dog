@@ -150,6 +150,8 @@ export interface SpriteDef {
 export interface Look { id: string; def: SpriteDef; variant: string | null; ramps: Required<Ramps> }
 
 export interface FxOptions extends Ramps, GridOptions {
+  /** Effects glow (translucent light in ramp A's brightest shade, under the sprite). false turns it off. */
+  light?: boolean
   /** Pixel size of the square frame (default 32). */
   size?: number
   seed?: number
@@ -212,7 +214,7 @@ export interface SoundPack {
 
 export interface PixSpell {
   /** Render any sprite or variant: spell('potion'), spell('potion-mana'), spell('potion', { A: '#ff4fd8' }). */
-  (id: string, opts?: Ramps & GridOptions & { frame?: number; outline?: string; white?: string }): Pixmap
+  (id: string, opts?: Ramps & GridOptions & { frame?: number; outline?: string; white?: string; light?: boolean }): Pixmap
   frames(id: string, opts?: Ramps & GridOptions): Frames
   /** The tile sizes PixSpell delivers: [8, 16, 32, 64]. */
   grids: Grid[]

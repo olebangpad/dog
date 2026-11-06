@@ -36,6 +36,8 @@ const big: Frames = spell.walk(knight, 'up', { grid: 64 })
 const bigPack: Pack = spell.pack(knight, { grid: 32 })
 const regridded: Pixmap[] = spell.toGrid(spell.frames('coin'), 32)
 const files = spell.bundle({ grid: 32, sounds: false })
+const unlit: Frames = spell.fx('portal', { light: false })
+console.log(unlit.length, spell('fx-portal', { light: false }).w)
 console.log(tiny.w, big.fps, bigPack.id, regridded.length, files[0].path, spell.grids, spell.fx('boom', { grid: 8 }).length, spell.action(knight, 'cast', { grid: 32 }).length)
 // @ts-expect-error: walk direction must be one of the four
 spell.walk(knight, 'diagonal')

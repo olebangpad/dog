@@ -6,7 +6,7 @@ const scatter = (p, n) => Array.from({ length: n }, () => ({ x: p.rng() * p.size
 
 export const ENVIRONMENT = [
   {
-    id: 'fx-glow', color: 'gold', frames: 8, fps: 8, loop: true, dither: true, outline: 'none', behind: true, tags: ['environment', 'light', 'loop'],
+    id: 'fx-glow', light: 0, color: 'gold', frames: 8, fps: 8, loop: true, dither: true, outline: 'none', behind: true, tags: ['environment', 'light', 'loop'],
     variants: ['fire', 'ice', 'nature', 'arcane', 'dark'],
     draw(p, t) {
       const { c, s } = p
@@ -16,7 +16,7 @@ export const ENVIRONMENT = [
     },
   },
   {
-    id: 'fx-smoke-column', color: 'stone', frames: 12, fps: 10, loop: true, tags: ['environment', 'smoke', 'loop'],
+    id: 'fx-smoke-column', light: 0, color: 'stone', frames: 12, fps: 10, loop: true, tags: ['environment', 'smoke', 'loop'],
     variants: ['steel', 'dark', 'poison', 'arcane'],
     draw(p, t) {
       const { c, s, size } = p
@@ -60,7 +60,7 @@ export const ENVIRONMENT = [
     },
   },
   {
-    id: 'fx-fog', color: 'bone', frames: 16, fps: 6, loop: true, wrap: true, dither: true, outline: 'none', tags: ['environment', 'weather', 'seamless', 'loop'],
+    id: 'fx-fog', light: 0, color: 'bone', frames: 16, fps: 6, loop: true, wrap: true, dither: true, outline: 'none', tags: ['environment', 'weather', 'seamless', 'loop'],
     variants: ['dark', 'poison', 'arcane', 'water'],
     setup(p) { return scatter(p, 5) },
     draw(p, t) {

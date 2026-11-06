@@ -234,13 +234,14 @@ spell.fx = (name, opts = {}) => {
   }
   return Object.assign([...hit], { fps: hit.fps, loop: hit.loop }) // a fresh array; the images are immutable
 }
-function renderFx(name, { size, seed, frames: count, element, A, B, C } = {}) {
+function renderFx(name, { size, seed, frames: count, element, A, B, C, light } = {}) {
   const recipe = recipeById[name] ?? recipeById[`fx-${name}`]
   if (!recipe) throw new Error(`pixspell: no effect called "${name}". Try: ${Object.keys(recipeById).slice(0, 8).join(', ')}...`)
-  const { frames } = runRecipe(recipe, { size, seed, frames: count })
-  const def = defineSprite({ id: recipe.id, frames, ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' } })
+  const run = runRecipe(recipe, { size, seed, frames: count })
+  const def = defineSprite({ id: recipe.id, frames: run.frames, ramps: { A: recipe.color ?? 'orange', B: recipe.B ?? 'stone', C: recipe.C ?? 'bone' } })
+  def.light = run.light
   const ramps = { A: A ?? (element ? FX_COLORS[element] ?? element : undefined), B, C }
-  const out = renderFrames(def, Object.fromEntries(Object.entries(ramps).filter(([, v]) => v != null)))
+  const out = renderFrames(def, { ...Object.fromEntries(Object.entries(ramps).filter(([, v]) => v != null)), light })
   out.fps = recipe.fps ?? 12
   out.loop = !!recipe.loop
   return out

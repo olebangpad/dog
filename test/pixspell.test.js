@@ -376,20 +376,43 @@ test('spell.fx is deterministic per seed and works at other sizes and colors', (
   const big = spell.fx('boom', { size: 64 })
   assert.equal(big[0].w, 64)
   assert.ok(big.fps > 0)
+  // opaque pixels use the ice ramp (or white); translucent glow is the ramp's brightest shade
   const ice = new Set(spell.fx('burst', { element: 'ice' }).flatMap((f) => f.colors()))
-  assert.ok([...ice].every((col) => [...MATERIALS.ice, '#ffffff'].includes(col)), [...ice].join(' '))
+  assert.ok([...ice].every((col) => [...MATERIALS.ice, '#ffffff'].includes(col.slice(0, 7))), [...ice].join(' '))
+  assert.ok([...ice].filter((col) => col.length === 9).every((col) => col.startsWith(MATERIALS.ice[3])))
   assert.equal(spell.fx('magic-circle').loop, true)
   assert.throws(() => spell.fx('nope'), /no effect called/)
 })
 
-test('fx colors stay inside their ramps (plus white cores)', () => {
+test('fx colors stay inside their ramps (plus white cores); glow is translucent ramp-A light', () => {
   for (const id of spell.fx.list) {
     const def = looks[id].def
     const allowed = new Set(['#ffffff', ...['A', 'B', 'C'].flatMap((k) => resolveRamp(looks[id].ramps[k]))])
+    const light = resolveRamp(looks[id].ramps.A)[3]
     for (let f = 0; f < def.frames.length; f++) {
-      for (const col of spell(id, { frame: f }).colors()) assert.ok(allowed.has(col), `${id} frame ${f}: ${col}`)
+      for (const col of spell(id, { frame: f }).colors()) {
+        if (col.length === 7) assert.ok(allowed.has(col), `${id} frame ${f}: ${col}`)
+        else assert.ok(col.startsWith(light) && parseInt(col.slice(7), 16) <= 179, `${id} frame ${f} glow: ${col}`)
+      }
     }
   }
+})
+
+test('effect light: under the sprite only, off when asked, and recolors with the effect', () => {
+  const lit = spell.fx('portal'), dark = spell.fx('portal', { light: false })
+  let glow = 0
+  for (let k = 0; k < lit.length; k++) {
+    for (let i = 3; i < lit[k].data.length; i += 4) {
+      // wherever the plain effect has a pixel, the lit one has exactly that pixel (glow never paints over the sprite)
+      if (dark[k].data[i]) assert.deepEqual([...lit[k].data.subarray(i - 3, i + 1)], [...dark[k].data.subarray(i - 3, i + 1)])
+      else if (lit[k].data[i]) glow++
+    }
+  }
+  assert.ok(glow > 100, 'portal glows')
+  const ice = spell('fx-portal-ice', { frame: 2 }).colors().filter((c) => c.length === 9)
+  assert.ok(ice.length && ice.every((c) => c.startsWith(MATERIALS.ice[3])))
+  // effects that are smoke or dust don't glow
+  assert.ok(spell.fx('smoke-column').every((f) => f.colors().every((c) => c.length === 7)))
 })
 
 // ------------------------------------------------- fast paths vs reference

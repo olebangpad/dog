@@ -172,7 +172,7 @@ export const SPECTACLE = [
     },
   },
   {
-    id: 'fx-poof', color: 'bone', frames: 7, fps: 16, tags: ['spectacle', 'smoke'], variants: ['arcane', 'dark', 'poison', 'fire', 'nature'],
+    id: 'fx-poof', light: 0, color: 'bone', frames: 7, fps: 16, tags: ['spectacle', 'smoke'], variants: ['arcane', 'dark', 'poison', 'fire', 'nature'],
     draw(p, t) {
       const { c, s } = p
       const g = out(t)

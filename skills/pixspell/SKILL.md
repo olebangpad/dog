@@ -82,6 +82,8 @@ spell.fxPack(['fx-meteor', 'fx-poof', 'fx-crit'])          // one sheet, a row p
 
 - Center an effect on its target: `drawImage(frame, x - size / 2, y - size / 2)`. Pick the size for the job:
   16-24 for hit sparks and coin pops, 32 for most, 48-64 for spells and big moments.
+- Effects glow: soft translucent light around them, in their own color. Draw them on a dark background for the full look, or
+  pass `light: false` for flat pixels (e.g. engines or palettes without alpha).
 - `glow`, `aura`, `magic-circle` and `loot-beam` read best drawn **under** the character; the rest go on top.
 - Good game feel for little code: `crit` / `pow` / `miss` / `block` over the target, `impact` on a hit, `poof` when an enemy
   vanishes, `coin-pop` on pickup, `confetti` or `firework` on level-up, `glow` under a campfire, `fireflies` or `leaves` drifting.

@@ -114,13 +114,13 @@ export function lazySprite(meta, generate) {
   let data = null
   const load = () => {
     if (!data) {
-      const { frames, cover } = generate()
+      const { frames, cover, light } = generate()
       const checked = defineSprite({ id: meta.id, frames, cover, ramps: def.ramps })
-      data = { frames: checked.frames, sequence: checked.sequence, cover: checked.cover, animated: checked.animated }
+      data = { frames: checked.frames, sequence: checked.sequence, cover: checked.cover, animated: checked.animated, light: light ?? null }
     }
     return data
   }
-  for (const key of ['frames', 'sequence', 'cover']) Object.defineProperty(def, key, { get: () => load()[key], enumerable: true })
+  for (const key of ['frames', 'sequence', 'cover', 'light']) Object.defineProperty(def, key, { get: () => load()[key], enumerable: true })
   return def
 }
 
@@ -138,6 +138,12 @@ export function render(def, opts = {}) {
     pal[ch] = parseColor(resolveRamp(opts[slot] ?? def.ramps[slot])[shade])
   }
   const img = new Pixmap(def.w, def.h)
+  // effects carry a light layer: translucent glow in ramp A's brightest shade, under the sprite
+  const light = opts.light === false ? null : def.light?.[(opts.frame ?? 0) % def.frames.length]
+  if (light) {
+    const [r, g, b] = parseColor(resolveRamp(opts.A ?? def.ramps.A)[3])
+    for (let i = 0; i < light.length; i++) if (light[i]) img.data.set([r, g, b, light[i]], i * 4)
+  }
   rows.forEach((row, y) => {
     for (let x = 0; x < row.length; x++) if (pal[row[x]]) img.set(x, y, pal[row[x]])
   })

@@ -278,6 +278,48 @@ function glowOutline(rows, wrap) {
   }).join(''))
 }
 
+// Light: what makes an effect glow instead of ending at a hard edge. Two sources, both in layer A (the effect's
+// own color): soft light below the cut-off that used to be thrown away, and a bloom around bright pixels.
+// Stored per frame as alpha 0-255 for the empty pixels only; render() paints it under the sprite in ramp A's
+// brightest shade, so recolors and other sizes keep working. recipe.light: 0 turns it off, 1 is full strength.
+const LIGHT_TAIL = 0.08
+const BRIGHT = { 4: 1, w: 1, 3: 0.75, 2: 0.4 }
+function boxBlur(src, size, r, wrap) {
+  const tmp = new Float32Array(src.length), out = new Float32Array(src.length), d = 2 * r + 1
+  const at = (v) => (wrap ? (v + size) % size : v)
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    let sum = 0
+    for (let k = -r; k <= r; k++) { const xx = at(x + k); if (xx >= 0 && xx < size) sum += src[y * size + xx] }
+    tmp[y * size + x] = sum / d
+  }
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    let sum = 0
+    for (let k = -r; k <= r; k++) { const yy = at(y + k); if (yy >= 0 && yy < size) sum += tmp[yy * size + x] }
+    out[y * size + x] = sum / d
+  }
+  return out
+}
+function lightMap(p, rows, recipe) {
+  const strength = recipe.light ?? 0.85
+  if (!strength) return null
+  const { size, fields } = p
+  const src = new Float32Array(size * size)
+  rows.forEach((row, y) => { for (let x = 0; x < size; x++) src[y * size + x] = BRIGHT[row[x]] ?? 0 })
+  const r = Math.max(1, Math.round(2 * p.s))
+  const bloom = boxBlur(boxBlur(src, size, r, recipe.wrap), size, r, recipe.wrap)
+  const out = new Uint8Array(size * size)
+  let any = false
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const i = y * size + x
+    if (rows[y][x] !== '.') continue // the sprite itself stays opaque
+    const v = fields.A[i]
+    const tail = v > LIGHT_TAIL && v < CUT ? ((v - LIGHT_TAIL) / (CUT - LIGHT_TAIL)) * 0.85 : 0
+    const a = Math.min(0.7, Math.max(bloom[i] * 1.7, tail) * strength)
+    if (a > 0.04) { out[i] = Math.round(a * 255); any = true }
+  }
+  return any ? out : null
+}
+
 const isEmpty = (rows) => rows.every((r) => !/[^.]/.test(r))
 const filledCount = (rows) => rows.reduce((n, r) => n + r.replace(/\./g, '').length, 0)
 
@@ -292,7 +334,7 @@ export function runRecipe(recipe, opts = {}) {
   // setup() runs once so particles keep their identity across frames
   const setupPainter = new Painter(size, seed, !!recipe.wrap)
   const state = recipe.setup ? recipe.setup(setupPainter) : null
-  let frames = []
+  let frames = [], lights = []
   for (let i = 0; i < n; i++) {
     const p = new Painter(size, seed, !!recipe.wrap)
     p.state = state
@@ -302,14 +344,15 @@ export function runRecipe(recipe, opts = {}) {
     if (recipe.clean ?? true) rows = clean(rows, recipe.wrap)
     if ((recipe.outline ?? 'glow') === 'glow') rows = glowOutline(rows, recipe.wrap)
     frames.push(rows)
+    lights.push(lightMap(p, rows, recipe))
   }
   // trim empty frames at both ends; keep at least one
-  while (frames.length > 1 && isEmpty(frames[0])) frames.shift()
-  while (frames.length > 1 && isEmpty(frames.at(-1))) frames.pop()
+  while (frames.length > 1 && isEmpty(frames[0])) { frames.shift(); lights.shift() }
+  while (frames.length > 1 && isEmpty(frames.at(-1))) { frames.pop(); lights.pop() }
   frames = frames.map((f) => (isEmpty(f) ? f.map((r, y) => (y === (size >> 1) ? r.slice(0, size >> 1) + '1' + r.slice((size >> 1) + 1) : r)) : f))
   let cover = 0
   frames.forEach((f, i) => { if (filledCount(f) > filledCount(frames[cover])) cover = i })
-  return { frames, cover }
+  return { frames, cover, light: lights.some(Boolean) ? lights : null }
 }
 
 /**

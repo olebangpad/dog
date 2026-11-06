@@ -358,7 +358,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.char.parts` · `spell.char.count()` | every body / hat / hand / off-hand id · number of combinations |
 | `spell.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
 | `spell.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
-| `spell.fx(name, { element, size, seed })` | a procedural effect: frames with `.fps` and `.loop`; `spell.fx.list` has every name |
+| `spell.fx(name, { element, size, seed, light })` | a procedural effect: frames with `.fps` and `.loop`, glowing (`light: false` for flat); `spell.fx.list` has every name |
 | `spell.fx.sequence(steps)` | chain or overlap effects into one animation |
 | `spell.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |
 | `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |

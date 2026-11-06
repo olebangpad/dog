@@ -718,3 +718,56 @@ the social preview, `NPM_TOKEN`, and a `v0.1.0` release.
   version's CHANGELOG section as notes. After the repo was renamed (Pages redeployed fine at the new address), the
   owner's steps are: the About box, the social preview (GitHub has no API for it), and the `NPM_TOKEN` secret. Then
   pushing `v0.1.0` does the rest.
+
+---
+
+## Round 9 · Stand out: light that glows, a game an AI agent builds, "every asset for your 2D game"
+
+### Plan
+
+**Problem.** Other pixel-effect libraries are also code, also recolorable, and some ship a Claude Code skill too. The
+best of them have more effects and a glow ours lacks: pixelfx, for one, has 244 effects with an additive light buffer.
+Competing on "number of effects" is a losing game. What nobody else has is the whole set: characters that walk and
+fight, items and tiles, effects and sounds, all from one import. That's what we should show, and the effects still
+need to look as good as the rest.
+
+- **(a) Light.** Today, light below the 30% cut is thrown away and shapes end at a hard dark outline. Instead:
+  - Keep that light as translucent halo pixels in the effect's own ramp color, plus a soft bloom around bright pixels.
+  - Recolor, tile sizes, packs and statuses keep working, because it's the same ramp.
+  - Recipes can turn it down or off (smoke, dust).
+  - Snapshots get updated on purpose.
+- **(b) A game an AI agent builds.** A complete small game in a different genre from the demo (a survivor-style
+  arena): auto-attacks with weapon effects, enemy waves, statuses, level-up choices, sounds. Every pixel and sound comes
+  from PixSpell calls; there are no image or audio files. Ship it as a playable page, a GIF, and the prompt to try with
+  the plugin. The page says plainly how it was made.
+- **(c) Reposition.**
+  - README and site lead with "every asset for your 2D game, from code": characters first.
+  - A new hero GIF that builds a game scene line by line (tiles, hero, enemy, attack with effect and sound, loot).
+  - Package, skill, llms.txt and About texts follow.
+
+**Checks.**
+- Effect contact sheets before and after on dark and light backgrounds.
+- Recolor, grid and pack still correct, and halos never paint over the sprite.
+- The game played in a browser: no errors, input works, sounds play after input.
+- GIF frames reviewed.
+- The full suite.
+
+### (a) Shipped: effects glow
+
+- **Engine:** `lightMap()` in `src/fx.js` keeps two kinds of light from layer A, the effect's own color:
+  - the soft light under the 30% cut that used to be discarded
+  - a bloom around bright pixels: a box blur twice, radius 2 px at 32 px
+
+  It's stored per frame as alpha (max 0.7) for empty pixels only. `render()` paints it under the sprite in ramp A's
+  brightest shade, so recolors, element variants, other sizes, tile grids, statuses, actions and packs all glow
+  without extra code.
+- **Off where it looks wrong:** `light: 0` in a recipe for smoke, dust, puffs, fog and the glow effect (which is
+  already light). `light: false` in `spell.fx()` / `spell()` gives flat pixels for engines or palettes without alpha.
+- **What the review caught:** the first strength was too timid to notice at 1×. The second pass doubled the bloom
+  radius and raised the cap. On the glow effect itself, the halo drew a ring around the dithered disc, so light is off
+  for it.
+- **Tests:**
+  - The color rule now covers glow: every translucent pixel must be ramp A's brightest shade at ≤ 70% alpha.
+  - A new test checks that glow never changes a pixel the plain effect draws, that recolors carry the glow color,
+    and that smoke never glows.
+  - 595 snapshots changed on purpose: every effect, plus the actions and statuses that use effects.

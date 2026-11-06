@@ -323,7 +323,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
 | `spell.walk(spec, dir)` | 걷기 `down` `up` `left` `right` (24×24 프레임, `.fps`) |
 | `spell.action(spec, name, element)` | 행동 애니메이션 8프레임 (32×32, `.fps`) |
-| `spell.fx(name, { element, size, seed })` | 코드로 만든 이펙트: `.fps`, `.loop`가 붙은 프레임 배열. 전체 이름은 `spell.fx.list` |
+| `spell.fx(name, { element, size, seed, light })` | 코드로 만든 이펙트: `.fps`, `.loop`가 붙은 프레임 배열, 은은하게 빛남(`light: false`면 빛 없음). 전체 이름은 `spell.fx.list` |
 | `spell.fx.sequence(steps)` | 이펙트를 이어 붙이거나 겹쳐서 하나의 애니메이션으로 |
 | `spell.status(spec, effect, { walk })` | 상태이상이 걸린 캐릭터 (32×32 프레임) |
 | `spell.pack(spec)` · `spell.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |

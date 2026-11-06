@@ -66,7 +66,7 @@ export const CORE = [
     },
   },
   {
-    id: 'fx-dust', color: 'sand', frames: 8, fps: 14, tags: ['burst', 'movement'], variants: ['steel', 'nature', 'water'],
+    id: 'fx-dust', light: 0, color: 'sand', frames: 8, fps: 14, tags: ['burst', 'movement'], variants: ['steel', 'nature', 'water'],
     draw(p, t) {
       const { c, s, size } = p
       for (const [dx, k] of [[-1, 0], [1, 0.1], [-0.5, 0.2], [0.5, 0.15]]) {
