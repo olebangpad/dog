@@ -154,7 +154,7 @@ export function createCharacters(looks) {
       ;(layer === 'back' ? back : front).push(img.at(BODY_AT[0] + ax - d.pivot[0], BODY_AT[1] + ay - d.pivot[1]))
     }
     const bodyImg = render(bdef, { ...body.ramps, frame: bframe }).at(...BODY_AT)
-    let img = new Pixmap(CHAR_SIZE, CHAR_SIZE + extraRows(spec))
+    let img = new Pixmap(CHAR_SIZE, BODY_AT[1] + bdef.h) // 24 tall for a 16-row body, taller for a taller one
     for (const l of [...back, bodyImg, ...front]) img = img.draw(l)
     return img
   }
@@ -193,7 +193,7 @@ export function createCharacters(looks) {
     } else {
       // hold the body's first pose and let the hop do the moving (its own float/squash could cancel it out)
       const hop = [0, -1, -2, -1]
-      frames = hop.map((dy, i) => new Pixmap(CHAR_SIZE, CHAR_SIZE + extraRows(spec)).draw(build(spec, i, undefined, 0), 0, dy))
+      frames = hop.map((dy, i) => { const f = build(spec, i, undefined, 0); return new Pixmap(f.w, f.h).draw(f, 0, dy) })
     }
     if (dir === 'left' || dir.endsWith('-left')) frames = frames.map((f) => f.flipX())
     frames.fps = pose ? pose.def.fps : 6
