@@ -102,8 +102,11 @@ duel.feet         // { attacker: [x, y], target: [x, y] } in the frame
 spell.act(knight, 'goblin', { ko: true })                     // a knock-out: crit, death, the target is gone
 ```
 
-Use the frames for cutscenes, turn-based battles and GIFs (`duel.scale(4).save('hit.gif')`). In a real-time game, keep
-drawing your own characters and apply `duel.hits` when your hitbox connects. Options: `element`, `style`, `ko`,
+Use the frames for cutscenes, turn-based battles and GIFs (`duel.scale(4).save('hit.gif')`). The enemy's turn is the
+same call swapped and mirrored, `spell.act(monster, hero).flipX()` (feet mirrored, the number still reads right); draw
+it with `duel.feet.attacker` on the attacker's spot. `shake: 0` leaves the shake out of the frames so you can shake
+your whole screen from `duel.hits` instead (examples/spell-isle does). In a real-time game, keep drawing your own
+characters and apply `duel.hits` when your hitbox connects. Options: `element`, `style`, `ko`,
 `amount`, `freeze` (seconds), `shake` (px), `distance` (px between feet), `lunge: false`, `grid`.
 
 ## Effects

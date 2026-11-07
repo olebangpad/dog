@@ -1351,3 +1351,29 @@ The question this time: keep the name or switch to "Pixpell", and what would act
     other sprites that aren't bodies now get a clear error instead of "has no anchors".
 - **Where it shows up:** the maker's ⚔ Fight with an opponent strip, `pixspell act`, preview and MCP items, a README
   section with `acts.png`, and the act tile replacing level-up in the top gallery.
+
+## Round 19: Spell Isle, the flagship game
+
+- **What it is:** `examples/spell-isle/index.html`, under 600 lines. You walk an island, meet villagers from
+  around the world, and fight monsters in turn-based battles that end with a crowned Dragon King. Music changes by area
+  and P cycles palettes. `?demo` plays it by itself, and `scripts/record-promo.cjs` records `docs/promo/spell-isle.gif`
+  from that.
+- **Built from:**
+  - **The island:** a height map. Each layer (sand, grass, road, plaza, the den) is one
+    `spell.autotile(id, null).draw(cells)` over animated water.
+  - **Houses:** roof and plank tiles. Props are sorted by their bottom edge with the characters.
+  - **Battles:** one `spell.act()` per blow. The game passes `shake: 0` and shakes the whole screen itself from
+    `act.hits`, so the backdrop moves too. It plays `act.cues` on its own clock, so sounds stay in step with the frames
+    and respect mute.
+- **What dogfooding found in the library:**
+  - **`act.flipX()` dropped `.hits`, `.cues` and `.feet`:** they now carry over, with the feet mirrored.
+  - **The damage number read backwards when flipped:** `flipX()` now builds the act again with an internal `mirror`
+    option, so the number is drawn after mirroring. Unmirrored acts are unchanged pixel for pixel (the snapshots
+    didn't move).
+  - **`act.scale(n)` now scales the feet, shake and push too.**
+- **Pacing the demo for a GIF:**
+  - **The demo's first battle:** a blow, then magic, so the clip shows a whole exchange (hit-stop, the enemy's
+    strike, a knock-out) rather than a one-shot.
+  - **Flash and toasts:** the white flash at a battle's start is capped at 75%, so a GIF frame is never pure white.
+    Map toasts sit at the bottom so speech bubbles stay readable.
+  - **The menu:** a 2x2 grid of large text, readable on a phone.

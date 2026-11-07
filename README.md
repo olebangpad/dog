@@ -9,7 +9,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 
 **23 million** characters with walk cycles and actions · **1,132** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser, Godot, Unity, GameMaker & RPG Maker
 
-[**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
+[**▶ Play Spell Isle**](https://olebangpad.github.io/pixspell/examples/spell-isle/) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
 [**🧙 Your GitHub hero**](https://olebangpad.github.io/pixspell/hero.html) ·
 [Open the playground](https://olebangpad.github.io/pixspell/) ·
@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [one character hitting another, with hit-stop and shake](#-hits-that-feel-good) · [GIF export](#-api) · [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [chibi or tall people](#-chibi-or-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [Spell Isle, an island adventure in one HTML file](#%EF%B8%8F-spell-isle-an-island-adventure-in-one-html-file) · [one character hitting another, with hit-stop and shake](#-hits-that-feel-good) · [GIF export](#-api) · [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [chibi or tall people](#-chibi-or-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -90,6 +90,23 @@ Other libraries give you one piece, usually effects. PixSpell gives a game **all
 person or an AI agent can go from an empty file to a game that looks and sounds finished.
 
 <img src="docs/img/scene.png" alt="An animated scene built only from PixSpell sprites" width="576">
+
+### 🏝️ Spell Isle: an island adventure in one HTML file
+
+<a href="https://olebangpad.github.io/pixspell/examples/spell-isle/"><img src="docs/promo/spell-isle.gif" alt="Spell Isle: a samurai walks through a village of people from around the world, then fights a slime with a critical hit, a hit-stop and fire magic, and the island turns Game Boy green" width="640"></a>
+
+![image files: 0](https://img.shields.io/badge/image_files-0-a8e05a?style=flat-square)
+![audio files: 0](https://img.shields.io/badge/audio_files-0-a8e05a?style=flat-square)
+![one HTML file](https://img.shields.io/badge/one_HTML_file-under_600_lines-a8e05a?style=flat-square)
+
+[**▶ Play Spell Isle**](https://olebangpad.github.io/pixspell/examples/spell-isle/) ·
+[watch it play itself](https://olebangpad.github.io/pixspell/examples/spell-isle/?demo) ·
+[how each part was made](examples/spell-isle/README.md)
+
+Walk an island whose sand, grass and roads blend into each other (autotiles), meet people from around the world (some
+drawn tall), and fight monsters in turn-based battles where **every blow is one `spell.act()` call**: wind-up, hit-stop,
+screen shake, the reaction and its sound. The music follows you from the village to the meadow to the dragon's den,
+and P redraws the whole game in Game Boy, PICO-8 or C64 colors.
 
 ### 🤖 A whole game, made by an AI agent with PixSpell
 
@@ -308,8 +325,10 @@ await spell.act(knight, 'goblin').scale(4).save('hit.gif')     // a GIF to post 
 
 <img src="docs/img/acts.png" alt="Six duels: a knight slashes a slime with fire, an archer shoots a wolf, a mage hits a golem with ice, a samurai knocks out a skeleton, a viking skeleton smashes a mimic with poison, and a tall hanbok dancer hits a tall goblin with holy light" width="756">
 
-Use the frames for cutscenes, turn-based battles and GIFs. In a real-time game, draw your characters as usual and
-apply `act.hits` when your hitbox connects: pause for `freeze` seconds and shake the camera by `shake` pixels.
+Use the frames for cutscenes, turn-based battles and GIFs. For the enemy's turn, swap the two and mirror it:
+`spell.act(monster, hero).flipX()` (the damage number still reads left to right). In a real-time game, draw your
+characters as usual and apply `act.hits` when your hitbox connects: pause for `freeze` seconds and shake the camera
+by `shake` pixels. [Spell Isle](examples/spell-isle) fights every battle this way.
 In the [character maker](https://olebangpad.github.io/pixspell/) pick **⚔ Fight** and an opponent.
 
 ### ✨ 665 game effects

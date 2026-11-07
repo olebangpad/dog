@@ -9,7 +9,7 @@
 
 걷기·행동 애니메이션이 있는 캐릭터 **2,300만** 가지 · 스프라이트 **1,132**개 · 이펙트 **665**종 · 효과음 **103**개 · 음악 **17**곡 · **8~64픽셀** 어떤 타일 크기든 · Phaser·Godot 팩
 
-[**▶ 데모 게임 하기**](https://olebangpad.github.io/pixspell/game.html) ·
+[**▶ Spell Isle 하기**](https://olebangpad.github.io/pixspell/examples/spell-isle/) ·
 [**🤖 AI 에이전트가 만든 게임**](examples/spell-survivors) ·
 [**🧙 내 GitHub 영웅**](https://olebangpad.github.io/pixspell/hero.html) ·
 [플레이그라운드](https://olebangpad.github.io/pixspell/) ·
@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [역경직과 화면 흔들림이 있는 타격 연출](#-손맛-있는-타격) · [GIF 내보내기](#-api) · [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [2등신 또는 큰 키](#-2등신-또는-큰-키) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [HTML 파일 하나로 만든 섬 모험 Spell Isle](#%EF%B8%8F-spell-isle-html-파일-하나로-만든-섬-모험) · [역경직과 화면 흔들림이 있는 타격 연출](#-손맛-있는-타격) · [GIF 내보내기](#-api) · [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [2등신 또는 큰 키](#-2등신-또는-큰-키) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -82,6 +82,23 @@ spell('slime', { A: '#ff4fd8' }).scale(8).outline('#fff')
 
 다른 라이브러리는 보통 한 조각(주로 이펙트)만 줍니다. PixSpell은 게임에 필요한 **모든** 조각을 import 하나로 줘서,
 사람이든 AI 에이전트든 빈 파일에서 시작해 보기에도 듣기에도 완성된 게임까지 갈 수 있습니다.
+
+### 🏝️ Spell Isle: HTML 파일 하나로 만든 섬 모험
+
+<a href="https://olebangpad.github.io/pixspell/examples/spell-isle/"><img src="docs/promo/spell-isle.gif" alt="Spell Isle: 사무라이가 세계 각지의 사람들이 사는 마을을 지나 슬라임과 싸우는 장면. 치명타, 역경직, 불 마법 뒤에 섬이 게임보이 색으로 바뀝니다" width="640"></a>
+
+![image files: 0](https://img.shields.io/badge/image_files-0-a8e05a?style=flat-square)
+![audio files: 0](https://img.shields.io/badge/audio_files-0-a8e05a?style=flat-square)
+![one HTML file](https://img.shields.io/badge/one_HTML_file-under_600_lines-a8e05a?style=flat-square)
+
+[**▶ Spell Isle 하기**](https://olebangpad.github.io/pixspell/examples/spell-isle/) ·
+[혼자 플레이하는 모습 보기](https://olebangpad.github.io/pixspell/examples/spell-isle/?demo) ·
+[어떤 호출로 만들었는지](examples/spell-isle/README.md)
+
+모래와 풀밭과 길이 자연스럽게 이어지는 섬(오토타일)을 걷고, 세계 각지의 사람들(큰 키로 그린 사람도 있어요)을 만나고,
+턴제 전투에서 몬스터와 싸웁니다. **모든 타격이 `spell.act()` 호출 하나**입니다. 힘을 모으고, 역경직과 화면 흔들림,
+맞은 쪽의 반응과 소리까지. 음악은 마을에서 들판, 용의 굴로 갈 때마다 바뀌고, P를 누르면 게임 전체가 게임보이,
+PICO-8, C64 색으로 다시 그려집니다.
 
 ### 🤖 AI 에이전트가 PixSpell로 만든 게임 하나
 
@@ -300,8 +317,10 @@ await spell.act(knight, 'goblin').scale(4).save('hit.gif')     // 어디든 올�
 
 <img src="docs/img/acts.png" alt="여섯 가지 대결: 기사가 불꽃으로 슬라임을 베고, 궁수가 늑대를 쏘고, 마법사가 얼음으로 골렘을 치고, 사무라이가 해골을 쓰러뜨리고, 바이킹 해골이 독으로 미믹을 내려찍고, 큰 키 한복 무용수가 큰 키 고블린을 빛으로 칩니다" width="756">
 
-프레임은 컷신, 턴제 전투, GIF에 그대로 쓰면 됩니다. 실시간 게임이라면 캐릭터는 평소처럼 그리고, 공격 판정이 닿을 때
-`act.hits`를 적용하세요. `freeze`초 동안 멈추고 카메라를 `shake`픽셀만큼 흔들면 됩니다.
+프레임은 컷신, 턴제 전투, GIF에 그대로 쓰면 됩니다. 적의 차례는 둘을 바꾸고 뒤집으면 됩니다.
+`spell.act(monster, hero).flipX()` (데미지 숫자는 그대로 바르게 읽힙니다). 실시간 게임이라면 캐릭터는 평소처럼 그리고,
+공격 판정이 닿을 때 `act.hits`를 적용하세요. `freeze`초 동안 멈추고 카메라를 `shake`픽셀만큼 흔들면 됩니다.
+[Spell Isle](examples/spell-isle)의 모든 전투가 이렇게 만들어졌습니다.
 [캐릭터 메이커](https://olebangpad.github.io/pixspell/)에서 **⚔ Fight**와 상대를 고르면 바로 볼 수 있습니다.
 
 ### ✨ 이펙트 665종

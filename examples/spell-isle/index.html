@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Spell Isle · made with PixSpell</title>
+  <meta name="description" content="A small island adventure with turn-based battles. Every tile, character, walk, hit, effect, sound and song comes from PixSpell code: no image or audio files.">
+  <style>
+    :root { --bg: #0b0f14; --ink: #e8f3e4; --muted: #8aa592; --accent: #a8e05a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, sans-serif; }
+    body { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+    canvas { image-rendering: pixelated; background: #000; touch-action: none; border-radius: 8px; box-shadow: 0 0 0 2px #1f2a22; max-width: 100%; }
+    .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: center; color: var(--muted); max-width: 960px; text-align: center; }
+    .bar b { color: var(--accent); }
+    button { background: #1b2620; color: var(--ink); border: 1px solid #2c3b31; border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="320" height="180" aria-label="Spell Isle"></canvas>
+  <div class="bar">
+    <span><b>Spell Isle</b>: move with arrows / WASD or tap. Walk into a monster to fight, then pick 1-4. P: retro colors.</span>
+    <button id="mute">🔊 Sound on</button>
+    <button id="pal">🎨 Colors</button>
+  </div>
+  <div class="bar"><span>Every tile, character, walk, hit, effect, sound and song here comes from <a href="https://github.com/olebangpad/pixspell">PixSpell</a> calls.
+    There are no image or audio files. <a href="./README.md">How it was made</a> · <a href="./?demo">watch it play itself</a></span></div>
+
+<script type="module">
+// Spell Isle: walk around an island, talk to people from around the world, and fight monsters in turn-based
+// battles. The battles are spell.act(): wind-up, hit-stop, shake and the target's reaction, with sounds.
+// Outside this repo, import from 'https://cdn.jsdelivr.net/gh/olebangpad/pixspell@main/src/index.js' (or npm i pixspell).
+import { spell, text, Pixmap } from '../../src/index.js'
+
+const W = 320, H = 180, T = 16, MW = 56, MH = 36, S = 2 // screen, tile, map size in tiles, battle zoom
+const params = new URLSearchParams(location.search)
+const demo = params.has('demo') // plays itself (silent until you press the sound button)
+const canvas = document.getElementById('game')
+const ctx = canvas.getContext('2d')
+
+// ------------------------------------------------------------------ small helpers
+const rng = (s) => () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296)
+const rand = rng(Number(params.get('seed') ?? 7))
+const ri = (a, b) => a + Math.floor(rand() * (b - a + 1))
+const near = (x, y, [cx, cy], r) => Math.hypot(x - cx, y - cy) < r
+const grid = (f) => Array.from({ length: MH }, (_, y) => Array.from({ length: MW }, (_, x) => f(x, y)))
+let memo = new Map() // everything drawn is made once; cleared when the palette changes
+const once = (key, make) => (memo.has(key) ? memo.get(key) : (memo.set(key, make()), memo.get(key)))
+const id = (spec) => JSON.stringify(spec)
+const walkOf = (spec, dir) => once('w' + id(spec) + dir, () => spell.walk(spec, dir))
+const idleOf = (spec, flip) => once('i' + id(spec) + flip, () => (flip ? spell.char.frames(spec).flipX() : spell.char.frames(spec)))
+const framesOf = (name) => once('f' + name, () => spell.frames(name))
+const fxOf = (name, opts = {}) => once('x' + name + id(opts), () => spell.fx(name, opts))
+let palName = null
+const pal = (img) => (palName ? spell.toPalette(img, palName) : img)
+const label = (s, color = '#ffffff', z = 1) => once(`t${s}${color}${z}`, () => pal(text(s, { color }).outline('#10141a').scale(z)))
+const col = (hex) => once('c' + hex, () => { const [r, g, b] = pal(Pixmap.create(1, 1, hex)).get(0, 0); return `rgb(${r},${g},${b})` })
+const panel = (w, h) => once(`p${w}x${h}`, () => spell('panel').nineSlice(w, h))
+const draw = (img, x, y, z = 1) => ctx.drawImage(img.canvas, Math.round(x), Math.round(y), img.w * z, img.h * z)
+const at = (frames, i) => frames[Math.min(frames.length - 1, Math.max(0, i))]
+
+// ------------------------------------------------------------------ the island: a height map, then autotiles
+const VILLAGE = [15, 22], FIELD = [31, 18], DEN = [42, 11]
+const hgt = (x, y) => 1 - Math.hypot((x - 28) / 25.5, (y - 17.5) / 16) + 0.1 * Math.sin(x * 0.5) * Math.cos(y * 0.7) + 0.05 * Math.sin(x * 1.7 + y * 1.1)
+const ROUTE = [VILLAGE, [22, 20], [29, 18], [36, 14], DEN]
+const segDist = (px, py, [ax, ay], [bx, by]) => {
+  const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+  return Math.hypot(px - ax - t * dx, py - ay - t * dy)
+}
+const routeDist = (x, y) => Math.min(...ROUTE.slice(1).map((b, i) => segDist(x, y, ROUTE[i], b)))
+const SAND = grid((x, y) => hgt(x, y) > 0.08)
+const GRASS = grid((x, y) => hgt(x, y) > 0.2)
+const PATH = grid((x, y) => GRASS[y][x] && routeDist(x, y) < 0.75)
+const PLAZA = grid((x, y) => near(x, y, VILLAGE, 3.4))
+const LAIR = grid((x, y) => GRASS[y][x] && near(x, y, DEN, 3.6))
+const HOUSES = [[9, 14], [15, 13], [19, 23]] // top-left tile of 4x4 houses
+const inHouse = (x, y) => HOUSES.some(([hx, hy]) => x >= hx && x < hx + 4 && y >= hy && y < hy + 4)
+
+const block = grid((x, y) => !SAND[y][x] || inHouse(x, y)) // where nobody can stand
+const props = [] // { name, x, y } in pixels (top-left), drawn sorted by their bottom edge
+const put = (name, x, y, solid = true, dx = 0, dy = 0) => { props.push({ name, x: x * T + dx, y: y * T + dy }); if (solid) block[y][x] = true }
+{
+  const r = rng(42)
+  put('fountain', VILLAGE[0], VILLAGE[1])
+  put('well', 12, 19); put('lamp-post', 18, 19, true, 0, -4); put('lamp-post', 12, 25, true, 0, -4)
+  put('barrel', 14, 17); put('crate', 19, 18); put('hay-bale', 8, 19); put('sign', 19, 21, true, 0, 2)
+  for (const x of [9, 10, 11]) put('fence', x, 26)
+  put('pumpkin', 9, 25, false); put('pumpkin-white', 11, 25, false)
+  // the den, kept off the road that leads in from the south-west
+  put('campfire', DEN[0] + 2, DEN[1] + 2); put('tombstone', DEN[0] + 2, DEN[1] - 2); put('tombstone', DEN[0] - 2, DEN[1] - 2)
+  put('bones', DEN[0] + 1, DEN[1] + 1, false); put('crystals-amethyst', DEN[0] + 3, DEN[1]); put('crystals', DEN[0] - 1, DEN[1] - 3)
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    if (!GRASS[y][x] || block[y][x] || routeDist(x, y) < 1.6 || near(x, y, VILLAGE, 6.5) || near(x, y, DEN, 4.5) || near(x, y, FIELD, 4)) continue
+    const v = r(), rim = hgt(x, y) < 0.3
+    if (v < (rim ? 0.3 : 0.17)) put(y < 14 || r() < 0.3 ? 'pine-tree' : r() < 0.15 ? 'tree-autumn' : 'tree', x, y)
+    else if (v < 0.2) put(r() < 0.5 ? 'rock' : 'bush', x, y)
+    else if (v < 0.27) put(r() < 0.5 ? 'flower' : 'flower-blue', x, y, false)
+  }
+}
+
+function buildGround() {
+  let img = new Pixmap(MW * T, MH * T)
+  for (const [name, cells] of [['dirt-sand', SAND], ['grass', GRASS], ['dirt', PATH], ['cobblestone', PLAZA], ['stone', LAIR]]) {
+    img = img.draw(spell.autotile(name, null).draw(cells), 0, 0)
+  }
+  for (const [hx, hy] of HOUSES) {
+    for (let x = hx; x < hx + 4; x++) for (let y = hy; y < hy + 4; y++) img = img.draw(spell(y < hy + 2 ? 'roof' : 'planks'), x * T, y * T)
+    img = img.draw(spell('door'), (hx + 1) * T, (hy + 3) * T).draw(spell('window-lit'), (hx + 2) * T + 4, (hy + 2) * T + 2)
+  }
+  return img
+}
+
+// ------------------------------------------------------------------ who lives here
+const world = (wid) => spell.char.world.find((w) => w.id === wid)
+const HEROES = [
+  { name: 'KNIGHT', region: 'ANYWHERE', spec: { body: 'hero', hat: 'knight', hand: 'sword-gold', offhand: 'shield' } },
+  ...['samurai', 'viking', 'wuxia', 'legionary', 'highlander', 'musketeer', 'bedouin', 'herder', 'outback'].map((w) => ({ name: world(w).name.toUpperCase(), region: world(w).region.toUpperCase(), spec: world(w).spec })),
+  { name: 'MAGE', region: 'THE TOWER', spec: { body: 'heroine', hat: 'wizard', hand: 'staff' } },
+]
+const VILLAGERS = [
+  ['hanbok', 'WELCOME TO SPELL ISLE!', 24, -2.5, 1.5], ['kimono', 'SLIMES HATE FIRE MAGIC.', 16, 2.5, 1],
+  ['kente', 'THE FOUNTAIN HEALS YOU.', 24, -1, -2.5], ['dirndl', 'PRESS P FOR OLD CONSOLE COLORS.', 16, 4, -2],
+  ['pharaoh', 'A DRAGON SLEEPS UP NORTH-EAST.', 24, 1.5, 3], ['farmer', 'WOLVES ATE MY PUMPKINS!', 16, -5, 2.5],
+  ['deel', 'ICE BEATS DRAGON FIRE.', 16, 5, 2.5],
+]
+const MON = {
+  slime: { spec: { body: 'slime' }, hp: 8, atk: [2, 3], weak: 'fire', name: 'SLIME', coins: 3 },
+  'slime-blue': { spec: { body: 'slime-blue' }, hp: 9, atk: [2, 3], weak: 'fire', el: 'ice', name: 'BLUE SLIME', coins: 4 },
+  goblin: { spec: { body: 'goblin', hand: 'dagger' }, hp: 11, atk: [2, 4], weak: 'fire', name: 'GOBLIN', coins: 6 },
+  wolf: { spec: { body: 'wolf' }, hp: 10, atk: [3, 4], weak: 'fire', name: 'WOLF', coins: 5 },
+  skeleton: { spec: { body: 'skeleton', hat: 'viking', hand: 'axe' }, hp: 13, atk: [3, 5], weak: 'holy', name: 'SKELETON', coins: 8 },
+  ghost: { spec: { body: 'ghost' }, hp: 9, atk: [2, 4], weak: 'holy', el: 'dark', name: 'GHOST', coins: 7 },
+  dragon: { spec: { body: 'baby-dragon', hat: 'crown' }, hp: 36, atk: [4, 6], weak: 'ice', el: 'fire', name: 'DRAGON KING', coins: 50, boss: true },
+}
+const SPAWNS = [['slime', 25, 21], ['slime-blue', 30, 21], ['goblin', 28, 16], ['wolf', 34, 19], ['slime', 33, 15], ['skeleton', 37, 13], ['ghost', 38, 17], ['wolf', 25, 16], ['dragon', DEN[0], DEN[1]]]
+const elementOf = (spec) => (/fire/.test(spec.hand) ? 'fire' : /crystal|ice/.test(spec.hand) ? 'ice' : /gold|holy/.test(spec.hand) ? 'holy' : undefined)
+
+const walkable = (px, py) => { const x = Math.floor(px / T), y = Math.floor(py / T); return x >= 0 && y >= 0 && x < MW && y < MH && !block[y][x] }
+const canStand = (x, y) => walkable(x - 4, y - 1) && walkable(x + 4, y - 1) && walkable(x - 4, y - 6) && walkable(x + 4, y - 6)
+function snap(tx, ty) { // the nearest free spot to a tile, in pixels (feet)
+  for (let r = 0; r < 6; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    const x = (tx + dx) * T + 8, y = (ty + dy) * T + 12
+    if (canStand(x, y)) return [x, y]
+  }
+  return [tx * T + 8, ty * T + 12]
+}
+const DIRS8 = ['right', 'down-right', 'down', 'down-left', 'left', 'up-left', 'up', 'up-right']
+const dirOf = (dx, dy, eight) => (eight ? DIRS8[(Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) + 8) % 8] : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up')
+
+// ------------------------------------------------------------------ sound: effects, and music that follows the place
+let muted = demo, unlocked = false, track = 'title'
+const sfx = (name, opts) => { if (unlocked && !muted) spell.sfx(name, opts).play({ volume: 0.5 }) }
+const music = (name) => { track = name; if (unlocked && !muted) spell.music.play(name, { fade: 0.6 }) }
+spell.volume('music', 0.45)
+function unlock() { if (unlocked) return; unlocked = true; if (!muted) spell.music.play(track) }
+const muteBtn = document.getElementById('mute')
+const showMute = () => { muteBtn.textContent = muted ? '🔇 Sound off' : '🔊 Sound on' }
+muteBtn.onclick = () => { unlocked = true; muted = !muted; if (muted) spell.music.stop(); else spell.music.play(track); showMute() }
+showMute()
+
+// ------------------------------------------------------------------ palettes: everything is drawn again in the new colors
+const PALETTES = [null, 'gameboy', 'pico-8', 'sweetie-16', 'c64', '1-bit']
+let ground = null
+function setPalette(name) {
+  palName = name
+  spell.palette(name)
+  memo = new Map()
+  ground = buildGround()
+  toast(name ? name.toUpperCase() : 'FULL COLOR')
+}
+const nextPalette = () => setPalette(PALETTES[(PALETTES.indexOf(palName) + 1) % PALETTES.length])
+document.getElementById('pal').onclick = nextPalette
+
+// ------------------------------------------------------------------ game state
+let g
+function newGame(hero) {
+  const [x, y] = snap(VILLAGE[0], VILLAGE[1] + 2)
+  g = {
+    state: 'title', t: 0, hero: hero ?? 0, tall: demo, toasts: [], flash: 0, shake: null, safe: 0, wins: 0,
+    p: { x, y, dir: 'down', moving: false, hp: 24, max: 24, mp: 3, potions: 3, coins: 0, lv: 1 },
+    npcs: VILLAGERS.map(([wid, line, height, dx, dy]) => {
+      const w = world(wid), [hx, hy] = snap(Math.round(VILLAGE[0] + dx), Math.round(VILLAGE[1] + dy))
+      return { spec: { ...w.spec, height }, name: `${w.name} - ${w.region}`.toUpperCase(), line, x: hx, y: hy, home: [hx, hy], dir: 'down', t: rand() * 3, speed: 14 }
+    }),
+    mons: SPAWNS.map(([kind, tx, ty]) => { const [x, y] = snap(tx, ty); return { kind, def: MON[kind], x, y, home: [x, y], dir: 'down', t: rand() * 3, speed: MON[kind].boss ? 0 : 18 } }),
+    battle: null, area: null, auto: { step: 0, wait: 0 },
+  }
+  music('title')
+}
+const P = () => g.p
+const heroSpec = () => ({ ...HEROES[g.hero].spec, ...(g.tall ? { height: 24 } : {}) })
+function toast(s, secs = 1.6) { if (g) g.toasts.push({ s, t: secs }) }
+
+// ------------------------------------------------------------------ exploring
+const AREAS = { town: ['THE VILLAGE', 'town'], field: ['WILD MEADOW', 'field'], den: ["DRAGON'S DEN", 'dungeon'] }
+const areaOf = (x, y) => (near(x / T, y / T, VILLAGE, 8) ? 'town' : near(x / T, y / T, DEN, 7) ? 'den' : 'field')
+
+function wander(e, dt, chase) {
+  e.t += dt
+  if (chase) e.target = [P().x, P().y]
+  else if (!e.target || e.t > e.next) { e.t = 0; e.next = 1.5 + rand() * 2.5; e.target = rand() < 0.4 ? null : [e.home[0] + ri(-40, 40), e.home[1] + ri(-28, 28)] }
+  e.moving = false
+  if (!e.target) return
+  const dx = e.target[0] - e.x, dy = e.target[1] - e.y, d = Math.hypot(dx, dy)
+  if (d < 2) { e.target = null; return }
+  const sp = (chase ? e.speed * 1.5 : e.speed) * dt, nx = e.x + (dx / d) * sp, ny = e.y + (dy / d) * sp
+  const town = e.def && near(nx / T, ny / T, VILLAGE, 7.5)
+  if (!town && canStand(nx, ny)) { e.x = nx; e.y = ny; e.moving = true; e.dir = dirOf(dx, dy, !e.def) } else e.target = null
+}
+
+function explore(dt) {
+  const p = P(), input = controls()
+  p.moving = false
+  if (input) {
+    const [dx, dy] = input, d = Math.hypot(dx, dy) || 1, sp = 62 * dt
+    p.dir = dirOf(dx, dy, true)
+    const nx = p.x + (dx / d) * sp, ny = p.y + (dy / d) * sp
+    if (canStand(nx, p.y)) { p.x = nx; p.moving = true }
+    if (canStand(p.x, ny)) { p.y = ny; p.moving = true }
+  }
+  for (const n of g.npcs) wander(n, dt, false)
+  g.safe = Math.max(0, g.safe - dt)
+  for (const m of g.mons) {
+    const d = Math.hypot(m.x - p.x, m.y - p.y)
+    if (m.speed) wander(m, dt, d < 56 && g.safe <= 0)
+    if (d < 13 && g.safe <= 0) return startBattle(m)
+  }
+  // the fountain fills you up again
+  const [fx, fy] = [VILLAGE[0] * T + 8, VILLAGE[1] * T + 8]
+  if (Math.hypot(p.x - fx, p.y - fy) < 26 && (p.hp < p.max || p.mp < 3 || p.potions < 3)) {
+    Object.assign(p, { hp: p.max, mp: 3, potions: 3 }); sfx('heal'); toast('RESTORED!'); g.healFx = 0
+  }
+  const area = areaOf(p.x, p.y)
+  if (area !== g.area) { g.area = area; toast(AREAS[area][0], 2); music(AREAS[area][1]) }
+}
+
+// ------------------------------------------------------------------ battles: every blow is spell.act()
+const BX = 128, BY = 140 // the hero's feet in a battle; the monster stands 26 px (x2) to the right, where spell.act puts it
+const MX = BX + 26 * S
+function startBattle(m) {
+  g.state = 'battle'
+  g.flash = 0.4
+  g.battle = { m, hp: m.def.hp, phase: 'intro', t: 0, msg: `${m.def.name} APPEARS!`, anim: null, pick: 0 }
+  sfx(m.def.boss ? 'roar' : 'notify')
+  music(m.def.boss ? 'boss' : 'battle')
+}
+
+/** Play an act (or any frames) in the battle: frames at feet (fx, fy) = anchor; fire its sounds; shake on its hit. */
+function animate(frames, anchor, onHit, done) {
+  g.battle.anim = { frames, anchor, t: 0, fired: 0, hitDone: false, onHit, done }
+  g.battle.phase = 'anim'
+}
+
+function heroTurn(choice) {
+  const b = g.battle, p = P(), m = b.m
+  if (b.phase !== 'menu') return
+  if (choice === 1 && !p.mp) { b.msg = 'NO MAGIC LEFT!'; return sfx('error') }
+  if (choice === 2 && !p.potions) { b.msg = 'NO POTIONS LEFT!'; return sfx('error') }
+  sfx('confirm')
+  b.turn = (b.turn ?? 0) + 1
+  if (choice === 3) { // run
+    if (m.def.boss || rand() < 0.3) { b.msg = m.def.boss ? 'NO ESCAPE!' : 'COULD NOT ESCAPE!'; b.phase = 'wait'; b.t = 0; b.after = enemyTurn; return }
+    sfx('dash'); g.safe = 2; m.x = m.home[0]; m.y = m.home[1]; return endBattle()
+  }
+  if (choice === 2) { // potion
+    p.potions--
+    const heal = Math.min(10, p.max - p.hp)
+    b.msg = `+${heal} HP`
+    const f = spell.action(heroSpec(), 'heal', { amount: `+${heal}` })
+    sfx('heal')
+    return animate(f, [BX - f.origin[0] * S, BY - f.origin[1] * S], () => { p.hp += heal }, enemyTurn)
+  }
+  const magic = choice === 1
+  if (magic) p.mp--
+  const element = magic ? m.def.weak : elementOf(heroSpec())
+  const crit = !magic && rand() < 0.15
+  let dmg = magic ? ri(8, 11) : ri(3, 6) + p.lv - 1 + (element && element === m.def.weak ? 2 : 0)
+  if (crit) dmg *= 2
+  const ko = dmg >= b.hp
+  const act = spell.act(heroSpec(), m.def.spec, { element, style: magic ? 'magic' : undefined, amount: `-${dmg}`, ko, shake: 0 })
+  b.msg = magic ? `${element.toUpperCase()} MAGIC! WEAK SPOT!` : crit ? 'CRITICAL HIT!' : 'ATTACK!'
+  animate(act, [BX - act.feet.attacker[0] * S, BY - act.feet.attacker[1] * S], () => { b.hp = Math.max(0, b.hp - dmg) }, () => (b.hp <= 0 ? win() : enemyTurn()))
+}
+
+function enemyTurn() {
+  const b = g.battle, p = P(), m = b.m
+  const dmg = ri(...m.def.atk), ko = dmg >= p.hp
+  // the enemy's turn is the same call with the two swapped, mirrored so the monster swings from the right
+  const act = spell.act(m.def.spec, heroSpec(), { element: m.def.el, amount: `-${dmg}`, ko, shake: 0 }).flipX()
+  b.msg = `${m.def.name} STRIKES!`
+  animate(act, [MX - act.feet.attacker[0] * S, BY - act.feet.attacker[1] * S], () => { p.hp = Math.max(0, p.hp - dmg) }, () => {
+    if (p.hp > 0) return toMenu()
+    b.phase = 'lose'; b.t = 0; b.msg = 'YOU FELL...'; music('game-over')
+  })
+}
+
+function toMenu() { Object.assign(g.battle, { phase: 'menu', msg: 'YOUR TURN', t: 0 }) }
+
+function win() {
+  const b = g.battle, p = P(), m = b.m
+  g.wins++
+  p.coins += m.def.coins
+  p.mp = Math.min(3, p.mp + 1)
+  b.phase = 'win'; b.t = 0
+  b.msg = `${m.def.name} DEFEATED! +${m.def.coins} COINS`
+  b.levelup = g.wins % 2 === 0
+  if (b.levelup) { p.lv++; p.max += 4; p.hp = Math.min(p.max, p.hp + 4); b.lvl = spell.action(heroSpec(), 'levelup') }
+  g.mons = g.mons.filter((x) => x !== m)
+  music('victory')
+  sfx(b.levelup ? 'levelup' : 'win')
+}
+
+function endBattle() {
+  const b = g.battle
+  g.state = 'map'; g.battle = null; g.safe = 1.5; g.flash = 0.25
+  if (b?.m.def.boss && b.phase === 'win') { g.state = 'end'; g.t = 0; music('level-clear'); return }
+  music(AREAS[g.area ?? 'field'][1])
+}
+
+function battleStep(dt) {
+  const b = g.battle
+  b.t += dt
+  if (b.phase === 'intro' && b.t > 0.9) toMenu()
+  if (b.phase === 'wait' && b.t > 0.7) b.after()
+  if (b.phase === 'anim') {
+    const a = b.anim, act = a.frames
+    a.t += dt
+    for (; a.fired < (act.cues?.length ?? 0) && act.cues[a.fired].time <= a.t; a.fired++) sfx(act.cues[a.fired].sound, act.cues[a.fired].opts)
+    const hit = act.hits?.[0]
+    if (!a.hitDone && (!hit || a.t >= hit.time)) { a.hitDone = true; a.onHit?.(); if (hit) g.shake = { t: 0, len: hit.freeze + 0.05 } }
+    if (a.t * (act.fps ?? 12) >= act.length + 2) { b.anim = null; b.phase = 'idle'; a.done() }
+  }
+  if (b.phase === 'win' && b.t > (b.levelup ? 3.2 : 2.4)) endBattle()
+  if (b.phase === 'lose' && b.t > 2.6) { // wake up at the fountain
+    const p = P(), [x, y] = snap(VILLAGE[0], VILLAGE[1] + 2)
+    Object.assign(p, { x, y, hp: p.max, mp: 3, potions: 3, coins: Math.floor(p.coins / 2) })
+    g.area = null; endBattle()
+  }
+}
+
+// ------------------------------------------------------------------ input: keys, touch, and the demo's autopilot
+const keys = new Set()
+let touch = null
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase()
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault()
+  unlock(); keys.add(k); press(k)
+})
+addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()))
+const toCanvas = (e) => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * (W / r.width), (e.clientY - r.top) * (H / r.height)] }
+canvas.addEventListener('pointerdown', (e) => {
+  unlock(); const [x, y] = toCanvas(e)
+  if (g.state === 'title') return x < 90 ? press('arrowleft') : x > 230 ? press('arrowright') : y > 160 ? press('t') : press('enter')
+  if (g.state === 'battle') return y > 146 ? press(String(1 + (x < W / 2 ? 0 : 1) + (y < 163 ? 0 : 2))) : press('enter')
+  if (g.state === 'end') return press('enter')
+  touch = [x, y]
+})
+canvas.addEventListener('pointermove', (e) => { if (touch) touch = toCanvas(e) })
+addEventListener('pointerup', () => { touch = null })
+
+function press(k) {
+  if (k === 'p') return nextPalette()
+  if (k === 'm') return muteBtn.onclick()
+  if (g.state === 'title') {
+    if (k === 'arrowleft' || k === 'a') { g.hero = (g.hero + HEROES.length - 1) % HEROES.length; sfx('select') }
+    if (k === 'arrowright' || k === 'd') { g.hero = (g.hero + 1) % HEROES.length; sfx('select') }
+    if (k === 't' || k === 'arrowup' || k === 'arrowdown') { g.tall = !g.tall; sfx('select') }
+    if (k === 'enter' || k === ' ') { g.state = 'map'; g.area = null; sfx('confirm'); toast(`${HEROES[g.hero].name}, GOOD LUCK!`, 2) }
+  } else if (g.state === 'battle') {
+    const b = g.battle
+    if (b.phase !== 'menu') return
+    if (/^[1-4]$/.test(k)) heroTurn(Number(k) - 1)
+    if (k === 'arrowleft' || k === 'a' || k === 'arrowright' || k === 'd') b.pick ^= 1
+    if (k === 'arrowup' || k === 'w' || k === 'arrowdown' || k === 's') b.pick ^= 2
+    if (k === 'enter' || k === ' ') heroTurn(b.pick)
+  } else if (g.state === 'end' && g.t > 2 && (k === 'enter' || k === ' ')) newGame(g.hero)
+}
+
+function controls() {
+  if (demo) return autopilot()
+  let dx = 0, dy = 0
+  if (keys.has('arrowleft') || keys.has('a')) dx--
+  if (keys.has('arrowright') || keys.has('d')) dx++
+  if (keys.has('arrowup') || keys.has('w')) dy--
+  if (keys.has('arrowdown') || keys.has('s')) dy++
+  if (touch) { const camX = cam()[0], camY = cam()[1]; dx = touch[0] + camX - P().x; dy = touch[1] + camY - P().y + 6; if (Math.hypot(dx, dy) < 6) return null }
+  return dx || dy ? [dx, dy] : null
+}
+
+// the demo walks the route, says hello, fights whatever is closest, changes colors now and then, and ends at the dragon
+function autopilot() {
+  const p = P(), a = g.auto
+  const goTo = ([tx, ty]) => { const dx = tx - p.x, dy = ty - p.y; return Math.hypot(dx, dy) < 6 ? null : [dx, dy] }
+  if (a.step === 0) { const n = g.npcs[0]; const v = goTo([n.x + 14, n.y + 2]); if (v) return v; a.step = 1; a.wait = g.t + 1.1 }
+  if (g.t < a.wait) return null
+  const pool = g.mons.filter((m) => !!m.def.boss === g.wins >= 4) // a few monsters first, then the dragon
+  const prey = pool.reduce((best, m) => (!best || Math.hypot(m.x - p.x, m.y - p.y) < Math.hypot(best.x - p.x, best.y - p.y) ? m : best), null)
+  if (!prey) return null
+  // straight at it; when something is in the way, step sideways for a moment
+  if (Math.hypot(p.x - (a.lx ?? 0), p.y - (a.ly ?? 0)) > 0.5) { a.lx = p.x; a.ly = p.y; a.stuck = g.t }
+  const v = [prey.x - p.x, prey.y - p.y]
+  if (g.t - (a.stuck ?? g.t) > 0.25) { a.detour = rand() < 0.5 ? [-v[1], v[0]] : [v[1], -v[0]]; a.until = g.t + 0.5; a.stuck = g.t }
+  return g.t < (a.until ?? 0) ? a.detour : v
+}
+function autoBattle() {
+  const b = g.battle, p = P()
+  if (b.phase !== 'menu' || b.t < 0.7) return
+  heroTurn(p.hp < 9 && p.potions ? 2 : p.mp && (b.m.def.boss || b.turn > 0) ? 1 : 0) // a blow first, then magic
+}
+
+// ------------------------------------------------------------------ drawing
+const cam = () => [Math.round(Math.max(0, Math.min(MW * T - W, P().x - W / 2))), Math.round(Math.max(0, Math.min(MH * T - H, P().y - 10 - H / 2)))]
+function drawActor(e, spec, cx, cy) {
+  const humanoid = !e.def
+  const frames = e.moving ? walkOf(spec, e.dir) : e.dir === 'down' || !humanoid ? idleOf(spec) : walkOf(spec, e.dir)
+  const f = e.moving ? frames[Math.floor(g.t * frames.fps) % frames.length] : frames === idleOf(spec) ? frames[Math.floor(g.t * 3) % frames.length] : frames[0]
+  draw(f, e.x - cx - frames.origin[0], e.y - cy - frames.origin[1])
+}
+
+function drawMap() {
+  const [cx, cy] = cam()
+  const water = framesOf('water')[Math.floor(g.t * 3) % 4]
+  for (let ty = Math.floor(cy / T); ty <= (cy + H) / T; ty++) for (let tx = Math.floor(cx / T); tx <= (cx + W) / T; tx++) draw(water, tx * T - cx, ty * T - cy)
+  ctx.drawImage(ground.canvas, cx, cy, W, H, 0, 0, W, H)
+  const list = []
+  for (const pr of props) if (pr.x > cx - 32 && pr.x < cx + W + 16 && pr.y > cy - 32 && pr.y < cy + H + 16) list.push([pr.y + 16, () => { const f = framesOf(pr.name); draw(f[Math.floor(g.t * 4) % f.length], pr.x - cx, pr.y - cy) }])
+  for (const n of g.npcs) list.push([n.y, () => drawActor(n, n.spec, cx, cy)])
+  for (const m of g.mons) list.push([m.y, () => drawActor(m, m.def.spec, cx, cy)])
+  if (g.state !== 'title') list.push([P().y, () => drawActor(P(), heroSpec(), cx, cy)])
+  list.sort((a, b) => a[0] - b[0]).forEach(([, f]) => f())
+  if (g.healFx != null) { const f = fxOf('heal'); const i = Math.floor(g.healFx * 12); if (i < f.length) draw(f[i], P().x - cx - 16, P().y - cy - 28); else g.healFx = null }
+  // a speech bubble over whoever you stand next to
+  const talk = g.npcs.map((n) => [Math.hypot(n.x - P().x, n.y - P().y), n]).filter(([d]) => d < 30).sort((a, b) => a[0] - b[0])[0]?.[1]
+  if (g.state === 'map' && talk) {
+    const n = talk
+    const a = label(n.name, '#ffd06a'), b = label(n.line), w = Math.max(a.w, b.w) + 8
+    const x = Math.max(2, Math.min(W - w - 2, n.x - cx - w / 2)), y = Math.max(2, n.y - cy - (n.spec.height === 24 ? 32 : 24) - 26)
+    draw(panel(w, 22), x, y); draw(a, x + 4, y + 3); draw(b, x + 4, y + 12)
+  }
+}
+
+function drawHud() {
+  const p = P()
+  ctx.fillStyle = col('#0b0f14'); ctx.globalAlpha = 0.55; ctx.fillRect(0, 0, W, 13); ctx.globalAlpha = 1
+  let x = 3
+  const item = (icon, s) => { draw(once('h' + icon, () => spell(icon, { grid: 8 })), x, 2); draw(label(s), x + 10, 3); x += 14 + label(s).w }
+  item('heart', `${p.hp}/${p.max}`); item('bolt', `${p.mp}`); item('potion', `${p.potions}`); item('coin', `${p.coins}`)
+  draw(label(`LV ${p.lv}`, '#ffd06a'), x + 2, 3)
+}
+
+function drawToasts(dt) {
+  g.toasts = g.toasts.filter((t) => (t.t -= dt) > 0)
+  // under the battle message, or at the bottom of the map (speech bubbles use the top)
+  g.toasts.slice(-2).forEach((t, i, all) => { const img = label(t.s, '#ffd06a', 2); draw(img, (W - img.w) / 2, g.state === 'battle' ? 52 + i * 16 : H - 18 - (all.length - 1 - i) * 16) })
+}
+
+function drawBattle() {
+  const b = g.battle, boss = b.m.def.boss, p = P()
+  // the backdrop: sky, two rows of trees (or graves at the den), the ground the fight stands on
+  ctx.fillStyle = col(boss ? '#2a1a33' : '#8fd3ff'); ctx.fillRect(0, 0, W, 100)
+  ctx.fillStyle = col(boss ? '#3a2448' : '#b8e6ff'); ctx.fillRect(0, 62, W, 38)
+  const floor = framesOf(boss ? 'stone' : 'grass')[0]
+  for (let y = 92; y < 146; y += 16) for (let x = 0; x < W; x += 16) draw(floor, x, y)
+  const back = boss ? ['pine-tree', 'tombstone', 'crystals-amethyst'] : ['pine-tree', 'pine-tree', 'tree']
+  for (let i = 0, x = -6; x < W; i++, x += 19 + ((i * 7) % 9)) draw(framesOf(back[i % 3])[0], x, 74 + ((i * 5) % 4))
+  const front = boss ? ['bones', 'tombstone', 'crystals'] : ['bush', 'tree', 'flower', 'rock', 'tree-autumn', 'flower-blue']
+  for (let i = 0, x = 4; x < W; i++, x += 34 + ((i * 11) % 17)) if (x < 90 || x > 220) draw(framesOf(front[i % front.length])[0], x, 86 + ((i * 3) % 6))
+  if (boss) { const f = framesOf('campfire'); draw(f[Math.floor(g.t * 6) % f.length], 268, 104, 2) }
+  const hero = heroSpec(), feet = (frames) => frames.origin
+  if (b.anim) {
+    const a = b.anim, f = at(a.frames, Math.floor(a.t * (a.frames.fps ?? 12)))
+    if (!a.frames.hits) { const fr = idleOf(b.m.def.spec, true); draw(fr[Math.floor(g.t * 3) % fr.length], MX - feet(fr)[0] * S, BY - feet(fr)[1] * S, S) }
+    draw(f, a.anchor[0], a.anchor[1], S)
+  } else {
+    if (b.phase !== 'lose') {
+      const fr = b.phase === 'win' && b.lvl ? b.lvl : idleOf(hero)
+      draw(fr === b.lvl ? at(fr, Math.floor(b.t * fr.fps)) : fr[Math.floor(g.t * 3) % fr.length], BX - feet(fr)[0] * S, BY - feet(fr)[1] * S, S)
+    }
+    if (b.phase !== 'win') { const fr = idleOf(b.m.def.spec, true); draw(fr[Math.floor(g.t * 3) % fr.length], MX - feet(fr)[0] * S, BY - feet(fr)[1] * S, S) }
+    if (b.phase === 'win') { const c = fxOf('confetti'); draw(at(c, Math.floor(b.t * 12)), MX - 32, BY - 80, S) }
+  }
+  // health bars, the message, the menu
+  const bar = (x, y, name, hp, max, color) => {
+    draw(label(name, '#ffffff'), x, y)
+    ctx.fillStyle = col('#10141a'); ctx.fillRect(x, y + 9, 72, 6)
+    ctx.fillStyle = col(color); ctx.fillRect(x + 1, y + 10, Math.round((70 * hp) / max), 4)
+    draw(label(`${hp}/${max}`), x + 76, y + 8)
+  }
+  bar(6, 4, `${HEROES[g.hero].name} LV ${p.lv}`, p.hp, p.max, '#5ee05a')
+  bar(W - 106, 4, b.m.def.name, b.hp, b.m.def.hp, '#ff6b5a')
+  const msg = label(b.msg, '#ffd06a', 2)
+  draw(msg, (W - msg.w) / 2, 30)
+  draw(panel(312, 32), 4, 146)
+  const opts = ['1 ATTACK', `2 MAGIC x${p.mp}`, `3 POTION x${p.potions}`, '4 RUN']
+  opts.forEach((s, i) => {
+    const dim = b.phase !== 'menu' || (i === 1 && !p.mp) || (i === 2 && !p.potions)
+    const img = label(s, dim ? '#6f8f78' : i === b.pick ? '#ffd06a' : '#ffffff', 2)
+    const x = 26 + (i % 2) * 156, y = 149 + Math.floor(i / 2) * 14
+    draw(img, x, y)
+    if (i === b.pick && b.phase === 'menu') draw(once('cur', () => spell('arrow', { grid: 8 })), x - 12 + Math.floor(g.t * 4) % 2, y + 1)
+  })
+}
+
+function drawTitle() {
+  const t = label('SPELL ISLE', '#ffd06a', 4)
+  draw(t, (W - t.w) / 2, 14)
+  const sub = label('AN ISLAND MADE ONLY OF PIXSPELL CALLS', '#cfe8d4')
+  draw(sub, (W - sub.w) / 2, 46)
+  const h = HEROES[g.hero], fr = walkOf(heroSpec(), 'down')
+  draw(fr[Math.floor(g.t * fr.fps) % fr.length], W / 2 - fr.origin[0] * 3, 130 - fr.origin[1] * 3, 3)
+  const n = label(h.name, '#ffffff', 2), r = label(h.region, '#8aa592')
+  draw(n, (W - n.w) / 2, 136); draw(r, (W - r.w) / 2, 154)
+  draw(label('<', '#ffd06a', 3), 60, 96); draw(label('>', '#ffd06a', 3), W - 72, 96)
+  const hint = label(`ENTER: START   T: ${g.tall ? 'TALL' : 'CHIBI'}   P: COLORS`, '#ffffff')
+  if (Math.floor(g.t * 2) % 2 || demo) draw(hint, (W - hint.w) / 2, 168)
+}
+
+function drawEnd() {
+  const fw = fxOf('firework', { size: 64 })
+  for (let i = 0; i < 4; i++) { const k = Math.floor(g.t * 12 + i * 9) % (fw.length + 6); if (k < fw.length) draw(fw[k], 30 + i * 70, 20 + (i % 2) * 30) }
+  const a = label('THE ISLE IS SAFE!', '#ffd06a', 3), b = label(`${P().coins} COINS - LEVEL ${P().lv} - THANKS FOR PLAYING`, '#ffffff')
+  draw(a, (W - a.w) / 2, 70); draw(b, (W - b.w) / 2, 100)
+}
+
+// ------------------------------------------------------------------ the loop
+let last = performance.now()
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000)
+  last = now
+  g.t += dt
+  if (g.healFx != null) g.healFx += dt
+  if (demo) demoStep(dt)
+  if (g.state === 'map') explore(dt)
+  if (g.state === 'battle') battleStep(dt)
+  ctx.save()
+  if (g.shake) { // the hit-stop's shake, from act.hits: the whole screen moves, not just the characters
+    g.shake.t += dt
+    const k = Math.floor(g.shake.t * 30) % 4
+    ctx.translate([3, -3, 2, -2][k], [0, 2, -2, 1][k])
+    if (g.shake.t > g.shake.len) g.shake = null
+  }
+  ctx.fillStyle = col('#0b0f14'); ctx.fillRect(-4, -4, W + 8, H + 8)
+  if (g.state === 'battle') drawBattle()
+  else {
+    drawMap()
+    if (g.state === 'title') { ctx.fillStyle = col('#0b0f14'); ctx.globalAlpha = 0.55; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; drawTitle() }
+    if (g.state === 'end') { ctx.fillStyle = col('#0b0f14'); ctx.globalAlpha = 0.6; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; drawEnd() }
+    if (g.state === 'map') drawHud()
+  }
+  ctx.restore()
+  if (g.flash > 0) { ctx.fillStyle = col('#ffffff'); ctx.globalAlpha = Math.min(0.75, g.flash * 2.5); ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; g.flash -= dt }
+  drawToasts(dt)
+  if (demo) { const d = label('DEMO', '#ffd06a'); draw(d, W - d.w - 3, H - 9) }
+  requestAnimationFrame(frame)
+}
+
+// the attract mode: title, a walk through the village, fights, a few palettes, the dragon, and again
+function demoStep(dt) {
+  if (g.state === 'title' && g.t > 1.6) press('enter')
+  if (g.state === 'battle') autoBattle()
+  if (g.state === 'end' && g.t > 7) newGame(1)
+  const want = [null, 'gameboy', 'pico-8', 'sweetie-16'][g.wins] ?? null // a new look after every win, then full color for the dragon
+  if (g.state === 'map' && want !== palName) setPalette(want)
+}
+
+function fit() {
+  const s = Math.min((innerWidth - 24) / W, (innerHeight - 140) / H)
+  const z = s >= 2 ? Math.floor(s) : Math.max(1, s)
+  canvas.style.width = `${Math.round(W * z)}px`; canvas.style.height = `${Math.round(H * z)}px`
+}
+addEventListener('resize', fit)
+fit()
+
+ctx.imageSmoothingEnabled = false
+newGame(demo ? 1 : 0)
+setPalette(params.get('palette'))
+g.toasts = []
+window.game = () => g // for tests and recordings
+requestAnimationFrame(frame)
+</script>
+</body>
+</html>

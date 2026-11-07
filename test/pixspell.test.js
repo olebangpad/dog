@@ -1480,6 +1480,19 @@ test('spell.act: wind-up, hit-stop with shake, reaction, sounds and where the fe
   assert.ok(foot(act[0], act.feet.attacker) && foot(act[0], act.feet.target))
   assert.ok(!act[0].alpha(act.feet.target[0], act.feet.target[1] + 1), 'nothing below the feet')
 
+  // flipped for an enemy's turn, or scaled: the extras follow
+  const flipped = act.flipX(), twice = act.scale(2)
+  assert.deepEqual(flipped.feet.attacker, [act[0].w - 1 - act.feet.attacker[0], act.feet.attacker[1]])
+  assert.ok(flipped.feet.attacker[0] > flipped.feet.target[0], 'the attacker is on the right')
+  assert.ok(foot(flipped[0], flipped.feet.attacker) && foot(flipped[0], flipped.feet.target))
+  assert.deepEqual([flipped.hits, flipped.cues], [act.hits, act.cues])
+  // a plain mirror image until the damage number shows up, which is drawn after mirroring so it reads right
+  const naive = act.map((f) => f.flipX())
+  for (let i = 0; i < hit.frame; i++) assert.deepEqual(flipped[i].data, naive[i].data, `frame ${i}`)
+  assert.notDeepEqual(flipped[hit.frame + 4].data, naive[hit.frame + 4].data)
+  assert.equal(flipped.flipX()[hit.frame + 4].data.join(), act[hit.frame + 4].data.join(), 'flipping twice gives the act back')
+  assert.deepEqual([twice[0].w, twice.hits[0].shake, twice.feet.target], [act[0].w * 2, 4, [act.feet.target[0] * 2, act.feet.target[1] * 2 + 1]])
+  assert.ok(foot(twice[0], twice.feet.attacker))
   // a knock-out: crit, then death, and the target is gone at the end
   const ko = spell.act(knight, 'goblin', { ko: true })
   assert.deepEqual(ko.cues.map((c) => c.sound), ['slash', 'crit', 'death'])

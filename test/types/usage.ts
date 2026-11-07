@@ -71,6 +71,8 @@ const duel: Act = spell.act(knight, 'slime', { element: 'fire', ko: true, lunge:
 const [hitAt] = duel.hits
 const cue: string = duel.cues[0].sound
 duel.play({ volume: 0.5 }).stop()
+const enemyTurn: Act = duel.flipX().scale(2)
+console.log(enemyTurn.feet.attacker[0], enemyTurn.hits[0].shake)
 console.log(hitAt.freeze, hitAt.shake, cue, duel.feet.target[0], spell.act.styles.length, spell.action(knight, 'attack', { width: 64 }).length)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w

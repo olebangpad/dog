@@ -22,7 +22,7 @@ export function createActs(spell, { Pixmap, text, applyActive, asFrames, OUTLINE
   const top = (img) => { for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) if (img.alpha(x, y)) return y; return 0 }
 
   function act(attacker, target, opts = {}) {
-    const { element, style, ko = false, amount = ko ? '-99' : '-7', label = true, freeze = 0.25, shake = 2, distance = 26, lunge = true, grid } = opts
+    const { element, style, ko = false, amount = ko ? '-99' : '-7', label = true, freeze = 0.25, shake = 2, distance = 26, lunge = true, grid, mirror = false } = opts
     const a = specOf(attacker), t = specOf(target)
     for (const s of [a, t]) {
       if (spell.char.parts.body.includes(s.body)) continue
@@ -69,21 +69,27 @@ export function createActs(spell, { Pixmap, text, applyActive, asFrames, OUTLINE
     // the damage number rises above the target once the freeze lets go
     const num = label && amount != null ? text(String(amount), { color: element ? '#ffd06a' : '#ff6b5a' }).outline(OUTLINE) : null
     const tTop = feetY - (tIdle[0].h - 1 - top(tIdle[0])) + 0
-    const frames = steps.map((st, i) => {
+    const scenes = steps.map((st, i) => {
       let scene = new Pixmap(stageW, H)
       const aImg = st.a === 'idle' ? asAction(aIdle[i % aIdle.length]) : swing[st.a]
       const tImg = st.t === 'gone' ? null : st.t === 'idle' ? tIdle[i % tIdle.length] : react[st.t]
       if (tImg) scene = scene.draw(place(tImg, tFeetX))
-      scene = scene.draw(place(aImg, ax + aFeetX + (st.adx ?? 0)))
-      const k = i - afterFreeze
-      if (num && k >= 0 && k < 7) scene = scene.draw(num, tFeetX - (num.w >> 1), Math.max(0, tTop - 6 - k))
-      if (st.shake) scene = new Pixmap(stageW, H).draw(scene, st.shake[0] * shake, st.shake[1] * shake)
-      return scene
+      return scene.draw(place(aImg, ax + aFeetX + (st.adx ?? 0)))
     })
-    // trim the empty columns on the left of the wide swing frame
-    const used = frames.reduce((m, f) => { for (let x = 0; x < f.w; x++) for (let y = 0; y < f.h; y++) if (f.alpha(x, y)) return Math.min(m, x); return m }, stageW)
-    const cut = Math.max(0, used - 2)
-    let out = frames.map((f) => f.crop(cut, 0, f.w - cut, f.h))
+    // trim the empty columns on the left of the wide swing frame (counting where the shake moves them)
+    const left = (f) => { for (let x = 0; x < f.w; x++) for (let y = 0; y < f.h; y++) if (f.alpha(x, y)) return x; return f.w }
+    const used = scenes.reduce((m, f, i) => Math.min(m, Math.max(0, left(f) + (steps[i].shake ? steps[i].shake[0] * shake : 0))), stageW)
+    const cut = Math.max(0, used - 2), w = stageW - cut
+    // mirrored (flipX: the attacker on the right) before the number is drawn, so the number still reads right
+    const fx = (x) => (mirror ? w - 1 - (x - cut) : x - cut)
+    let out = scenes.map((scene, i) => {
+      scene = scene.crop(cut, 0, w, H)
+      if (mirror) scene = scene.flipX()
+      const k = i - afterFreeze
+      if (num && k >= 0 && k < 7) scene = scene.draw(num, fx(tFeetX) - (num.w >> 1), Math.max(0, tTop - 6 - k))
+      const st = steps[i]
+      return st.shake ? new Pixmap(w, H).draw(scene, st.shake[0] * shake, st.shake[1] * shake) : scene
+    })
     out = applyActive(Object.assign(out, { fps: FPS, loop: false }))
 
     const k = grid ? grid / 16 : 1
@@ -95,19 +101,33 @@ export function createActs(spell, { Pixmap, text, applyActive, asFrames, OUTLINE
       { frame: contactStep, time: time(contactStep), sound: ko ? 'crit' : 'hit', opts: element ? { element } : {} },
       ...(ko ? [{ frame: afterFreeze + 3, time: time(afterFreeze + 3), sound: 'death', opts: {} }] : []),
     ]
-    // non-enumerable like the other helpers, so the act still compares and spreads like a plain array of frames
+    const hits = [{ frame: contactStep, time: time(contactStep), freeze: time(F), shake: shake * k, push: 2 * k }]
+    const feet = { attacker: [fx(ax + aFeetX) * k, (feetY + 1) * k - 1], target: [fx(tFeetX) * k, (feetY + 1) * k - 1] }
+    return dress(result, hits, cues, feet, () => act(attacker, target, { ...opts, mirror: !mirror }))
+  }
+
+  // the act's extras, non-enumerable like the other helpers (so it still compares and spreads like a plain array of
+  // frames); flipX() builds the act again mirrored (so the damage number reads right), scale() scales the feet too
+  function dress(frames, hits, cues, feet, flipped) {
+    const { scale } = frames
     const extra = {
-      hits: [{ frame: contactStep, time: time(contactStep), freeze: time(F), shake: shake * k, push: 2 * k }],
+      hits,
       cues,
-      feet: { attacker: [(ax + aFeetX - cut) * k, (feetY + 1) * k - 1], target: [(tFeetX - cut) * k, (feetY + 1) * k - 1] },
+      feet,
       /** Browser: play the sounds at their times (the frames are yours to draw). Returns { stop() }. */
       play: (playOpts = {}) => {
         const timers = cues.map((c) => setTimeout(() => spell.sfx(c.sound, c.opts).play(playOpts), c.time * 1000))
         return { stop: () => timers.forEach(clearTimeout) }
       },
+      /** Mirrored: the attacker on the right facing left (an enemy's turn). */
+      flipX: flipped,
+      scale: (n) => {
+        const s = ([x, y]) => [Math.round(x * n), Math.round((y + 1) * n) - 1]
+        return dress(scale.call(frames, n), hits.map((h) => ({ ...h, shake: h.shake * n, push: h.push * n })), cues, { attacker: s(feet.attacker), target: s(feet.target) }, () => flipped().scale(n))
+      },
     }
-    for (const [key, value] of Object.entries(extra)) Object.defineProperty(result, key, { value, writable: true, configurable: true })
-    return result
+    for (const [key, value] of Object.entries(extra)) Object.defineProperty(frames, key, { value, writable: true, configurable: true })
+    return frames
   }
   act.styles = Object.keys(CONTACT)
   return act

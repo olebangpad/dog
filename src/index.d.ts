@@ -189,6 +189,10 @@ export interface Act extends Frames {
   feet: { attacker: [number, number]; target: [number, number] }
   /** Browser: play the cues at their times (drawing the frames is up to you). */
   play(opts?: { volume?: number }): { stop(): void }
+  /** Mirrored (the attacker on the right facing left, for an enemy's turn); keeps hits and cues, mirrors feet. */
+  flipX(): Act
+  /** Every frame scaled; feet, shake and push scaled with it. */
+  scale(n: number): Act
 }
 
 export interface Pack {
