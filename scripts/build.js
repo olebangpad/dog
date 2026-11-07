@@ -452,20 +452,21 @@ function peopleShowcase() {
   })
 }
 
-// The same people at every height: 16 (as drawn) to 32, walking toward you, feet on one line
+// The same people chibi (16) and tall (24, drawn), walking toward you, feet on one line
 function heightsShowcase() {
   const people = [{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, spell.char.world.find((w) => w.id === 'hanbok').spec,
-    spell.char.world.find((w) => w.id === 'samurai').spec, { body: 'heroine', hat: 'wizard', hand: 'staff-fire', C: 'skin-brown' }]
-  const heights = [16, 20, 24, 28, 32]
-  const col = 26, gap = 14, H = 40 + 10
+    spell.char.world.find((w) => w.id === 'samurai').spec, { body: 'heroine', hat: 'wizard', hand: 'staff-fire', C: 'skin-brown' },
+    spell.char.world.find((w) => w.id === 'highlander').spec, { body: 'skeleton', hand: 'bow' }]
+  const heights = [16, 24]
+  const col = 26, gap = 12, H = 32 + 10
   const walks = people.map((p) => heights.map((h) => spell.walk({ ...p, height: h }, 'down')))
   return Array.from({ length: 8 }, (_, t) => {
     let img = new Pixmap(people.length * (heights.length * col + gap) - gap, H)
     people.forEach((_, pi) => heights.forEach((h, hi) => {
       const f = walks[pi][hi][Math.floor(t / 2) % walks[pi][hi].length]
       const x = pi * (heights.length * col + gap) + hi * col
-      img = img.draw(f, x + ((col - f.w) >> 1), 40 - f.h)
-      if (pi === 0) { const l = text(String(h), { color: DIM }); img = img.draw(l, x + ((col - l.w) >> 1), 43) }
+      img = img.draw(f, x + ((col - f.w) >> 1), 32 - f.h)
+      if (pi === 0) { const l = text(String(h), { color: DIM }); img = img.draw(l, x + ((col - l.w) >> 1), 35) }
     }))
     return framed(img, 8).scale(3)
   })

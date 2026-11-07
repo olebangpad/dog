@@ -262,7 +262,7 @@ test('no gear is clipped on any body or walk pose', () => {
           part.frames.forEach((rows) => rows.forEach((row, y) => [...row].forEach((ch, x) => {
             if (ch === '.') return
             const cx = BODY_AT[0] + ax - part.pivot[0] + x, cy = BODY_AT[1] + ay - part.pivot[1] + y
-            assert.ok(cx >= 0 && cy >= 0 && cx < CHAR_SIZE && cy < CHAR_SIZE, `${partId} on ${bodyId} is clipped`)
+            assert.ok(cx >= 0 && cy >= 0 && cx < CHAR_SIZE && cy < BODY_AT[1] + body.h, `${partId} on ${bodyId} is clipped`) // tall bodies: a taller canvas
           })))
         })
       }
@@ -1287,39 +1287,40 @@ test('people from around the world: bodies walk every way, presets use real part
   assert.ok(randoms.every((r) => !spell.char.skins.includes(r.A)))
 })
 
-test('taller people: height 16-32 grows humanoids, keeps feet, hands and gear lined up in every view and action', () => {
+test('tall people: height 24 swaps every humanoid for its hand-drawn tall version, in every view and action', () => {
   const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
-  assert.deepEqual(spell.char.heights, [16, 32])
-  for (const h of [16, 20, 24, 32]) {
-    const s = { ...knight, height: h }
-    const img = spell.char(s)
-    assert.equal(img.w, 24)
-    assert.equal(img.h, 24 + h - 16)
-    for (const d of [...spell.walk.dirs, ...spell.walk.diagonals]) {
-      const w = spell.walk(s, d)
-      assert.equal(w[0].h, 24 + h - 16, `${h} ${d}`)
-      assert.deepEqual(w.origin, [12, 24 + h - 17], 'feet at the bottom')
-    }
-    const a = spell.action(s, 'attack')
-    assert.equal(a[0].h, 32 + h - 16)
-    assert.deepEqual(a.origin, [16, 32 + h - 17])
-    assert.equal(spell.status(s, 'burning')[0].h, 32 + h - 16)
+  assert.deepEqual(spell.char.heights, [16, 24])
+  // every humanoid has a drawn tall version with all its walk poses, and they aren't listed as separate bodies
+  const humanoids = [...new Set(spell.char.parts.body.map((id) => looks[id].def.id))].filter((b) => looks[b].def.anchors.hand)
+  for (const b of humanoids) {
+    for (const id of [`${b}-tall`, `${b}-tall-walk-down`, `${b}-tall-walk-up`, `${b}-tall-walk-side`]) assert.equal(looks[id]?.def.h, 24, id)
+    assert.ok(!spell.char.parts.body.includes(`${b}-tall`))
+    // same face: the tall head is the chibi head
+    assert.deepEqual(looks[`${b}-tall`].def.frames[0].slice(0, 8), looks[b].def.frames[0].slice(0, 8), `${b} head`)
   }
-  // the default is the drawn size, so 16 changes nothing
+  const s = { ...knight, height: 24 }
+  assert.deepEqual([spell.char(s).w, spell.char(s).h], [24, 32])
+  for (const d of [...spell.walk.dirs, ...spell.walk.diagonals]) {
+    const w = spell.walk(s, d)
+    assert.equal(w[0].h, 32, d)
+    assert.deepEqual(w.origin, [12, 31], 'feet at the bottom')
+  }
+  const a = spell.action(s, 'attack')
+  assert.deepEqual([a[0].w, a[0].h, ...a.origin], [32, 40, 16, 39])
+  assert.equal(spell.status(s, 'burning')[0].h, 40)
+  // variants keep their colors when tall; 16 is the chibi body
+  assert.notDeepEqual(spell.char({ body: 'hero-red', height: 24 }).data, spell.char({ body: 'hero', height: 24 }).data)
   assert.deepEqual(spell.char({ ...knight, height: 16 }).data, spell.char(knight).data)
-  // the feet stand on the bottom row, and the head stays the same size: a taller person is taller below the neck
-  const bottom = (img) => { for (let y = img.h - 1; y >= 0; y--) for (let x = 0; x < img.w; x++) if (img.alpha(x, y)) return y; return -1 }
-  assert.equal(bottom(spell.char({ body: 'hero', height: 28 })), 24 + 12 - 1)
-  assert.deepEqual(spell.char({ body: 'hero', height: 28 }).crop(0, 0, 24, 15).data, spell.char('hero').crop(0, 0, 24, 15).data)
-  // the sword is still in the hand: it moved down with the hand
-  const swordAt = (img) => { for (let y = 0; y < img.h; y++) for (let x = 18; x < 24; x++) if (img.alpha(x, y)) return y; return -1 }
-  assert.ok(swordAt(spell.char({ ...knight, height: 28 })) > swordAt(spell.char(knight)))
-  // animals and monsters keep their size; out-of-range heights say what's allowed
-  assert.equal(spell.char({ body: 'slime', height: 30 }).h, 24)
-  assert.throws(() => spell.char({ body: 'hero', height: 40 }), /16 \(as drawn\) to 32/)
-  // packs: taller cells, feet at the bottom center
-  const pack = spell.pack({ ...knight, height: 24 }, { actions: ['attack'] })
-  const meta = JSON.parse(typeof pack.files[`${pack.id}.json`] === 'string' ? pack.files[`${pack.id}.json`] : new TextDecoder().decode(pack.files[`${pack.id}.json`])).meta.pixspell
+  // the sword is in the hand, which is lower on a tall body
+  const swordTop = (img) => { for (let y = 0; y < img.h; y++) for (let x = 18; x < 24; x++) if (img.alpha(x, y)) return y; return -1 }
+  assert.ok(swordTop(spell.char(s)) > swordTop(spell.char(knight)))
+  // animals and monsters keep their size; other heights say which ones exist
+  assert.equal(spell.char({ body: 'slime', height: 24 }).h, 24)
+  assert.throws(() => spell.char({ body: 'hero', height: 32 }), /16 \(chibi, the default\) or 24/)
+  // packs: 32x40 cells, feet at the bottom center
+  const pack = spell.pack(s, { actions: ['attack'] })
+  const json = pack.files[`${pack.id}.json`]
+  const meta = JSON.parse(typeof json === 'string' ? json : new TextDecoder().decode(json)).meta.pixspell
   assert.deepEqual([meta.cell, meta.cellHeight, meta.origin.y], [32, 40, 39])
   assert.match(pack.files['README.txt'], /32x40 cells/)
 })

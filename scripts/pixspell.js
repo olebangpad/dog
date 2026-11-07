@@ -62,7 +62,7 @@ usage:
 
 options:
   --grid <8|16|32|64>          tile size of your game: art is converted to fit it (render, char, fx, pack, fxpack)
-  --height <16-32>             how tall people are drawn (char, pack): 16 = chibi, 24 or 32 = longer bodies
+  --height <16|24>             how tall people are drawn (char, pack): 16 = chibi, 24 = drawn taller
   -A, -B, -C <material|#hex>   recolor a ramp slot
   --scale <n>                  4 = 4x bigger, 0.5 = half size
   --smooth                     Scale2x smoothing (doubles size)

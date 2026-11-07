@@ -128,10 +128,10 @@ export interface CharacterSpec extends Ramps, GridOptions {
   /** 'shield', 'book', 'lantern', ... Humanoid bodies only. */
   offhand?: string
   /**
-   * How tall a humanoid is drawn: 16 (as drawn, chibi) up to 32. Taller people get a longer torso and legs; the
-   * character canvas grows by the same amount (24 x 24 at 16, 24 x 32 at 24), feet at the bottom. Others ignore it.
+   * How tall a humanoid is drawn: 16 (chibi, the default) or 24 (its hand-drawn tall version: same head, longer body and
+   * legs). At 24 characters are 24 x 32 and actions 32 x 40, feet at the bottom. Animals and monsters ignore it.
    */
-  height?: number
+  height?: 16 | 24
   frame?: number
 }
 
@@ -331,8 +331,8 @@ export interface PixSpell {
     size: number
     /** Skin tones, light to deep: pass one as C. */
     skins: SkinTone[]
-    /** The range spec.height takes: [16, 32]. */
-    heights: [number, number]
+    /** The heights a person can be drawn at: [16, 24]. */
+    heights: (16 | 24)[]
     /** Characters from around the world: traditional clothing with hats and weapons from the same place. */
     world: { id: string; name: string; region: string; spec: CharacterSpec }[]
   }

@@ -36,7 +36,7 @@ const fits = (kind) => kind === 'body' || !!anchorsOf(spec.body)[kind]
 function cleanSpec(s) {
   const out = { body: s.body }
   for (const k of ['hat', 'hand', 'offhand', 'A', 'B', 'C']) if (s[k]) out[k] = s[k]
-  if (s.height > 16 && anchorsOf(s.body).hand) out.height = s.height // taller people; animals and monsters keep their size
+  if (s.height === 24 && anchorsOf(s.body).hand) out.height = 24 // drawn tall people; animals and monsters keep their size
   if (out.C && SKINS.includes(out.C) && !hasSkin(out.body)) delete out.C // a skin tone means nothing on a slime
   return out
 }
@@ -158,16 +158,17 @@ function worldPicker() {
     strip)
 }
 
-// how tall people are drawn: 16 is the classic chibi size, up to 32 for long-legged RPG proportions
+// how tall people are drawn: the chibi body (16 px) or its hand-drawn tall version (24 px, longer legs, RPG proportions)
 function heightPicker() {
   const ok = Boolean(anchorsOf(spec.body).hand)
   const now = spec.height ?? 16
+  const opt = (v, label, title) => h('button', {
+    'aria-pressed': String(now === v), disabled: !ok, title,
+    onclick: () => { heightPref = v === 16 ? null : v; if (heightPref) spec.height = v; else delete spec.height; seed = null; refresh() },
+  }, label)
   return h('div', { class: `picker${ok ? '' : ' off'}` },
-    h('div', { class: 'picker-head' }, h('b', {}, 'Height'), h('span', { class: 'muted' }, ok ? (now === 16 ? '16 px (chibi)' : `${now} px`) : `${spec.body} keeps its size`)),
-    h('div', { class: 'seg' }, [16, 20, 24, 28, 32].map((v) => h('button', {
-      'aria-pressed': String(now === v), disabled: !ok, title: v === 16 ? 'As drawn (chibi)' : `${v} px tall`,
-      onclick: () => { heightPref = v === 16 ? null : v; if (heightPref) spec.height = v; else delete spec.height; seed = null; refresh() },
-    }, String(v)))),
+    h('div', { class: 'picker-head' }, h('b', {}, 'Height'), h('span', { class: 'muted' }, ok ? (now === 16 ? '16 px, chibi' : '24 px, tall') : `${spec.body} keeps its size`)),
+    h('div', { class: 'seg' }, opt(16, 'Chibi 16', 'As drawn: 16 px tall'), opt(24, 'Tall 24', 'Drawn taller: 24 px, longer legs')),
   )
 }
 
@@ -231,7 +232,7 @@ export function initMaker({ openInStudio }) {
       action = spell.action.list.includes(s.action) || /^walk-(down|up|left|right)$/.test(s.action) ? s.action : null
       element = ELEMENTS[s.element] ? s.element : null
       spec = s
-      if (s.height > 16) heightPref = s.height
+      if (s.height === 24) heightPref = 24
     }
   } catch { /* ignore broken links */ }
 

@@ -1278,3 +1278,28 @@ The ask: characters that are a bit longer top to bottom, not only the 16 px chib
   **Fixed:** it repeats the plain row above.
 - **Fine:** all six pages, no sideways scroll on a phone; every humanoid at 32 px.
 
+### Tall, take two: drawn, not stretched
+
+Next to the original, the stretched people looked wrong: the arms were sticks, and nothing bent at the elbow, waist or
+knee. I drew one tall knight by hand to compare; the difference was obvious, and drawing fits the project better anyway,
+since every sprite is hand-drawn text art and a tall body is just one more sprite with anchors.
+
+- **All 19 human bodies are drawn again at 16x24** (`src/sprites/tall.js`, 76 sprites: each body plus 3 walk poses).
+  - **Same head:** rows 0-7 are copied from each chibi pose, so a tall character has the same face and hair, and hats
+    sit the same way.
+  - **Below the neck,** each body has shoulders, arms apart from the torso, hands at the hips on row 14, then legs with
+    knees and boots, or a long garment: the chima, the dopo, the hakama, a sari with its pallu over one shoulder.
+  - **Walking:** legs lift one shin at a time and robes sway at the hem. Each body has a side view and a drawn stride,
+    and the 3/4 diagonals come from the same turn as the chibi poses.
+- **`height` now takes 16 or 24.** 24 swaps in `<body>-tall` for every pose. Variants keep their colors, and animals and
+  monsters keep their size. The row-stretching code is gone, and with it heights 20, 28 and 32.
+- **Fixed after looking at them:**
+  - The sari's pallu was mirrored into an "A", because its rows were written as mirrored halves.
+  - The poncho was a flat disc; it's now a longer cape with a fringe.
+  - The deel had a lump on one shoulder.
+- **Checks:**
+  - The clipping test now bounds each pose by its real height.
+  - A test checks that every humanoid has all 4 tall sprites with the chibi head, plus the sizes, origins, the hand,
+    the pack cells and the error for 32.
+  - Snapshots: only the tall entries changed (stretched to drawn), 2 were removed (20 and 32) and 76 are new.
+

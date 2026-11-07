@@ -53,12 +53,11 @@ export async function computeSnapshots() {
     out[`grid${g}:fx-portal-ice`] = fnv(spell.frames('fx-portal-ice', { grid: g }))
   }
   out['grid32:pack'] = fnv([spell.pack(specs[1], { grid: 32, actions: ['attack'] }).image])
-  // taller people: every humanoid base at 24, a few at 20 and 32, in every view, and actions on a tall body
+  // tall people (drawn at 24): every humanoid in every view, and actions, a status and a pack on a tall body
   for (const body of [...new Set(spell.char.parts.body.map((id) => looks[id].def.id))].filter((b) => looks[b].def.anchors.hand)) {
     out[`tall24:${body}`] = fnv([spell.char({ body, height: 24 }), ...['down', 'up', 'right', 'down-right'].flatMap((d) => spell.walk({ body, height: 24 }, d))])
   }
-  for (const h of [20, 32]) out[`tall${h}:knight`] = fnv(spell.walk({ ...specs[0], height: h }, 'left'))
-  for (const a of ['attack', 'hit', 'levelup']) out[`tall:action:${a}`] = fnv(spell.action({ ...specs[0], height: 28 }, a))
+  for (const a of ['attack', 'hit', 'levelup']) out[`tall:action:${a}`] = fnv(spell.action({ ...specs[0], height: 24 }, a))
   out['tall:status'] = fnv(spell.status({ ...specs[0], height: 24 }, 'burning'))
   out['tall:pack'] = fnv([spell.pack({ ...specs[0], height: 24 }, { actions: ['attack'] }).image])
   // sounds: the 16-bit PCM bytes, so tiny float differences below one step don't count

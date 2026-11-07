@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**23 million** characters with walk cycles and actions · **1,056** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
+**23 million** characters with walk cycles and actions · **1,132** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -24,7 +24,7 @@ generate, recolor and resize them in one line of JavaScript, or ask your AI codi
 [Add a sprite](CONTRIBUTING.md) ·
 [한국어](README.ko.md)
 
-![sprites](https://img.shields.io/badge/sprites-315_base_·_1%2C056_looks-a8e05a?style=flat-square)
+![sprites](https://img.shields.io/badge/sprites-391_base_·_1%2C132_looks-a8e05a?style=flat-square)
 ![effects](https://img.shields.io/badge/effects-110_designs_·_665_looks-a8e05a?style=flat-square)
 ![sounds](https://img.shields.io/badge/sounds-103_×_10_elements-a8e05a?style=flat-square)
 ![music](https://img.shields.io/badge/music-17_tracks-a8e05a?style=flat-square)
@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [any height, chibi to tall](#-any-height-from-chibi-to-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [chibi or tall people](#-chibi-or-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -252,19 +252,19 @@ spell.char({ ...spell.char.world[0].spec, C: 'skin-dark' })               // 26 
 spell.char.skins                                                         // skin-light skin skin-olive skin-tan skin-brown skin-dark
 ```
 
-### 📏 Any height, from chibi to tall
+### 📏 Chibi or tall
 
-<img src="docs/img/heights.png" alt="A knight, a hanbok dancer, a samurai and a mage, each at heights 16, 20, 24, 28 and 32 pixels, walking" width="810">
+<img src="docs/img/heights.png" alt="A knight, a hanbok dancer, a samurai, a mage, a highlander and a skeleton, each chibi (16 px) and tall (24 px), walking" width="810">
 
-People are drawn chibi (16 px), but games with longer-legged characters can ask for any height up to 32. Each body
-repeats a chest row and a leg row chosen for it (never the hands or the feet), in every pose, so the proportions hold
-in all 8 directions; hats and weapons stay on the head and in the hand. Walks, actions, statuses and game packs grow
-with them, feet still at the bottom (`frames.origin`).
+Every person comes in two heights. Chibi (16 px) is the default; `height: 24` uses a version drawn taller by hand, with
+the same head, a neck, arms apart from the body, hands at the hips and long legs or a long garment. It has all 8 walking
+directions, every action and every hat and weapon, in all 19 human bodies (the fantasy ones and the 14 in traditional
+clothing). Tall characters are 24×32, actions and pack cells 32×40, feet at the bottom (`frames.origin`).
 
 ```js
 spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana', height: 24 }, 'left')   // 24x32 frames
-spell.pack({ body: 'heroine', hand: 'bow', height: 32 })                            // 32x48 cells
-// npx pixspell char hero --hat crown --height 28 -o tall.png
+spell.pack({ body: 'heroine', hand: 'bow', height: 24 })                            // 32x40 cells
+// npx pixspell char hero --hat crown --height 24 -o tall.png
 ```
 
 ### ⚔️ Actions & effects
@@ -393,7 +393,7 @@ torches, pillars, spike traps, stairs, cobwebs, bones, tombstones, mine carts an
 mushrooms, crystals and lily pads, plus seamless cobblestone, roof tiles, carpet, checkered floors, bridges and
 flowing lava. Each comes in several materials (`door-iron`, `roof-slate`, `lava-toxic`, `crystals-amethyst`...).
 
-315 base sprites in 7 categories, **1,056 looks** with variants, 106 of them animated.
+391 base sprites in 7 categories, **1,132 looks** with variants, 163 of them animated.
 Characters, wearable gear, weapons (dagger, spear, hammer, wand...), armor, boots, amulets, potions, gems, food (bread, cheese, cake, carrot, egg, grapes...),
 treasure and quest items (gold bars, trophy, map, compass, hourglass, letter, runes...), monsters, seamless tiles, props, furniture, UI icons,
 emote bubbles and effects (explosions, sparkles, smoke, hits, slashes). On top of that, the [110 procedural effects](#-665-game-effects)
@@ -604,7 +604,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.list({ category, tag, variants })` | ids of all looks |
 | `spell.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | animation frames · a reproducible random character |
-| `{ ...spec, height: 24 }` | taller humanoids (16 to 32 px): a longer torso and legs in every pose, action, status and pack, feet at the bottom |
+| `{ ...spec, height: 24 }` | the person drawn tall (24 px instead of 16) in every pose, action, status and pack, feet at the bottom |
 | `spell.char.world` · `spell.char.skins` | 26 ready-made people from around the world (`{ id, name, region, spec }`) · the 6 skin tones for `C` |
 | `spell.char.parts` · `spell.char.count()` | every body / hat / hand / off-hand id · number of combinations |
 | `spell.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |

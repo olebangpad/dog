@@ -61,8 +61,8 @@ A character is a spec: `{ body, hat?, hand?, offhand?, A?, B?, C? }`.
   `keffiyeh` `turban` `chullo` `kokoshnik` `ushanka` `beret` `tam`; weapons `katana` `gladius` `khopesh` `scimitar` `jian`
   `claymore` `fan` `boomerang`; shields `scutum` `aspis` `hide-shield`. `spell.char.world` has 26 ready-made people
   (`{ id, name, region, spec }`).
-- Height: humanoids are chibi (16 px tall) by default; `height: 20 | 24 | 28 | 32` (any of 16-32) makes a longer torso and
-  legs in every pose. The character is then 24 x (8 + height), actions and pack cells 32 x (16 + height), feet still at the
+- Height: humanoids are chibi (16 px tall) by default; `height: 24` uses their hand-drawn tall version (same head, longer
+  body and legs, arms apart, in every pose). Tall characters are 24x32, actions and pack cells 32x40, feet still at the
   bottom center (`frames.origin`). Animals and monsters ignore it. CLI: `--height 24`.
 - Skin: `C` is the skin slot of every humanoid body; `spell.char.skins` lists 6 tones, light to deep (`skin-light` `skin`
   `skin-olive` `skin-tan` `skin-brown` `skin-dark`). Random characters already vary it.

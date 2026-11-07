@@ -13,7 +13,7 @@ function heroFromLink() {
     if (!looks[s.body] || !Object.keys(looks[s.body].def.anchors).length) return null
     const out = { body: s.body }
     for (const k of ['hat', 'hand', 'offhand', 'A', 'B', 'C']) if (s[k]) out[k] = s[k]
-    if (Number.isInteger(s.height) && s.height > 16 && s.height <= 32) out.height = s.height
+    if (s.height === 24) out.height = 24
     return out
   } catch {
     return null
