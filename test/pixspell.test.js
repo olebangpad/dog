@@ -1356,3 +1356,93 @@ test('RPG Maker MV / MZ sheets, avatars, and GameMaker strips in packs', () => {
   assert.equal(spell.readPNG(pack.files[strip], inflateSync).w, 32 * 8)
   assert.match(pack.files['README.txt'], /UNITY[\s\S]*Grid By Cell Size 32 x 32[\s\S]*GAMEMAKER/)
 })
+
+// a small GIF decoder, to check what the encoder writes (header, palette, LZW, frames, transparency, loop)
+function decodeGIF(b) {
+  assert.equal(String.fromCharCode(...b.subarray(0, 6)), 'GIF89a')
+  const w = b[6] | (b[7] << 8), h = b[8] | (b[9] << 8)
+  const gct = 2 << (b[10] & 7)
+  const pal = b.subarray(13, 13 + gct * 3)
+  let o = 13 + gct * 3, loops = null, delay = 0, transparent = -1
+  const frames = []
+  while (b[o] !== 0x3b) {
+    if (b[o] === 0x21) {
+      const label = b[o + 1]
+      if (label === 0xf9) { delay = b[o + 4] | (b[o + 5] << 8); transparent = b[o + 3] & 1 ? b[o + 6] : -1 }
+      if (label === 0xff) loops = b[o + 16] | (b[o + 17] << 8)
+      o += 2
+      while (b[o]) o += b[o] + 1
+      o++
+      continue
+    }
+    assert.equal(b[o], 0x2c)
+    const min = b[o + 10]
+    o += 11
+    const data = []
+    while (b[o]) { data.push(...b.subarray(o + 1, o + 1 + b[o])); o += b[o] + 1 }
+    o++
+    // LZW decode
+    const clear = 1 << min, end = clear + 1
+    let size = min + 1, dict = [], pos = 0, prev = null
+    const reset = () => { dict = Array.from({ length: clear }, (_, i) => [i]); dict.push(null, null); size = min + 1; prev = null }
+    reset()
+    const out = []
+    const read = () => { let v = 0; for (let i = 0; i < size; i++, pos++) v |= ((data[pos >> 3] >> (pos & 7)) & 1) << i; return v }
+    for (;;) {
+      const code = read()
+      if (code === clear) { reset(); continue }
+      if (code === end) break
+      let entry
+      if (code < dict.length && dict[code]) entry = dict[code]
+      else if (code === dict.length && prev) entry = [...prev, prev[0]]
+      else throw new Error('bad LZW code ' + code)
+      out.push(...entry)
+      if (prev) dict.push([...prev, entry[0]])
+      if (dict.length === 1 << size && size < 12) size++
+      prev = entry
+    }
+    const px = []
+    for (const i of out) px.push(i === transparent ? [0, 0, 0, 0] : [pal[i * 3], pal[i * 3 + 1], pal[i * 3 + 2], 255])
+    frames.push({ px, delay })
+  }
+  return { w, h, frames, loops }
+}
+
+test('GIF export: exact colors, transparency, timing and loop; median cut when there are too many colors', async () => {
+  const swing = spell.action({ body: 'hero', hat: 'knight', hand: 'sword' }, 'attack', 'fire')
+  const g = decodeGIF(swing.toGIF())
+  assert.deepEqual([g.w, g.h, g.frames.length, g.loops], [32, 32, 8, 0])
+  assert.equal(g.frames[0].delay, Math.round(100 / swing.fps))
+  swing.forEach((f, i) => {
+    for (let p = 0; p < f.w * f.h; p++) {
+      const a = f.data[p * 4 + 3], got = g.frames[i].px[p]
+      if (a >= 128) assert.deepEqual(got, [...f.data.subarray(p * 4, p * 4 + 3), 255], `frame ${i} pixel ${p}`)
+      else assert.equal(got[3], 0, `frame ${i} pixel ${p} is clear`)
+    }
+  })
+  // big images reset the LZW dictionary; a background fills every pixel
+  const big = spell.walk({ body: 'samurai', height: 24 }, 'left').scale(8)
+  const gb = decodeGIF(big.toGIF({ background: '#102030' }))
+  assert.equal(gb.frames[0].px.length, big[0].w * big[0].h)
+  assert.deepEqual(gb.frames[0].px[0], [0x10, 0x20, 0x30, 255])
+  // more than 256 colors: one shared palette, close to the original
+  const grad = new Pixmap(64, 64)
+  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) grad.set(x, y, [x * 4, y * 4, 128, 255])
+  const gg = decodeGIF(grad.toGIF())
+  let err = 0
+  for (let p = 0; p < 64 * 64; p++) err += Math.abs(gg.frames[0].px[p][0] - grad.data[p * 4]) + Math.abs(gg.frames[0].px[p][1] - grad.data[p * 4 + 1])
+  assert.ok(err / (64 * 64) < 24, `average error ${err / 4096}`)
+  // .save picks the format from the extension
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const dir = mkdtempSync(join(tmpdir(), 'pixspell-gif-'))
+  try {
+    await swing.save(join(dir, 'a.gif'))
+    await swing.save(join(dir, 'a.png'))
+    assert.equal(String.fromCharCode(...readFileSync(join(dir, 'a.gif')).subarray(0, 3)), 'GIF')
+    assert.equal(readFileSync(join(dir, 'a.png'))[1], 0x50) // 'P' of PNG
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})

@@ -10,6 +10,7 @@ import { Pixmap, compose, sheet } from './pixmap.js'
 import { MATERIALS, MATERIAL_NAMES, OUTLINE } from './materials.js'
 import { parseColor, toHex, rampFrom } from './color.js'
 import { encodePNG, encodeAPNG } from './png.js'
+import { encodeGIF } from './gif.js'
 import { text, FONT_CHARS } from './font.js'
 import { createCharacters, CHAR_SIZE } from './character.js'
 import { createActions, ACTION_SIZE, ACTION_FRAMES, ELEMENTS } from './action.js'
@@ -521,7 +522,7 @@ spell.sfxPack = (names = spell.sfx.list, { name = 'sounds', ...opts } = {}) => {
 export {
   Pixmap, compose, sheet, render, renderFrames, defineSprite, resolveRamp,
   MATERIALS, MATERIAL_NAMES, OUTLINE, LEGEND, SLOTS,
-  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip, FX_COLORS, RECIPES,
+  parseColor, toHex, rampFrom, encodePNG, encodeAPNG, encodeGIF, text, FONT_CHARS, CHAR_SIZE, ACTION_SIZE, ACTION_FRAMES, ELEMENTS, PACK_CELL, zip, FX_COLORS, RECIPES,
   Sound, renderSound, note, SAMPLE_RATE, SOUNDS,
 }
 /** The old name of spell, kept so early code keeps working. */

@@ -82,6 +82,8 @@ export class Pixmap {
   toDataURL(): string
   /** Browser only. */
   toCanvas(canvas?: HTMLCanvasElement): HTMLCanvasElement
+  /** A single-frame GIF. */
+  toGIF(opts?: { background?: string | null }): Uint8Array
   /** Browser: a canvas of this image made once and kept, for ctx.drawImage(img.canvas, x, y) in a game loop. */
   readonly canvas: HTMLCanvasElement
   /** Node only: write a compressed PNG. */
@@ -99,8 +101,10 @@ export type Frames = Pixmap[] & {
   toAPNG(opts?: { deflate?: (bytes: Uint8Array) => Uint8Array; loops?: number }): Uint8Array
   /** The animated PNG as a data: URL, for <img src> (it plays). */
   toDataURL(): string
-  /** Node: write it as a compressed animated PNG. */
-  save(path: string): Promise<string>
+  /** An animated GIF at .fps (chat apps and social posts play GIFs). background blends glows onto a color. */
+  toGIF(opts?: { background?: string | null; loops?: number }): Uint8Array
+  /** Node: write it as a compressed animated PNG, or a GIF if the path ends in .gif. */
+  save(path: string, opts?: { background?: string | null }): Promise<string>
   /** Every frame on one sheet, with each frame's rect. */
   toSheet(opts?: { columns?: number; gap?: number; padding?: number; background?: string }): { image: Pixmap; frames: { x: number; y: number; w: number; h: number }[] }
   /** Every frame scaled; keeps .fps, .loop and .origin. */
@@ -450,6 +454,8 @@ export function rampFrom(color: string): [string, string, string, string]
 export function parseColor(c: string | RGBA): RGBA
 export function toHex(rgba: RGBA): string
 export function encodePNG(img: Pixmap, opts?: { deflate?: (b: Uint8Array) => Uint8Array }): Uint8Array
+/** Frames -> animated GIF bytes (one shared palette; median cut past 256 colors). */
+export function encodeGIF(frames: Pixmap[], opts?: { fps?: number; loops?: number; background?: string | null }): Uint8Array
 export function encodeAPNG(frames: Pixmap[], opts?: { fps?: number; loops?: number; deflate?: (b: Uint8Array) => Uint8Array }): Uint8Array
 export function zip(files: Record<string, Uint8Array | string>): Uint8Array
 

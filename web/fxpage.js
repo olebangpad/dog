@@ -1,5 +1,5 @@
 // Effects gallery: every procedural effect animating at once, recolor, preview, download.
-import { spell, looks, sheet, encodeAPNG, zip, MATERIALS, FX_COLORS } from '../src/index.js'
+import { spell, looks, sheet, encodeAPNG, encodeGIF, zip, MATERIALS, FX_COLORS } from '../src/index.js'
 import { $, $$, h, download, copy, toast } from './ui.js'
 
 const KINDS = ['all', 'burst', 'magic', 'element', 'projectile', 'beam', 'weather', 'environment', 'status', 'combat', 'reward', 'spectacle', 'loop']
@@ -93,6 +93,12 @@ const fileName = (id) => `${id}${state.color ? '-' + state.color : ''}-${state.g
 $('#detail-anim').addEventListener('click', () => {
   const r = framesFor(detail.id, state.color, fxSize())
   download(`${fileName(detail.id)}.png`, encodeAPNG(r.frames, { fps: r.fps }))
+})
+// a GIF for chat and social posts: bigger, on a dark background so the glow blends instead of cutting off
+$('#detail-gif').addEventListener('click', () => {
+  const r = framesFor(detail.id, state.color, fxSize())
+  const k = Math.max(1, Math.round(192 / r.frames[0].w))
+  download(`${fileName(detail.id)}.gif`, encodeGIF(r.frames.map((f) => f.scale(k)), { fps: r.fps, background: '#12161f' }), 'image/gif')
 })
 $('#detail-strip').addEventListener('click', () => {
   const r = framesFor(detail.id, state.color, fxSize())

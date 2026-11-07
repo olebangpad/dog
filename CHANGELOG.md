@@ -16,6 +16,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **GIF export:** a zero-dependency encoder (one shared palette, median cut past 256 colors, transparency or a background
+  to blend glows onto). `frames.toGIF()`, `.save('x.gif')`, `Pixmap.toGIF()`, `encodeGIF`; GIF buttons in the maker and
+  on the effects page; the CLI writes a GIF when `-o` ends in `.gif`.
 - **More engines:** `spell.rpgmaker(specs)` makes RPG Maker MV / MZ character sheets (a "$" sheet for one, a 4 x 2 sheet
   for up to 8; 48 px frames, tall ones 48 x 64) and face sheets; `pack(spec, { strips: true })` adds GameMaker
   `_stripN` strips; pack READMEs give Unity slicing settings. `spell.avatar(spec)` makes a profile picture. Maker buttons

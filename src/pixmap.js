@@ -4,6 +4,7 @@
 
 import { parseColor, rgbToHsl, hslToRgb, clamp01, toHex } from './color.js'
 import { encodePNG, toBase64 } from './png.js'
+import { encodeGIF } from './gif.js'
 
 const pack = (r, g, b, a) => a === 0 ? 0 : (((r << 24) | (g << 16) | (b << 8) | a) >>> 0)
 
@@ -391,10 +392,13 @@ export class Pixmap {
     return c
   }
 
-  /** Node: write a compressed PNG file. */
+  /** A single-frame GIF (opts.background blends partial alpha onto a color). */
+  toGIF(opts) { return encodeGIF([this], opts) }
+
+  /** Node: write a compressed PNG file (or a GIF if the path ends in .gif). */
   async save(path) {
     const [{ writeFile }, { deflateSync }] = await Promise.all([import('node:fs/promises'), import('node:zlib')])
-    await writeFile(path, this.toPNG({ deflate: (b) => deflateSync(b, { level: 9 }) }))
+    await writeFile(path, /\.gif$/i.test(path) ? this.toGIF() : this.toPNG({ deflate: (b) => deflateSync(b, { level: 9 }) }))
     return path
   }
 }

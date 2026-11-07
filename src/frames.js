@@ -14,16 +14,22 @@
 
 import { sheet } from './pixmap.js'
 import { encodeAPNG, toBase64 } from './png.js'
+import { encodeGIF } from './gif.js'
 
 const METHODS = {
   /** An animated PNG of every frame at .fps, looping forever. opts: deflate, loops (0 = forever). */
   toAPNG(opts = {}) { return encodeAPNG(this, { fps: this.fps ?? 8, ...opts }) },
   /** A data: URL of the animated PNG, for <img src>. */
   toDataURL() { return 'data:image/png;base64,' + toBase64(this.toAPNG()) },
-  /** Node: write a compressed animated PNG file. */
-  async save(path) {
+  /**
+   * An animated GIF at .fps, for chat apps and social posts where APNG doesn't play.
+   * opts: background (blend glows onto a color; default transparent), loops (0 = forever).
+   */
+  toGIF(opts = {}) { return encodeGIF(this, { fps: this.fps ?? 8, ...opts }) },
+  /** Node: write a compressed animated PNG, or an animated GIF if the path ends in .gif. */
+  async save(path, opts = {}) {
     const [{ writeFile }, { deflateSync }] = await Promise.all([import('node:fs/promises'), import('node:zlib')])
-    await writeFile(path, this.toAPNG({ deflate: (b) => deflateSync(b, { level: 9 }) }))
+    await writeFile(path, /\.gif$/i.test(path) ? this.toGIF(opts) : this.toAPNG({ deflate: (b) => deflateSync(b, { level: 9 }) }))
     return path
   },
   /** Every frame on one sprite sheet: { image, frames: [{ x, y, w, h }] }. opts: columns, gap, padding, background. */

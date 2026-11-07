@@ -35,7 +35,8 @@ Game engines (Phaser, Godot, anything that reads Aseprite/TexturePacker JSON): e
    in (looping ones wrap, the rest hold the last frame), `frames.duration` is one pass in seconds, and `frames.origin` is the
    point to place at (x, y), already right for the grid: a character's feet, an effect's middle, a plain sprite's top-left:
    `const f = frames.atTime(t); ctx.drawImage(f.canvas, x - frames.origin[0], y - frames.origin[1])`.
-   Also `.flipX()` (face left), `.scale(n)`, `.toSheet()`, `.save(path)` (an animated PNG, Node), `.toDataURL()` (an `<img>` that plays).
+   Also `.flipX()` (face left), `.scale(n)`, `.toSheet()`, `.save(path)` (an animated PNG, Node; a GIF if the path ends in `.gif`),
+   `.toGIF({ background })` (chat apps and social posts play GIFs, not APNG), `.toDataURL()` (an `<img>` that plays).
 6. **Match the game's tile size with `grid`** (8, 16, 32 or 64; the art is drawn on 16). Every call takes it:
    `spell('sword', { grid: 32 })`, `spell.char(spec, { grid: 32 })`, `spell.walk(spec, 'left', { grid: 32 })`,
    `spell.action(spec, 'attack', { element: 'fire', grid: 32 })`, `spell.fx('boom', { grid: 32 })`, `spell.pack(spec, { grid: 32 })`.

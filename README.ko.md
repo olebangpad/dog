@@ -511,6 +511,7 @@ await spell('sword', { A: 'gold', C: 'red' }).scale(4).save('gold-sword.png')
 const frames = spell.frames('slime-blue')            // 애니메이션 모든 프레임, .fps 포함
 await frames.toSheet().image.scale(4).save('slime-sheet.png')
 await spell.walk({ body: 'hero', hat: 'knight' }, 'left').scale(4).save('walk.png')   // 제 속도로 움직이는 애니메이션 PNG
+await spell.fx('meteor', { size: 64 }).save('meteor.gif', { background: '#101814' })  // 어디든 올릴 수 있는 GIF
 ```
 
 ES 모듈 전용입니다(`require` 불가). 모든 기능이 `spell` 하나에 들어 있습니다(예전 이름 `dog`도 그대로 동작합니다). 버전은 semver를 따르고, 1.0 전까지는 마이너 버전에서 API가 바뀔 수 있으며 [변경 기록](CHANGELOG.md)에 적습니다.
@@ -560,7 +561,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | --- | --- |
 | `spell(id, { A, B, C, frame })` | 스프라이트 렌더링. `A/B/C`에는 재질 이름, hex 색, 4색 배열 |
 | `spell.frames(id, opts)` | 애니메이션 전체 프레임 |
-| 프레임 목록 (`frames`, `walk`, `action`, `status`, `fx`의 결과) | `.fps`, `.loop`가 붙은 그림 배열. 게임 루프용: `.atTime(t)`, `.duration`, `.origin`(x, y에 놓을 점: 발 / 가운데 / 왼쪽 위), `.flipX()`. 그림마다 한 번 만들어 두는 `.canvas`(`drawImage`용). 내보내기: `.save(path)`(움직이는 PNG), `.toDataURL()`(재생되는 `<img>`), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
+| 프레임 목록 (`frames`, `walk`, `action`, `status`, `fx`의 결과) | `.fps`, `.loop`가 붙은 그림 배열. 게임 루프용: `.atTime(t)`, `.duration`, `.origin`(x, y에 놓을 점: 발 / 가운데 / 왼쪽 위), `.flipX()`. 그림마다 한 번 만들어 두는 `.canvas`(`drawImage`용). 내보내기: `.save(path)`(움직이는 PNG, `.gif`면 GIF), `.toGIF()`(메신저·SNS용), `.toDataURL()`(재생되는 `<img>`), `.toAPNG()`, `.toSheet()`, `.scale(n)` |
 | `spell.list({ category, tag, variants })` | 전체 id 목록 |
 | `spell.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |

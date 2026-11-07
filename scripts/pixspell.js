@@ -13,7 +13,7 @@ import { homedir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deflateSync, inflateSync } from 'node:zlib'
-import { spell, looks, compose, sheet, text, Pixmap, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
+import { spell, looks, compose, sheet, text, Pixmap, encodeAPNG as apngBytes, encodeGIF, zip, MATERIAL_NAMES } from '../src/index.js'
 
 const HELP = `pixspell - game assets as code
 
@@ -77,7 +77,7 @@ options:
   --frame <n>                  animation frame
   --anim                       write every frame as an animated PNG
   --strip                      write every frame side by side (sprite strip)
-  -o <file>                    output path (default: <id>.png)
+  -o <file>                    output path (default: <id>.png); animations end in .gif for a GIF
 `
 
 function parse(argv) {
@@ -156,6 +156,9 @@ const save = (path, bytes) => {
   console.log(`wrote ${path}`)
 }
 const deflate = (b) => deflateSync(b, { level: 9 })
+// animations: an animated PNG, or a GIF when the output path ends in .gif (chat apps and social posts play GIFs)
+let outPath = null
+const encodeAPNG = (frames, { fps, deflate: d } = {}) => (/\.gif$/i.test(outPath ?? '') ? encodeGIF(frames, { fps }) : apngBytes(frames, { fps, deflate: d }))
 const ramps = (o) => Object.fromEntries(['A', 'B', 'C'].filter((k) => o[k]).map((k) => [k, o[k]]))
 
 function autoOutline(src) {
@@ -176,6 +179,7 @@ process.on('uncaughtException', fail)
 process.on('unhandledRejection', fail)
 
 const o = parse(process.argv.slice(2))
+outPath = o.out ?? null
 const [cmd, ...args] = o._
 for (const u of o.unknown ?? []) {
   console.error(`pixspell: unknown option ${u}.${didYouMean(u, OPTIONS)} See: pixspell --help`)

@@ -1,5 +1,5 @@
 // Character maker: body + hat + held item + off-hand, snapped together by spell.char().
-import { spell, looks, sheet, encodeAPNG, Pixmap, zip, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
+import { spell, looks, sheet, encodeAPNG, encodeGIF, Pixmap, zip, MATERIALS, MATERIAL_NAMES, ELEMENTS, ACTION_SIZE, CHAR_SIZE } from '../src/index.js'
 import { $, h, paint, thumb, download, copy, toast, encode, decode, readHash, writeHash } from './ui.js'
 
 const REPO = 'olebangpad/pixspell'
@@ -90,6 +90,7 @@ function refresh({ pickers = true } = {}) {
   paint($('#maker-view'), preview[0])
   $('#mk-code').textContent = codeFor(spec)
   $('#mk-anim').disabled = frames.length < 2
+  $('#mk-gif').disabled = preview.length < 2
   $('#mk-strip').disabled = frames.length < 2
   $('#maker-seed').textContent = seed == null ? '' : `seed ${seed}`
   if (pickers) renderPickers()
@@ -251,6 +252,8 @@ export function initMaker({ openInStudio }) {
   const name = () => dogLabel(spec).replace(/ \+ /g, '_') + (action ? `_${action}${element && !walkDir() ? '-' + element : ''}` : '')
   $('#mk-png').addEventListener('click', () => download(`${name()}-${grid}px.png`, atGrid(frames[action && !walkDir() ? 2 : 0]).toPNG()))
   $('#mk-anim').addEventListener('click', () => download(`${name()}-${grid}px-anim.png`, encodeAPNG(atGrid(frames), { fps })))
+  // a GIF to share: what the stage shows, 6x, on a dark background (chat apps and social posts play GIFs, not APNG)
+  $('#mk-gif').addEventListener('click', () => download(`${name()}.gif`, encodeGIF(preview.map((f) => f.scale(6)), { fps, background: '#15201a' }), 'image/gif'))
   $('#mk-pack').addEventListener('click', async () => {
     const pack = spell.pack(spec, { element: element ?? undefined, grid, strips: true })
     // let the browser's PNG encoder compress the sheet and the GameMaker strips (the built-in encoder doesn't compress)
