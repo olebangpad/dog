@@ -29,6 +29,10 @@ usage:
   pixspell char <body> ... --walk left --anim -o walk.png   directions: down up left right down-right down-left up-right up-left
   pixspell pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
                                            game pack: sprite sheet + Phaser/Aseprite JSON + Godot .tres
+                                           (--strip adds GameMaker strips; the README says how to slice it in Unity)
+  pixspell rpgmaker <body> [--hat x] [--hand x] [--height 24] [-o hero.zip]   RPG Maker MV / MZ sheet + face
+  pixspell rpgmaker --random 8 [--seed town] [--id Townsfolk]                8 random characters on one sheet
+  pixspell avatar <body> [--hat x] [--size 512] [--full] -o me.png            a profile picture
   pixspell fx <name> [--element ice] [--size 64] [--seed n] [--on <body>] -o out.png
                                            procedural effect as an animated PNG (--strip: frame strip,
                                            --frame n: one frame, --on slime: on a character as a status)
@@ -120,6 +124,7 @@ function parse(argv) {
     else if (a === '--preview') opts.preview = next()
     else if (a === '--tempo') opts.tempo = Number(next())
     else if (a === '--height') opts.height = Number(next())
+    else if (a === '--full') opts.full = true
     else if (a === '-h' || a === '--help') opts.help = true
     else if (/^--?[a-z]/i.test(a)) (opts.unknown ??= []).push(a)
     else opts._.push(a)
@@ -130,8 +135,8 @@ function parse(argv) {
 const OPTIONS = ['-A', '-B', '-C', '-o', '--out', '--scale', '--smooth', '--outline', '--shadow', '--hue', '--sat', '--light', '--flip-x',
   '--flip-y', '--rotate', '--frame', '--anim', '--hat', '--hand', '--offhand', '--random', '--action', '--walk', '--element', '--strip',
   '--dir', '--size', '--seed', '--on', '--pitch', '--grid', '--no-effects', '--no-sounds', '--all-colors', '--volume', '--claude',
-  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--height', '--help']
-const COMMANDS = ['list', 'materials', 'info', 'render', 'combine', 'char', 'pack', 'fx', 'fxpack', 'sfx', 'import', 'autotile', 'music',
+  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--height', '--full', '--help']
+const COMMANDS = ['list', 'materials', 'info', 'render', 'combine', 'char', 'pack', 'rpgmaker', 'avatar', 'fx', 'fxpack', 'sfx', 'import', 'autotile', 'music',
   'sfxpack', 'export', 'hero', 'preview', 'doctor', 'mcp', 'skill', 'outline']
 
 function finish(img, o) {
@@ -220,14 +225,31 @@ if (!cmd || o.help) {
   const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }
   for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
-  const pack = spell.pack(spec, { element: o.element, deflate, grid: o.grid })
+  const pack = spell.pack(spec, { element: o.element, deflate, grid: o.grid, strips: o.strip })
   if (o.dir) {
-    mkdirSync(o.dir, { recursive: true })
+    mkdirSync(join(o.dir, 'strips'), { recursive: true })
     for (const [name, data] of Object.entries(pack.files)) save(join(o.dir, name), data)
   } else {
     save(o.out ?? `${pack.id}.zip`, pack.zip())
   }
   console.log(`${pack.animations.length} animations: ${pack.animations.join(', ')}`)
+} else if (cmd === 'rpgmaker') {
+  // one character as a "$" sheet, or --random n (up to 8) as one standard sheet of townsfolk
+  const one = (seed) => spell.char.random(seed)
+  const specs = o.random
+    ? Array.from({ length: Math.min(8, o.random === true ? 8 : Number(o.random) || 8) }, (_, i) => ({ ...one(`${o.seed ?? 'rpg'}-${i}`), ...(o.height ? { height: o.height } : {}) }))
+    : [{ body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }]
+  for (const s of specs) for (const k of Object.keys(s)) if (s[k] == null) delete s[k]
+  const rm = spell.rpgmaker(specs.length === 1 ? specs[0] : specs, { name: o.id, deflate })
+  if (o.dir) {
+    for (const [name, data] of Object.entries(rm.files)) { mkdirSync(dirname(join(o.dir, name)), { recursive: true }); save(join(o.dir, name), data) }
+  } else save(o.out ?? `${rm.id}-rpgmaker.zip`, rm.zip())
+  console.error(`${specs.length} character${specs.length > 1 ? 's' : ''} for RPG Maker MV / MZ: copy the img folder into your project`)
+} else if (cmd === 'avatar') {
+  const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
+    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }
+  for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
+  save(o.out ?? `${spec.body}-avatar.png`, spell.avatar(spec, { size: o.size ?? 512, frame: o.full ? 'full' : 'bust' }).toPNG({ deflate }))
 } else if (cmd === 'fx') {
   const name = args[0]
   if (!name) throw new Error(`which effect? one of:\n${spell.fx.list.map((id) => id.replace(/^fx-/, '')).join(' ')}`)

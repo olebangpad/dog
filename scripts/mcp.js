@@ -80,7 +80,8 @@ const TOOLS = [
   {
     name: 'pack',
     title: 'Save a character game pack',
-    description: 'Write a zip for a game engine: a sprite sheet with idle, 4-way walk and actions, Aseprite/Phaser JSON and a Godot 4 SpriteFrames file.',
+    description: 'Write a zip for a game engine: a sprite sheet with idle, 4-way walk and actions, Aseprite/Phaser JSON, a Godot 4 SpriteFrames file '
+      + 'and GameMaker strips (the README says how to slice it in Unity). format "rpgmaker" writes an RPG Maker MV / MZ character sheet and face instead.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -88,6 +89,7 @@ const TOOLS = [
         path: { type: 'string', description: 'e.g. "assets/hero.zip"' },
         element: ITEM.properties.element,
         grid: ITEM.properties.grid,
+        format: { type: 'string', enum: ['engine', 'rpgmaker'], description: '"engine" (default): sheet + JSON + Godot + strips; "rpgmaker": RPG Maker MV / MZ' },
       },
       required: ['char', 'path'],
     },
@@ -173,9 +175,9 @@ const handlers = {
     writeFileSync(file, bytes)
     return [{ type: 'text', text: `wrote ${relative(process.cwd(), file)} (${bytes.length} bytes): ${itemCode(item)}, ${describe(value)}` }]
   },
-  pack({ char, path, element, grid }) {
+  pack({ char, path, element, grid, format = 'engine' }) {
     const spec = typeof char === 'string' ? { body: char } : char
-    const pack = spell.pack(spec, { element, grid, deflate })
+    const pack = format === 'rpgmaker' ? spell.rpgmaker(spec, { deflate }) : spell.pack(spec, { element, grid, deflate, strips: true })
     const file = target(path)
     const bytes = pack.zip()
     writeFileSync(file, bytes)

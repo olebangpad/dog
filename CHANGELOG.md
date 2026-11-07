@@ -16,6 +16,11 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **More engines:** `spell.rpgmaker(specs)` makes RPG Maker MV / MZ character sheets (a "$" sheet for one, a 4 x 2 sheet
+  for up to 8; 48 px frames, tall ones 48 x 64) and face sheets; `pack(spec, { strips: true })` adds GameMaker
+  `_stripN` strips; pack READMEs give Unity slicing settings. `spell.avatar(spec)` makes a profile picture. Maker buttons
+  RPG Maker and Avatar (its game pack includes strips), CLI `pixspell rpgmaker` and `pixspell avatar`, MCP pack
+  `format: "rpgmaker"`.
 - **Chibi or tall:** every one of the 19 human bodies also comes drawn at 24 px tall (same head, neck, arms apart from the
   body, hands at the hips, long legs or garment), with all 8 walk directions. `height: 24` on a spec uses it in characters,
   walks, actions, statuses and packs (24x32 characters, 32x40 actions and cells, feet at the bottom); maker Height row,

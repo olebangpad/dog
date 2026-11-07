@@ -318,6 +318,11 @@ hero.play({ key: 'walk-down', repeat: -1 })
 // new Phaser.Game({ pixelArt: true, ... }); listen with keyboard.on('keydown-SPACE') rather than JustDown for taps
 ```
 
+RPG Maker MV / MZ: `spell.rpgmaker(spec)` (or up to 8 specs) gives `files` for `img/characters/$name.png` (3 x 4 frames of
+48 px; tall characters 48 x 64) and `img/faces/name.png`. GameMaker: `spell.pack(spec, { strips: true })` adds
+`strips/<name>_<animation>_stripN.png`. Unity: the pack README gives the slice grid (cell size, pivot bottom center).
+A profile picture: `spell.avatar(spec, { size: 512 })`.
+
 Godot 4: copy `hero.png` + `hero.tres` to the project root, add an `AnimatedSprite2D`, set Sprite Frames to `hero.tres`
 (animations use underscores: `walk_down`), set the texture filter to Nearest. Working Phaser example: `templates/phaser/`.
 

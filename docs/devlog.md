@@ -1303,3 +1303,27 @@ since every sprite is hand-drawn text art and a tall body is just one more sprit
     the pack cells and the error for 32.
   - Snapshots: only the tall entries changed (stretched to drawn), 2 were removed (20 and 32) and 76 are new.
 
+## Round 17: what would make people use it
+
+The question this time: keep the name or switch to "Pixpell", and what would actually bring people in.
+
+- **The name stays.** The API is `spell()`, so "PixSpell" explains the code, and "Pixpell" would read as a typo of
+  "pixel". Neither name is taken on npm or GitHub.
+- **Looking at what's out there:** the LPC character generator has about 2,000 stars, so people want character
+  generators. "Game asset" MCP servers have 100-170 stars, and every one of them needs a GPU or an API key. What we have
+  that nobody else does: no model, no key, offline, the same output every time, CC0, with sound and music too.
+  The full plan, including what only the owner can do, is in `docs/launch.md`.
+- **Biggest blocker:** the package isn't on npm yet, so the README's `npm i pixspell` and `npx pixspell` would fail
+  for anyone who tries.
+- **Built this round, for the engines people already use:**
+  - **RPG Maker MV / MZ:** `spell.rpgmaker(specs)` makes a "$" sheet for one character or a 4x2 sheet for up to 8.
+    The chibi characters at 2x are exactly RPG Maker's 48 px frames, and tall ones are 48x64. Rows go down, left, right,
+    up, with the standing frame in the middle column. Faces are a crop around the head at 144 px.
+  - **GameMaker:** `pack(spec, { strips: true })` adds `<name>_<animation>_stripN.png`, which GameMaker splits on
+    import.
+  - **Unity:** the pack README gives the slice grid and a bottom-center pivot.
+  - **Avatars:** `spell.avatar(spec)` makes a square profile picture, head and shoulders or the full character, for
+    people who just want a pixel portrait.
+  - **Where they show up:** maker buttons (RPG Maker, Avatar; the maker's game pack now includes strips), CLI
+    `pixspell rpgmaker [--random 8]` and `pixspell avatar`, and an MCP pack `format: "rpgmaker"`.
+

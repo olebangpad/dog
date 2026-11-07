@@ -252,16 +252,27 @@ export function initMaker({ openInStudio }) {
   $('#mk-png').addEventListener('click', () => download(`${name()}-${grid}px.png`, atGrid(frames[action && !walkDir() ? 2 : 0]).toPNG()))
   $('#mk-anim').addEventListener('click', () => download(`${name()}-${grid}px-anim.png`, encodeAPNG(atGrid(frames), { fps })))
   $('#mk-pack').addEventListener('click', async () => {
-    const pack = spell.pack(spec, { element: element ?? undefined, grid })
-    // let the browser's PNG encoder compress the sheet (the built-in encoder writes uncompressed PNGs)
-    const blob = await new Promise((resolve) => pack.image.toCanvas().toBlob(resolve, 'image/png'))
-    const bytes = zip({ ...pack.files, [`${pack.id}.png`]: new Uint8Array(await blob.arrayBuffer()) })
+    const pack = spell.pack(spec, { element: element ?? undefined, grid, strips: true })
+    // let the browser's PNG encoder compress the sheet and the GameMaker strips (the built-in encoder doesn't compress)
+    const files = { ...pack.files, [`${pack.id}.png`]: await pngBytes(pack.image) }
+    for (const [path, img] of Object.entries(pack.strips)) files[path] = await pngBytes(img)
+    const bytes = zip(files)
     const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }))
     const link = h('a', { href: url, download: `${pack.id}.zip` })
     document.body.append(link); link.click(); link.remove()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
-    toast(`${pack.id}.zip: ${pack.animations.length} animations, ${grid * 2}px cells, for Phaser, Godot or any engine`)
+    toast(`${pack.id}.zip: ${pack.animations.length} animations, ${grid * 2}px cells, for Phaser, Godot, Unity, GameMaker or any engine`)
   })
+  // the browser's PNG encoder compresses; the built-in one writes uncompressed PNGs
+  const pngBytes = async (img) => new Uint8Array(await (await new Promise((resolve) => img.toCanvas().toBlob(resolve, 'image/png'))).arrayBuffer())
+  $('#mk-rpgmaker').addEventListener('click', async () => {
+    const rm = spell.rpgmaker(spec)
+    const sheetPath = Object.keys(rm.files).find((f) => f.startsWith('img/characters/'))
+    const files = { ...rm.files, [sheetPath]: await pngBytes(rm.characters), [`img/faces/${rm.id}.png`]: await pngBytes(rm.faces) }
+    download(`${rm.id}-rpgmaker.zip`, zip(files), 'application/zip')
+    toast('RPG Maker MV / MZ: copy the img folder into your project')
+  })
+  $('#mk-avatar').addEventListener('click', async () => download(`${name()}-avatar.png`, await pngBytes(spell.avatar(spec, { size: 512 }))))
   $('#mk-strip').addEventListener('click', () => download(`${name()}-${grid}px-strip.png`, sheet(atGrid(frames)).image.toPNG()))
   $('#mk-sheet').addEventListener('click', () => download(`characters-${history.length}-${grid}px.png`, sheet(history.map((s) => atGrid(spell.char(s))), { columns: 8 }).image.toPNG()))
   $('#mk-code-copy').addEventListener('click', () => copy(codeFor(spec), 'Code copied'))

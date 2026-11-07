@@ -1324,3 +1324,35 @@ test('tall people: height 24 swaps every humanoid for its hand-drawn tall versio
   assert.deepEqual([meta.cell, meta.cellHeight, meta.origin.y], [32, 40, 39])
   assert.match(pack.files['README.txt'], /32x40 cells/)
 })
+
+test('RPG Maker MV / MZ sheets, avatars, and GameMaker strips in packs', () => {
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
+  // one character: a "$" sheet, 3 x 4 frames of 48 x 48; rows down, left, right, up; the middle column stands
+  const one = spell.rpgmaker(knight)
+  assert.deepEqual([one.characters.w, one.characters.h], [144, 192])
+  assert.ok(one.files['img/characters/$' + one.id + '.png'] && one.files['img/faces/' + one.id + '.png'] && one.files['README.txt'])
+  const cell = (img, c, r, w = 48, h = 48) => img.crop(c * w, r * h, w, h).data
+  assert.deepEqual(cell(one.characters, 1, 0), spell.walk(knight, 'down')[0].scale(2).data, 'down, standing')
+  assert.deepEqual(cell(one.characters, 1, 3), spell.walk(knight, 'up')[0].scale(2).data, 'up, standing')
+  assert.notDeepEqual(cell(one.characters, 0, 0), cell(one.characters, 1, 0), 'a step on either side')
+  // up to 8 characters on a standard 4 x 2 sheet, faces 144 px in the same order
+  const eight = spell.rpgmaker(spell.char.world.slice(0, 8).map((w) => w.spec), { name: 'World' })
+  assert.deepEqual([eight.characters.w, eight.characters.h, eight.faces.w, eight.faces.h], [576, 384, 576, 288])
+  assert.ok(eight.files['img/characters/World.png'])
+  // tall characters: 48 x 64 frames, feet on the bottom row
+  const tall = spell.rpgmaker({ ...knight, height: 24 })
+  assert.deepEqual([tall.characters.w, tall.characters.h], [144, 256])
+  assert.throws(() => spell.rpgmaker(Array(9).fill(knight)), /1 to 8/)
+  // avatars: a square picture, with or without a background
+  const a = spell.avatar(knight, { size: 512 })
+  assert.deepEqual([a.w, a.h], [512, 512])
+  assert.equal(a.get(0, 0)[3], 255)
+  assert.equal(spell.avatar(knight, { background: null, frame: 'full' }).get(0, 0)[3], 0)
+  assert.throws(() => spell.avatar(knight, { frame: 'face' }), /'bust' or 'full'/)
+  // GameMaker: <name>_<animation>_stripN.png, N frames wide
+  const pack = spell.pack(knight, { strips: true, actions: ['attack'] })
+  const strip = Object.keys(pack.files).find((f) => f.endsWith('_attack_strip8.png'))
+  assert.ok(strip, 'an attack strip')
+  assert.equal(spell.readPNG(pack.files[strip], inflateSync).w, 32 * 8)
+  assert.match(pack.files['README.txt'], /UNITY[\s\S]*Grid By Cell Size 32 x 32[\s\S]*GAMEMAKER/)
+})

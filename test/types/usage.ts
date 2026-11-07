@@ -61,6 +61,9 @@ console.log(deepSkin.w, scholar.h)
 const tallWalk: Frames = spell.walk({ body: 'hanbok', height: 24 }, 'left')
 const heights: number[] = spell.char.heights
 console.log(tallWalk.origin, heights)
+const profile: Pixmap = spell.avatar(knight, { size: 512, frame: 'full', background: null })
+const rm = spell.rpgmaker([knight, { body: 'hanbok', height: 24 }], { name: 'Heroes' })
+console.log(profile.w, rm.characters.w, rm.faces.h, Object.keys(rm.files), rm.zip().length, spell.pack(knight, { strips: true }).files)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

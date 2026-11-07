@@ -160,6 +160,8 @@ export interface Pack {
   json: { frames: object[]; meta: { frameTags: { name: string; from: number; to: number; direction: string }[]; [k: string]: unknown } }
   /** Godot 4 SpriteFrames resource. */
   tres: string
+  /** GameMaker strips by path (with { strips: true }; empty otherwise). */
+  strips: Record<string, Pixmap>
   files: Record<string, Uint8Array | string>
   animations: string[]
   zip(): Uint8Array
@@ -352,7 +354,14 @@ export interface PixSpell {
   /** Character + status effect, 32x32 frames, idle or walking. */
   status(spec: string | CharacterSpec, effect: string, opts?: GridOptions & { walk?: WalkDir; element?: FxColorName | Color; size?: number }): Frames
   /** Game pack: sheet + Aseprite/Phaser JSON + Godot .tres + README. */
-  pack(spec: string | CharacterSpec, opts?: GridOptions & { name?: string; element?: ElementName | Color; actions?: ActionName[]; diagonals?: boolean; deflate?: (b: Uint8Array) => Uint8Array }): Pack
+  pack(spec: string | CharacterSpec, opts?: GridOptions & { name?: string; element?: ElementName | Color; actions?: ActionName[]; diagonals?: boolean; strips?: boolean; deflate?: (b: Uint8Array) => Uint8Array }): Pack
+  /** A profile picture of a character on a square background: head and shoulders ('bust') or the whole character ('full'). */
+  avatar(spec: string | CharacterSpec, opts?: { size?: number; frame?: 'bust' | 'full'; background?: string | null }): Pixmap
+  /**
+   * RPG Maker MV / MZ: one spec makes a "$" single-character sheet (3 x 4 frames of 48 px), 2-8 specs a standard
+   * 4 x 2 sheet; plus a face sheet (144 px faces) and a README. files: img/characters/..., img/faces/...
+   */
+  rpgmaker(specs: string | CharacterSpec | (string | CharacterSpec)[], opts?: { name?: string; scale?: number; deflate?: (b: Uint8Array) => Uint8Array }): { id: string; characters: Pixmap; faces: Pixmap; files: Record<string, Uint8Array | string>; zip(): Uint8Array }
   /** Every effect (or the ids given) as one pack. */
   fxPack(ids?: string[], opts?: { name?: string; grid?: Grid; deflate?: (b: Uint8Array) => Uint8Array }): Pack
   /** Sound effects made by code: spell.sfx('coin').play(), spell.sfx('slash', { element: 'fire' }). */

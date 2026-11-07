@@ -163,6 +163,9 @@ jobs:
 **2. 게임 팩 다운로드.** [캐릭터 메이커](https://olebangpad.github.io/pixspell/#maker)에서 **📦 Game pack**을 누르면 zip 하나에
 스프라이트 시트(`idle`, 4방향 `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser용 JSON, Godot 4용 SpriteFrames 파일이 들어 있습니다.
 코드로는 `spell.pack(spec)`, 명령어로는 `node scripts/pixspell.js pack hero --hat crown --hand sword`입니다.
+zip에는 GameMaker용 스트립(`_stripN`, 가져오면 프레임으로 나뉨)과 Unity에서 자르는 설정도 들어 있습니다.
+**RPG Maker MV / MZ:** 메이커의 **RPG Maker** 버튼(또는 `spell.rpgmaker(spec)`, `pixspell rpgmaker --random 8`)으로 48px 프레임의
+캐릭터 시트와 얼굴 그림을 받아 `img/characters`, `img/faces`에 넣으면 됩니다. **Avatar**는 프로필 사진을 저장합니다.
 
 ```js
 // Phaser 3
@@ -568,6 +571,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.fx(name, { element, size, seed, light })` | 코드로 만든 이펙트: `.fps`, `.loop`가 붙은 프레임 배열, 은은하게 빛남(`light: false`면 빛 없음). 전체 이름은 `spell.fx.list` |
 | `spell.fx.sequence(steps)` | 이펙트를 이어 붙이거나 겹쳐서 하나의 애니메이션으로 |
 | `spell.status(spec, effect, { walk })` | 상태이상이 걸린 캐릭터 (32×32 프레임) |
+| `spell.rpgmaker(specs)` · `spell.avatar(spec)` | RPG Maker MV / MZ 캐릭터·얼굴 시트(1명, 또는 한 시트에 8명) · 정사각형 프로필 사진 |
 | `spell.pack(spec)` · `spell.fxPack(names)` | 게임 팩: 시트 + Aseprite/Phaser JSON + Godot `.tres`, `.zip()`으로 한 파일 |
 | `spell.sfx(name, { element, pitch, seed })` | 효과음: `.play()`, `.toWAV()`, `.save(path)`. 목록은 `spell.sfx.list`, 이펙트 소리는 `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | 효과음 WAV 묶음 zip |

@@ -20,7 +20,7 @@ export function createPack(spell, looks) {
   const slug = (s) => [s.body, s.hat, s.hand, s.offhand].filter(Boolean)
     .map((p) => p.replace(/^(hat|held)-/, '')).join('-').replace(/[^a-z0-9-]/g, '').slice(0, 60)
 
-  function pack(spec, { name, element, actions = spell.action.list, deflate, grid = 16, smooth, diagonals = false } = {}) {
+  function pack(spec, { name, element, actions = spell.action.list, deflate, grid = 16, smooth, diagonals = false, strips = false } = {}) {
     const s = typeof spec === 'string' ? { body: spec } : { ...spec }
     for (const k of ['action', 'element', 'frame', 'dir']) delete s[k]
     const id = name ?? slug(s)
@@ -43,7 +43,7 @@ export function createPack(spell, looks) {
     const k = grid / 16
     if (k !== 1) for (const r of rows) r.frames = spell.toGrid(r.frames, grid, { smooth })
     const origin = { x: ORIGIN.x * k, y: (ORIGIN.y + tall + 1) * k - 1 }
-    return writePack(id, rows, { readme: readmeFor(id, s, rows, origin, PACK_CELL * k, (PACK_CELL + tall) * k), meta: { spec: s, origin, grid }, deflate, extra: { spec: s } })
+    return writePack(id, rows, { readme: readmeFor(id, s, rows, origin, PACK_CELL * k, (PACK_CELL + tall) * k), meta: { spec: s, origin, grid }, deflate, extra: { spec: s }, strips })
   }
 
   return pack
@@ -53,7 +53,7 @@ export function createPack(spell, looks) {
  * Shared pack writer: rows [{ tag, frames, fps, loop }] -> sheet + Aseprite JSON + Godot .tres + README (+ zip).
  * Every frame goes in a cell the size of the largest frame; smaller frames are centered.
  */
-export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } = {}) {
+export function writePack(id, rows, { readme, meta = {}, deflate, extra = {}, strips = false } = {}) {
   const cellW = Math.max(...rows.flatMap((r) => r.frames.map((f) => f.w)))
   const cellH = Math.max(...rows.flatMap((r) => r.frames.map((f) => f.h)))
   const cols = Math.max(...rows.map((r) => r.frames.length))
@@ -90,7 +90,16 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
     [`${id}.tres`]: tres,
     'README.txt': readme,
   }
-  return { id, ...extra, image, json, tres, files, animations: rows.map((r) => r.tag), zip: () => zip(files) }
+  // GameMaker splits an image named <name>_stripN into N frames on import
+  const stripImages = {}
+  if (strips) for (const r of rows) {
+    const strip = new Pixmap(cellW * r.frames.length, cellH)
+    r.frames.forEach((f, i) => strip._blit(f, i * cellW + ((cellW - f.w) >> 1), (cellH - f.h) >> 1))
+    const path = `strips/${id}_${r.tag}_strip${r.frames.length}.png`
+    stripImages[path] = strip
+    files[path] = strip.toPNG(deflate ? { deflate } : undefined)
+  }
+  return { id, ...extra, image, strips: stripImages, json, tres, files, animations: rows.map((r) => r.tag), zip: () => zip(files) }
 }
 
 /**
@@ -171,6 +180,15 @@ GODOT 4
   Copy ${id}.png and ${id}.tres into the project root, add an AnimatedSprite2D,
   set its Sprite Frames to ${id}.tres and pick an animation (walk_down, attack, ...).
   Set the texture filter to Nearest for crisp pixels; offset.y = -${origin.y - cellH / 2} puts the feet on the node position.
+
+UNITY
+  Import ${id}.png as Sprite (2D and UI), Sprite Mode Multiple, Filter Mode Point (no filter), Compression None.
+  Sprite Editor > Slice > Grid By Cell Size ${cell} x ${cellH}, Pivot Bottom Center: the feet stand on the transform.
+  Each row is one animation (see ANIMATIONS): select its frames, drag them into the scene, set the clip's rate.
+
+GAMEMAKER
+  spell.pack(spec, { strips: true }) (or the maker's game pack) adds strips/${id}_<animation>_stripN.png:
+  drop one on GameMaker's Asset Browser and it splits the frames. Origin: Bottom Centre.
 
 ANYTHING ELSE
   ${id}.json lists every frame's x / y / w / h and duration in milliseconds.

@@ -7,7 +7,7 @@
 **Every asset for your 2D game, from code.** Characters that walk and fight, items and tiles, glowing effects and sounds:
 generate, recolor and resize them in one line of JavaScript, or ask your AI coding agent to. CC0 art, zero dependencies.
 
-**23 million** characters with walk cycles and actions · **1,132** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser & Godot packs
+**23 million** characters with walk cycles and actions · **1,132** sprites · **665** effects · **103** sounds · **17** music tracks · any tile size from **8 to 64 px** · Phaser, Godot, Unity, GameMaker & RPG Maker
 
 [**▶ Play the demo**](https://olebangpad.github.io/pixspell/game.html) ·
 [**🤖 A game an AI agent made**](examples/spell-survivors) ·
@@ -169,6 +169,9 @@ and no build step. [`templates/phaser/`](templates/phaser) is the same idea with
 **2. Download a game pack.** In the [character maker](https://olebangpad.github.io/pixspell/#maker) press **📦 Game pack**: one zip with a sprite sheet
 (`idle`, 4-way `walk`, `attack`, `hit`, `heal`, `levelup`, `cast`, `death`), Aseprite/Phaser JSON and a Godot 4 SpriteFrames file.
 In code it's `spell.pack(spec)`; on the command line it's `node scripts/pixspell.js pack hero --hat crown --hand sword`.
+The zip also has GameMaker strips (`_stripN`, split on import) and the exact slicing settings for Unity.
+**RPG Maker MV / MZ:** the maker's **RPG Maker** button (or `spell.rpgmaker(spec)`, `pixspell rpgmaker --random 8`) gives a
+character sheet with 48 px frames and a face, ready for `img/characters` and `img/faces`. **Avatar** saves a profile picture.
 
 ```js
 // Phaser 3
@@ -612,7 +615,8 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.fx(name, { element, size, seed, light })` | a procedural effect: frames with `.fps` and `.loop`, glowing (`light: false` for flat); `spell.fx.list` has every name |
 | `spell.fx.sequence(steps)` | chain or overlap effects into one animation |
 | `spell.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |
-| `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file |
+| `spell.pack(spec)` · `spell.fxPack(names)` | game packs: sheet + Aseprite/Phaser JSON + Godot `.tres`, `.zip()` for one file; `{ strips: true }` adds GameMaker strips |
+| `spell.rpgmaker(specs)` · `spell.avatar(spec)` | RPG Maker MV / MZ character and face sheets (1 character, or 8 on one sheet) · a square profile picture |
 | `spell.sfx(name, { element, pitch, seed })` | a sound: `.play()`, `.toWAV()`, `.save(path)`; `spell.sfx.list`, `spell.sfx.forEffect(fx)` |
 | `spell.sfxPack(names)` | sounds as WAV files in one zip |
 | `spell.palette(name)` · `spell.toPalette(img, name)` | retro palettes for everything drawn afterwards (`null` = off), or for one image; `spell.palettes` lists them |

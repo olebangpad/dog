@@ -26,6 +26,7 @@ import { PALETTES, setPalette, activePalette, toPalette, applyActive } from './p
 import { decodePNG, spriteFromImage } from './import.js'
 import { framed, asFrames, originKind } from './frames.js'
 import { WORLD } from './world.js'
+import { createPortraits } from './portrait.js'
 import { didYouMean } from './suggest.js'
 
 /** Every sprite definition, keyed by id. */
@@ -234,6 +235,12 @@ spell.action = framed(Object.assign((...a) => applyActive(rawAction(...a)), rawA
  * directions: down up left right
  */
 spell.walk = spell.char.walk
+
+const portraits = createPortraits(spell)
+/** A profile picture of a character: spell.avatar(spec, { size: 256, frame: 'bust' | 'full', background }). */
+spell.avatar = portraits.avatar
+/** RPG Maker MV / MZ character and face sheets for 1 to 8 specs: { characters, faces, files, zip() }. */
+spell.rpgmaker = portraits.rpgmaker
 
 /**
  * Game pack: sprite sheet + Aseprite/Phaser JSON + Godot SpriteFrames for one character.
