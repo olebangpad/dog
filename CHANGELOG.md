@@ -23,7 +23,8 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
   áo dài, sari, thobe, kente, toga, kilt, dirndl, poncho, deel), 14 hats from the same places, 8 weapons with their own
   attack styles and 3 shields; `spell.char.world` (26 ready-made people) and 6 skin tones (`spell.char.skins`) for any
   humanoid. Random characters now vary skin tone. The maker has "Around the world" and "Skin" rows. 23,279,919
-  combinations. Random seeds give different characters than before (more bodies to draw from).
+  combinations. Random seeds give different characters than before: more bodies to draw from, and the fantasy
+  humanoids count three times, outfits, animals and monsters once each.
 - **Animations are easy to save:** every frame list (`walk`, `action`, `status`, `fx`, `frames`, `char.frames`) has
   `.save(path)` (an animated PNG at its own speed), `.toDataURL()` (an `<img>` that plays), `.toAPNG()`, `.toSheet()` and
   `.scale(n)`, and `spell.frames()` / `spell.char.frames()` now carry `.fps` and `.loop` too.

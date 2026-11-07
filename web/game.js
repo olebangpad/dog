@@ -12,7 +12,8 @@ function heroFromLink() {
     const s = decode(raw)
     if (!looks[s.body] || !Object.keys(looks[s.body].def.anchors).length) return null
     const out = { body: s.body }
-    for (const k of ['hat', 'hand', 'offhand', 'A']) if (s[k]) out[k] = s[k]
+    for (const k of ['hat', 'hand', 'offhand', 'A', 'B', 'C']) if (s[k]) out[k] = s[k]
+    if (Number.isInteger(s.height) && s.height > 16 && s.height <= 32) out.height = s.height
     return out
   } catch {
     return null
@@ -21,8 +22,9 @@ function heroFromLink() {
 
 const short = (id) => id?.replace(/^(hat|held)-/, '')
 function showHero(spec) {
-  const opts = ['hat', 'hand', 'offhand', 'A'].filter((k) => spec[k]).map((k) => `${k}: '${k === 'A' ? spec[k] : short(spec[k])}'`)
-  $('#hero-code').textContent = `// you are playing as\ndog.char('${spec.body}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`
+  const opts = ['hat', 'hand', 'offhand', 'A', 'B', 'C'].filter((k) => spec[k]).map((k) => `${k}: '${/^[ABC]$/.test(k) ? spec[k] : short(spec[k])}'`)
+  if (spec.height) opts.push(`height: ${spec.height}`)
+  $('#hero-code').textContent = `// you are playing as\nspell.char('${spec.body}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`
   $('#edit-hero').href = `./#c=${encode(spec)}`
   writeHash('c', encode(spec))
 }

@@ -26,7 +26,8 @@ let history = []
 let seed = null
 let action = null // null = idle
 let element = null
-let preview = [] // what the stage plays: always 32x32 so the character never jumps in size
+let preview = [] // what the stage plays: 32 wide, as tall as the character needs
+let heightPref = null // the height picked in the Height row; rolls and presets keep it (it only applies to people)
 
 const short = (id, kind) => id && id.replace(kind === 'head' ? /^hat-/ : /^held-/, '')
 const anchorsOf = (body) => looks[body].def.anchors
@@ -150,7 +151,7 @@ function worldPicker() {
   // a preset swaps the clothes and gear but keeps the height you picked
   const same = (w) => JSON.stringify(cleanSpec({ ...fullSpec(w.spec), height: spec.height })) === JSON.stringify(cleanSpec(spec))
   const strip = h('div', { class: 'strip' }, spell.char.world.map((w) => tile(spell.char(w.spec), `${w.name} (${w.region})`, same(w),
-    () => { spec = { ...fullSpec(w.spec), ...(spec.height ? { height: spec.height } : {}) }; seed = null; refresh() })))
+    () => { spec = { ...fullSpec(w.spec), ...(heightPref ? { height: heightPref } : {}) }; seed = null; refresh() })))
   const now = spell.char.world.find(same)
   return h('div', { class: 'picker' },
     h('div', { class: 'picker-head' }, h('b', {}, 'Around the world'), h('span', { class: 'muted' }, now ? `${now.name} · ${now.region}` : `${spell.char.world.length} ready-made`)),
@@ -165,7 +166,7 @@ function heightPicker() {
     h('div', { class: 'picker-head' }, h('b', {}, 'Height'), h('span', { class: 'muted' }, ok ? (now === 16 ? '16 px (chibi)' : `${now} px`) : `${spec.body} keeps its size`)),
     h('div', { class: 'seg' }, [16, 20, 24, 28, 32].map((v) => h('button', {
       'aria-pressed': String(now === v), disabled: !ok, title: v === 16 ? 'As drawn (chibi)' : `${v} px tall`,
-      onclick: () => { if (v === 16) delete spec.height; else spec.height = v; seed = null; refresh() },
+      onclick: () => { heightPref = v === 16 ? null : v; if (heightPref) spec.height = v; else delete spec.height; seed = null; refresh() },
     }, String(v)))),
   )
 }
@@ -212,7 +213,7 @@ const dogLabel = (s) => [s.body, s.hat && short(s.hat, 'head'), s.hand && short(
 function roll(n = 1) {
   const fresh = Array.from({ length: n }, () => {
     seed = Math.floor(Math.random() * 1e6)
-    return spell.char.random(seed)
+    return { ...spell.char.random(seed), ...(heightPref ? { height: heightPref } : {}) }
   })
   spec = { ...fresh[fresh.length - 1] }
   history = [...fresh.reverse(), ...history].slice(0, 32)
@@ -230,6 +231,7 @@ export function initMaker({ openInStudio }) {
       action = spell.action.list.includes(s.action) || /^walk-(down|up|left|right)$/.test(s.action) ? s.action : null
       element = ELEMENTS[s.element] ? s.element : null
       spec = s
+      if (s.height > 16) heightPref = s.height
     }
   } catch { /* ignore broken links */ }
 

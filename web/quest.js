@@ -365,20 +365,19 @@ export function createGame(canvas, { spec, auto = true, seed = 1, onHero, onSoun
     const k = kit(a.spec, g.hero.element)
     const sx = Math.round(a.x), sy = Math.round(a.y) + HUD
     ctx.drawImage(shadow, sx - 6, sy - 2)
-    let img, big = true
+    let img
     if (a.state === 'attack') img = frameOf(k.attack[a.dir === 'left' || (a.dir !== 'right' && a.lastH === 'left') ? 'left' : 'right'], a.t, false)
     else if (a.state === 'hit' || a.state === 'dying') img = frameOf(a.crit ? k.crit : k.hit, a.t, false)
     else if (a.state === 'hurt') img = frameOf(k.hurt, a.t, false)
     else if (a.state === 'dead') img = frameOf(k.death, a.t, false)
     else if (a.state === 'levelup') img = frameOf(k.levelup, a.t, false)
     else {
-      big = false
       const w = k.walk[a.dir]
       img = isHero && !a.moving ? w.imgs[0] : frameOf(w, g.time + (a.x % 7) / 10)
     }
     if (isHero && a.invuln && a.state === 'walk' && Math.floor(g.time * 12) % 2) return
-    if (big) ctx.drawImage(img, sx - 16, sy - 31)
-    else ctx.drawImage(img, sx - 12, sy - 23)
+    // feet at the bottom center of every frame (24x24 walks, 32x32 actions, taller for a taller spec.height)
+    ctx.drawImage(img, sx - (img.width >> 1), sy - img.height + 1)
   }
 
   function drawHud() {

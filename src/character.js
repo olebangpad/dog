@@ -54,7 +54,7 @@ function turnedPose(def) {
 export const MIN_HEIGHT = 16, MAX_HEIGHT = 32
 const GROW = {
   hero: [8, 12], heroine: [8, 12], goblin: [8, 12], skeleton: [9, 12], robot: [10, 12],
-  hanbok: [11, 13], seonbi: [11, 12], kimono: [9, 13], samurai: [11, 12], hanfu: [11, 13], aodai: [10, 12], sari: [10, 12],
+  hanbok: [11, 12], seonbi: [11, 12], kimono: [9, 13], samurai: [11, 12], hanfu: [11, 13], aodai: [10, 12], sari: [10, 12],
   thobe: [10, 12], kente: [9, 12], toga: [10, 12], kilt: [8, 12], dirndl: [10, 12], poncho: [9, 13], deel: [11, 12],
 }
 const stretchedPoses = new Map()
@@ -207,9 +207,11 @@ export function createCharacters(looks) {
   char.random = (seed, { outfit = 0.5 } = {}) => {
     const r = rng(seed)
     const pick = (list) => list[Math.floor(r() * list.length)]
-    // pick a base body first (humanoids weighted up: they can hold gear), then one of its color variants
+    // pick a base body first, then one of its color variants: the fantasy humanoids weighted up (they hold gear),
+    // people in traditional clothing and every animal or monster once each, so a roll mixes all three
     const bases = [...new Set(parts.body.map((id) => looks[id].def.id))]
-    const weighted = bases.flatMap((b) => Array(looks[b].def.anchors.hand ? 3 : 1).fill(b))
+    const weight = (b) => (looks[b].def.anchors.hand && !looks[b].def.tags.includes('world') ? 3 : 1)
+    const weighted = bases.flatMap((b) => Array(weight(b)).fill(b))
     const base = pick(weighted)
     const body = pick(parts.body.filter((id) => looks[id].def.id === base))
     const anchors = looks[body].def.anchors

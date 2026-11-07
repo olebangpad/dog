@@ -1261,3 +1261,20 @@ The ask: characters that are a bit longer top to bottom, not only the 16 px chib
 - **Checks:** a test checks sizes, origins, the unchanged head, the sword following the hand, monsters keeping their
   size, the error for 40 and the pack metadata. There are 26 new snapshot hashes, and no existing one changed.
 
+### More checks after the tall characters
+
+- **Found: the demo game dropped things you chose in the maker.** "Play as this character" kept only the hat, held
+  items and outfit color, so a skin tone, hair color or height disappeared on the way. It also drew everyone at fixed
+  24x24 and 32x32 offsets, so a tall hero would have floated a row per extra pixel. And its "you are playing as" line
+  still said `dog.char`.
+  **Fixed:** it keeps B, C and height, draws every frame from its bottom center, and says `spell.char`. I played it as a
+  24 px brown-skinned samurai in Chromium and it stands and swings in the right place.
+- **Found: the maker forgot the chosen height.** Rolling a monster (which can't be tall) dropped the height, so the
+  following rolls came out chibi again. **Fixed:** the Height row sets a preference that rolls and presets keep.
+- **Found: random characters were mostly traditional outfits.** Every humanoid counted three times, and 14 of the 19
+  humanoids are now outfits, so 9 of 12 rolls were outfits. **Fixed:** outfits count once, like animals and monsters.
+  Over 3,000 seeds that gives about 25% fantasy heroes, 22% outfits and 53% animals and monsters.
+- **Found: the tall hanbok had a pale stripe down the chima.** It repeated a skirt row with a highlight in it.
+  **Fixed:** it repeats the plain row above.
+- **Fine:** all six pages, no sideways scroll on a phone; every humanoid at 32 px.
+
