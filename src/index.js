@@ -299,14 +299,14 @@ function statusFrames(spec, name, { walk, element, size = 32, grid, smooth } = {
   size *= k
   const effect = spell.fx(recipe.id, { element, size }) // drawn natively at the new size
   const base = regridAll(walk ? spell.walk(spec, walk) : spell.char.frames(spec), k, smooth)
-  const cs = base[0].w
+  const cs = base[0].w, tall = base[0].h - cs // a taller character (spec.height) makes the frame taller, feet at the bottom
   const gcd = (a, b) => (b ? gcd(b, a % b) : a)
   const lcm = (base.length * effect.length) / gcd(base.length, effect.length)
   const n = lcm <= 48 ? lcm : Math.max(base.length, effect.length)
   const out = Array.from({ length: n }, (_, i) => {
-    const body = new Pixmap(size, size).draw(base[i % base.length], (size - cs) >> 1, size - cs)
-    const fx = effect[i % effect.length]
-    return recipe.behind ? new Pixmap(size, size).draw(fx).draw(body) : body.draw(fx)
+    const body = new Pixmap(size, size + tall).draw(base[i % base.length], (size - cs) >> 1, size - cs)
+    const fx = effect[i % effect.length].at(0, tall)
+    return recipe.behind ? new Pixmap(size, size + tall).draw(fx).draw(body) : body.draw(fx)
   })
   out.fps = effect.fps
   out.loop = Boolean(recipe.loop)

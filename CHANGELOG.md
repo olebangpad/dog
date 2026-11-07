@@ -16,6 +16,9 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **Any height:** `height` on a character spec (16 to 32) draws humanoids taller: each body repeats a chest row and a leg
+  row picked for it, in every pose, so proportions hold in all 8 directions and gear stays in place. Walks, actions,
+  statuses and packs grow with it (feet at the bottom); maker Height row, CLI `--height`, `docs/img/heights.png`.
 - **People from around the world:** 14 bodies in traditional clothing (hanbok, seonbi dopo, kimono, kamishimo, hanfu,
   áo dài, sari, thobe, kente, toga, kilt, dirndl, poncho, deel), 14 hats from the same places, 8 weapons with their own
   attack styles and 3 shields; `spell.char.world` (26 ready-made people) and 6 skin tones (`spell.char.skins`) for any

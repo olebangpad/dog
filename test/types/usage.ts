@@ -58,6 +58,9 @@ const samurai = spell.char.world.find((w) => w.region === 'Japan')!.spec
 const deepSkin: Pixmap = spell.char({ ...samurai, C: spell.char.skins[5] })
 const scholar: Pixmap = spell.char('seonbi', { hat: 'gat', C: 'skin-olive' })
 console.log(deepSkin.w, scholar.h)
+const tallWalk: Frames = spell.walk({ body: 'hanbok', height: 24 }, 'left')
+const [minH, maxH] = spell.char.heights
+console.log(tallWalk.origin, minH, maxH)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

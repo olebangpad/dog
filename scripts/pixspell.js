@@ -22,7 +22,7 @@ usage:
   pixspell info <id>                            size, slots, variants, frames
   pixspell render <id> [options] -o out.png     export one sprite
   pixspell combine <id>[@x,y] <id>[@x,y] ...    stack sprites into one image
-  pixspell char <body> [--hat x] [--hand x] [--offhand x] [-A color] -o out.png
+  pixspell char <body> [--hat x] [--hand x] [--offhand x] [-A color] [--height 24] -o out.png
   pixspell char --random [seed] -o out.png      a random character (same seed, same character)
   pixspell char <body> ... --action attack [--element fire] --anim -o hit.png
                                            actions: attack hit heal levelup cast death
@@ -62,6 +62,7 @@ usage:
 
 options:
   --grid <8|16|32|64>          tile size of your game: art is converted to fit it (render, char, fx, pack, fxpack)
+  --height <16-32>             how tall people are drawn (char, pack): 16 = chibi, 24 or 32 = longer bodies
   -A, -B, -C <material|#hex>   recolor a ramp slot
   --scale <n>                  4 = 4x bigger, 0.5 = half size
   --smooth                     Scale2x smoothing (doubles size)
@@ -118,6 +119,7 @@ function parse(argv) {
     else if (a === '--id') opts.id = next()
     else if (a === '--preview') opts.preview = next()
     else if (a === '--tempo') opts.tempo = Number(next())
+    else if (a === '--height') opts.height = Number(next())
     else if (a === '-h' || a === '--help') opts.help = true
     else if (/^--?[a-z]/i.test(a)) (opts.unknown ??= []).push(a)
     else opts._.push(a)
@@ -128,7 +130,7 @@ function parse(argv) {
 const OPTIONS = ['-A', '-B', '-C', '-o', '--out', '--scale', '--smooth', '--outline', '--shadow', '--hue', '--sat', '--light', '--flip-x',
   '--flip-y', '--rotate', '--frame', '--anim', '--hat', '--hand', '--offhand', '--random', '--action', '--walk', '--element', '--strip',
   '--dir', '--size', '--seed', '--on', '--pitch', '--grid', '--no-effects', '--no-sounds', '--all-colors', '--volume', '--claude',
-  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--help']
+  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--height', '--help']
 const COMMANDS = ['list', 'materials', 'info', 'render', 'combine', 'char', 'pack', 'fx', 'fxpack', 'sfx', 'import', 'autotile', 'music',
   'sfxpack', 'export', 'hero', 'preview', 'doctor', 'mcp', 'skill', 'outline']
 
@@ -205,7 +207,7 @@ if (!cmd || o.help) {
   save(o.out ?? 'combined.png', finish(compose(layers), o).toPNG({ deflate }))
 } else if (cmd === 'char') {
   const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
-    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
+    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }
   if (o.random) console.error(`random character: ${JSON.stringify(spec)}`) // what the seed rolled, to rebuild it in code
   const name = o.out ?? `${spec.body}${o.walk ? '-walk-' + o.walk : o.action ? '-' + o.action : ''}.png`
   const g = { grid: o.grid }
@@ -216,7 +218,7 @@ if (!cmd || o.help) {
   else save(name, finish(spell.char(spec, g), o).toPNG({ deflate }))
 } else if (cmd === 'pack') {
   const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
-    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o) }
+    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }
   for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
   const pack = spell.pack(spec, { element: o.element, deflate, grid: o.grid })
   if (o.dir) {

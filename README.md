@@ -71,7 +71,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [any height, chibi to tall](#-any-height-from-chibi-to-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -250,6 +250,21 @@ spell.char('seonbi', { hat: 'gat', offhand: 'book' })                    // a Jo
 spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana' }, 'left')
 spell.char({ ...spell.char.world[0].spec, C: 'skin-dark' })               // 26 ready-made people: spell.char.world
 spell.char.skins                                                         // skin-light skin skin-olive skin-tan skin-brown skin-dark
+```
+
+### 📏 Any height, from chibi to tall
+
+<img src="docs/img/heights.png" alt="A knight, a hanbok dancer, a samurai and a mage, each at heights 16, 20, 24, 28 and 32 pixels, walking" width="810">
+
+People are drawn chibi (16 px), but games with longer-legged characters can ask for any height up to 32. Each body
+repeats a chest row and a leg row chosen for it (never the hands or the feet), in every pose, so the proportions hold
+in all 8 directions; hats and weapons stay on the head and in the hand. Walks, actions, statuses and game packs grow
+with them, feet still at the bottom (`frames.origin`).
+
+```js
+spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana', height: 24 }, 'left')   // 24x32 frames
+spell.pack({ body: 'heroine', hand: 'bow', height: 32 })                            // 32x48 cells
+// npx pixspell char hero --hat crown --height 28 -o tall.png
 ```
 
 ### ⚔️ Actions & effects
@@ -589,6 +604,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.list({ category, tag, variants })` | ids of all looks |
 | `spell.char(body, { hat, hand, offhand, A, B, C })` | 24×24 character with gear snapped on by name |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | animation frames · a reproducible random character |
+| `{ ...spec, height: 24 }` | taller humanoids (16 to 32 px): a longer torso and legs in every pose, action, status and pack, feet at the bottom |
 | `spell.char.world` · `spell.char.skins` | 26 ready-made people from around the world (`{ id, name, region, spec }`) · the 6 skin tones for `C` |
 | `spell.char.parts` · `spell.char.count()` | every body / hat / hand / off-hand id · number of combinations |
 | `spell.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |

@@ -61,6 +61,9 @@ A character is a spec: `{ body, hat?, hand?, offhand?, A?, B?, C? }`.
   `keffiyeh` `turban` `chullo` `kokoshnik` `ushanka` `beret` `tam`; weapons `katana` `gladius` `khopesh` `scimitar` `jian`
   `claymore` `fan` `boomerang`; shields `scutum` `aspis` `hide-shield`. `spell.char.world` has 26 ready-made people
   (`{ id, name, region, spec }`).
+- Height: humanoids are chibi (16 px tall) by default; `height: 20 | 24 | 28 | 32` (any of 16-32) makes a longer torso and
+  legs in every pose. The character is then 24 x (8 + height), actions and pack cells 32 x (16 + height), feet still at the
+  bottom center (`frames.origin`). Animals and monsters ignore it. CLI: `--height 24`.
 - Skin: `C` is the skin slot of every humanoid body; `spell.char.skins` lists 6 tones, light to deep (`skin-light` `skin`
   `skin-olive` `skin-tan` `skin-brown` `skin-dark`). Random characters already vary it.
 
@@ -76,6 +79,7 @@ spell.char.random(42)                      // a reproducible random spec, great 
 spell.char.parts                           // { body, head, hand, offhand }: every valid id
 spell.char({ body: 'samurai', hat: 'kabuto', hand: 'katana', C: 'skin-tan' })
 spell.char(spell.char.world.find((w) => w.region === 'Korea').spec)   // a ready-made person
+spell.walk({ ...knight, height: 24 }, 'left')                          // taller: 24x32 frames, feet at frames.origin
 ```
 
 Actions: `attack` (lunge + slash at the weapon hand), `hit` (flash, knock-back, damage number), `heal` (+number, sparkles),

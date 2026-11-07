@@ -35,6 +35,7 @@ const fits = (kind) => kind === 'body' || !!anchorsOf(spec.body)[kind]
 function cleanSpec(s) {
   const out = { body: s.body }
   for (const k of ['hat', 'hand', 'offhand', 'A', 'B', 'C']) if (s[k]) out[k] = s[k]
+  if (s.height > 16 && anchorsOf(s.body).hand) out.height = s.height // taller people; animals and monsters keep their size
   if (out.C && SKINS.includes(out.C) && !hasSkin(out.body)) delete out.C // a skin tone means nothing on a slime
   return out
 }
@@ -53,14 +54,15 @@ function codeFor(s) {
   if (s.hand && anchorsOf(s.body).hand) opts.push(`hand: '${short(s.hand, 'hand')}'`)
   if (s.offhand && anchorsOf(s.body).offhand) opts.push(`offhand: '${short(s.offhand, 'offhand')}'`)
   for (const k of ['A', 'B', 'C']) if (s[k]) opts.push(`${k}: '${s[k]}'`)
+  if (s.height) opts.push(`height: ${s.height}`)
   const imp = `import { spell } from 'https://cdn.jsdelivr.net/gh/${REPO}@main/src/index.js'\n\n`
   if (walkDir()) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
-    return `${imp}const frames = spell.walk(${obj}, '${walkDir()}')\n// ${frames.length} frames, ${CHAR_SIZE}x${CHAR_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[1].scale(8).toCanvas())`
+    return `${imp}const frames = spell.walk(${obj}, '${walkDir()}')\n// ${frames.length} frames, ${frames[0].w}x${frames[0].h}, feet at frames.origin, play at frames.fps (${frames.fps})\ndocument.body.append(frames[1].scale(8).toCanvas())`
   }
   if (action) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
-    return `${imp}const frames = spell.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${ACTION_SIZE}x${ACTION_SIZE}, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
+    return `${imp}const frames = spell.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${frames[0].w}x${frames[0].h}, feet at frames.origin, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
   }
   const call = `spell.char('${s.body}'${opts.length ? `, { ${opts.join(', ')} }` : ''})`
   return `${imp}const character = ${call}\ndocument.body.append(character.scale(8).toCanvas())`
@@ -72,7 +74,7 @@ function refresh({ pickers = true } = {}) {
   if (walkDir()) {
     frames = spell.walk(spec, walkDir())
     fps = frames.fps
-    preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE).draw(f, 4, 8))
+    preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE + f.h - CHAR_SIZE).draw(f, 4, 8))
   } else if (action) {
     frames = spell.action(spec, action, element ?? undefined)
     fps = frames.fps
@@ -81,7 +83,7 @@ function refresh({ pickers = true } = {}) {
     frames = spell.char.frames(spec)
     const animated = [spec.body, spec.hat, spec.hand, spec.offhand].filter((id) => id && looks[id] && looks[id].def.frames.length > 1)
     fps = animated.length ? looks[animated[0]].def.fps : 6
-    preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE).draw(f, 4, 8))
+    preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE + f.h - CHAR_SIZE).draw(f, 4, 8))
   }
   $('#maker-view').dataset.f = '0'
   paint($('#maker-view'), preview[0])
@@ -116,7 +118,7 @@ function renderPickers() {
       h('span', { class: 'muted' }, ok ? (current ? (kind === 'body' ? current : short(current, kind)) : 'none') : `${spec.body} can't hold items`),
     )
     return h('div', { class: `picker${ok ? '' : ' off'}` }, head, strip)
-  }), outfitPicker(), skinPicker(), actionPicker())
+  }), outfitPicker(), skinPicker(), heightPicker(), actionPicker())
   box.prepend(worldPicker())
   // keep the selected thumbnail in view by scrolling its strip sideways only (never the page)
   requestAnimationFrame(() => box.querySelectorAll('.strip').forEach((strip) => {
@@ -145,15 +147,27 @@ function outfitPicker() {
 
 // people from around the world: traditional clothing with hats and weapons from the same place
 function worldPicker() {
-  const strip = h('div', { class: 'strip' }, spell.char.world.map((w) => {
-    const full = fullSpec(w.spec)
-    const on = JSON.stringify(cleanSpec(full)) === JSON.stringify(cleanSpec(spec))
-    return tile(spell.char(w.spec), `${w.name} (${w.region})`, on, () => { spec = full; seed = null; refresh() })
-  }))
-  const now = spell.char.world.find((w) => JSON.stringify(cleanSpec(fullSpec(w.spec))) === JSON.stringify(cleanSpec(spec)))
+  // a preset swaps the clothes and gear but keeps the height you picked
+  const same = (w) => JSON.stringify(cleanSpec({ ...fullSpec(w.spec), height: spec.height })) === JSON.stringify(cleanSpec(spec))
+  const strip = h('div', { class: 'strip' }, spell.char.world.map((w) => tile(spell.char(w.spec), `${w.name} (${w.region})`, same(w),
+    () => { spec = { ...fullSpec(w.spec), ...(spec.height ? { height: spec.height } : {}) }; seed = null; refresh() })))
+  const now = spell.char.world.find(same)
   return h('div', { class: 'picker' },
     h('div', { class: 'picker-head' }, h('b', {}, 'Around the world'), h('span', { class: 'muted' }, now ? `${now.name} · ${now.region}` : `${spell.char.world.length} ready-made`)),
     strip)
+}
+
+// how tall people are drawn: 16 is the classic chibi size, up to 32 for long-legged RPG proportions
+function heightPicker() {
+  const ok = Boolean(anchorsOf(spec.body).hand)
+  const now = spec.height ?? 16
+  return h('div', { class: `picker${ok ? '' : ' off'}` },
+    h('div', { class: 'picker-head' }, h('b', {}, 'Height'), h('span', { class: 'muted' }, ok ? (now === 16 ? '16 px (chibi)' : `${now} px`) : `${spec.body} keeps its size`)),
+    h('div', { class: 'seg' }, [16, 20, 24, 28, 32].map((v) => h('button', {
+      'aria-pressed': String(now === v), disabled: !ok, title: v === 16 ? 'As drawn (chibi)' : `${v} px tall`,
+      onclick: () => { if (v === 16) delete spec.height; else spec.height = v; seed = null; refresh() },
+    }, String(v)))),
+  )
 }
 
 function skinPicker() {

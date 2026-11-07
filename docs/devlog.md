@@ -1235,3 +1235,29 @@ The ask: more varied characters, especially ones with the look of different coun
 
   The snapshots for the 12 random characters changed, as expected, because there are more bodies and tones to draw from.
 
+## Round 16: taller people
+
+The ask: characters that are a bit longer top to bottom, not only the 16 px chibi.
+
+- **Not redrawn: stretched.** `height` on a spec (16-32) repeats one torso row and one leg row of a humanoid in every
+  pose. Front, back, side and 3/4 all repeat the same rows, so the hips don't jump when the walk direction changes.
+  Anchors below a repeated row move down with it, so the sword is still in the hand. Each image is a cached sprite like
+  the 3/4 poses.
+- **Choosing the rows took two tries.**
+  - First I scored rows by how much they looked like the row below. That picked the hero's hand row (arms like orange
+    sticks) and the boot row (black stilts).
+  - Each body now names its rows: the chest or a long garment, never a row with the hands. Never a row the walk
+    animation moves either, because the bodies that step lift rows 13-15.
+  - So the hero grows in the chest and thighs, the hanbok's chima and the samurai's hakama get longer, and the hanfu's
+    sleeves and robe lengthen together.
+  - 40% of the extra height goes to the torso and 60% to the legs, so 24 px reads as normal RPG proportions.
+- **Everything around it grows with it.**
+  - The character canvas is 24 x (8 + height).
+  - Action frames are 32 x (16 + height), with the smash's ground line measured from the bottom.
+  - Status effects sit at the feet.
+  - Pack cells get taller, and the README's Phaser origin and Godot offset use the real cell height.
+- **Maker:** a Height row (16/20/24/28/32). Presets keep the height you picked, and the code note gives the real frame
+  size.
+- **Checks:** a test checks sizes, origins, the unchanged head, the sword following the hand, monsters keeping their
+  size, the error for 40 and the pack metadata. There are 26 new snapshot hashes, and no existing one changed.
+

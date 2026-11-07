@@ -30,7 +30,9 @@ export const ELEMENTS = { fire: 'orange', ice: 'ice', poison: 'lime', holy: 'gol
 const PARTICLES = [[-8, 4, 0], [7, 2, 1], [-3, -3, 2], [6, -6, 3], [-7, -5, 4], [2, 6, 1]]
 
 export function createActions(spell, looks) {
-  const blank = () => new Pixmap(ACTION_SIZE, ACTION_SIZE)
+  // frames are 32 wide and 32 tall, plus whatever a taller character (spec.height) adds, so the feet stay at the bottom
+  let frameH = ACTION_SIZE
+  const blank = () => new Pixmap(ACTION_SIZE, frameH)
   const frame = (...layers) => layers.flat().filter(Boolean).reduce((c, l) => c.draw(l), blank())
   const centered = (img, cx, cy) => img.at(Math.round(cx - img.w / 2), Math.round(cy - img.h / 2))
   const charAt = (img, dx = 0, dy = 0) => img.at(CHAR_AT[0] + dx, CHAR_AT[1] + dy)
@@ -48,7 +50,7 @@ export function createActions(spell, looks) {
   /** Attach points in action-frame coordinates. */
   function points(spec, first) {
     const body = looks[spec.body].def
-    const b = bbox(spell.char({ body: spec.body, A: spec.A, B: spec.B, C: spec.C }))
+    const b = bbox(spell.char({ body: spec.body, A: spec.A, B: spec.B, C: spec.C, height: spec.height }))
     const all = bbox(first)
     const cx = CHAR_AT[0] + ((b.x0 + b.x1 + 1) >> 1), cy = CHAR_AT[1] + ((b.y0 + b.y1 + 1) >> 1)
     const anchor = (k) => body.anchors[k] && [CHAR_AT[0] + BODY_AT[0] + body.anchors[k][0][0], CHAR_AT[1] + BODY_AT[1] + body.anchors[k][0][1]]
@@ -108,7 +110,7 @@ export function createActions(spell, looks) {
     stab: { lunge: [-1, 2, 3, 3, 1, 0, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'stab', 24), i, 1), c.pts.hand[0] - 4 + dx, c.pts.hand[1] - 12) },
     thrust: { lunge: [-2, 2, 3, 3, 2, 0, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'thrust', 24), i, 1), c.pts.hand[0] - 4 + dx, c.pts.hand[1] - 13) },
     whip: { draw: (c, i, dx) => at(play(fxf(c, 'whip', 24), i, 1), c.pts.hand[0] - 3 + dx, c.pts.hand[1] - 14) },
-    smash: { lunge: [0, -1, 1, 2, 2, 1, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'smash', 24), i, 2), c.pts.hand[0] - 8 + dx, 31 - 21) },
+    smash: { lunge: [0, -1, 1, 2, 2, 1, 0, 0], draw: (c, i, dx) => at(play(fxf(c, 'smash', 24), i, 2), c.pts.hand[0] - 8 + dx, frameH - 1 - 21) },
     burn: { draw: (c, i, dx) => at(play(fxf(c, 'burst', 20), i, 1), c.pts.hand[0] - 6 + dx, c.pts.hand[1] - 12) },
     bonk: { draw: (c, i, dx) => at(play(fxf(c, 'pow', 20), i, 2), c.pts.hand[0] - 6 + dx, c.pts.hand[1] - 14) },
     punch: { draw: (c, i, dx) => at(play(fxf(c, 'impact', 16), i, 2), c.pts.hand[0] - 4 + dx, c.pts.hand[1] - 9) },
@@ -211,9 +213,14 @@ export function createActions(spell, looks) {
     const a = ACTIONS[name]
     if (!a) throw new Error(`pixspell: unknown action "${name}". Actions: ${Object.keys(ACTIONS).join(', ')}.${didYouMean(name, Object.keys(ACTIONS))}`)
     const c = setup(spec, opts, a.fallback)
-    const frames = a.build(c)
-    frames.fps = a.fps
-    return frames
+    frameH = ACTION_SIZE + c.char(0).h - 24
+    try {
+      const frames = a.build(c)
+      frames.fps = a.fps
+      return frames
+    } finally {
+      frameH = ACTION_SIZE
+    }
   }
 
   action.list = Object.keys(ACTIONS)

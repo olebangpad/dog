@@ -1286,3 +1286,40 @@ test('people from around the world: bodies walk every way, presets use real part
   assert.ok(new Set(randoms.map((r) => r.C).filter(Boolean)).size >= 5)
   assert.ok(randoms.every((r) => !spell.char.skins.includes(r.A)))
 })
+
+test('taller people: height 16-32 grows humanoids, keeps feet, hands and gear lined up in every view and action', () => {
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
+  assert.deepEqual(spell.char.heights, [16, 32])
+  for (const h of [16, 20, 24, 32]) {
+    const s = { ...knight, height: h }
+    const img = spell.char(s)
+    assert.equal(img.w, 24)
+    assert.equal(img.h, 24 + h - 16)
+    for (const d of [...spell.walk.dirs, ...spell.walk.diagonals]) {
+      const w = spell.walk(s, d)
+      assert.equal(w[0].h, 24 + h - 16, `${h} ${d}`)
+      assert.deepEqual(w.origin, [12, 24 + h - 17], 'feet at the bottom')
+    }
+    const a = spell.action(s, 'attack')
+    assert.equal(a[0].h, 32 + h - 16)
+    assert.deepEqual(a.origin, [16, 32 + h - 17])
+    assert.equal(spell.status(s, 'burning')[0].h, 32 + h - 16)
+  }
+  // the default is the drawn size, so 16 changes nothing
+  assert.deepEqual(spell.char({ ...knight, height: 16 }).data, spell.char(knight).data)
+  // the feet stand on the bottom row, and the head stays the same size: a taller person is taller below the neck
+  const bottom = (img) => { for (let y = img.h - 1; y >= 0; y--) for (let x = 0; x < img.w; x++) if (img.alpha(x, y)) return y; return -1 }
+  assert.equal(bottom(spell.char({ body: 'hero', height: 28 })), 24 + 12 - 1)
+  assert.deepEqual(spell.char({ body: 'hero', height: 28 }).crop(0, 0, 24, 15).data, spell.char('hero').crop(0, 0, 24, 15).data)
+  // the sword is still in the hand: it moved down with the hand
+  const swordAt = (img) => { for (let y = 0; y < img.h; y++) for (let x = 18; x < 24; x++) if (img.alpha(x, y)) return y; return -1 }
+  assert.ok(swordAt(spell.char({ ...knight, height: 28 })) > swordAt(spell.char(knight)))
+  // animals and monsters keep their size; out-of-range heights say what's allowed
+  assert.equal(spell.char({ body: 'slime', height: 30 }).h, 24)
+  assert.throws(() => spell.char({ body: 'hero', height: 40 }), /16 \(as drawn\) to 32/)
+  // packs: taller cells, feet at the bottom center
+  const pack = spell.pack({ ...knight, height: 24 }, { actions: ['attack'] })
+  const meta = JSON.parse(typeof pack.files[`${pack.id}.json`] === 'string' ? pack.files[`${pack.id}.json`] : new TextDecoder().decode(pack.files[`${pack.id}.json`])).meta.pixspell
+  assert.deepEqual([meta.cell, meta.cellHeight, meta.origin.y], [32, 40, 39])
+  assert.match(pack.files['README.txt'], /32x40 cells/)
+})

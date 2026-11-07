@@ -4,7 +4,7 @@
 //   pack.files   // { 'hero.png', 'hero.json', 'hero.tres', 'README.txt' }
 //   pack.zip()   // the same as one .zip (Uint8Array)
 //
-// Sheet: 32x32 cells, one animation per row, feet at (16, 31) in every cell.
+// Sheet: 32x32 cells (taller for a taller spec.height), one animation per row, feet at the bottom center of every cell.
 // JSON:  Aseprite / TexturePacker "JSON array" with meta.frameTags, so Phaser's
 //        load.aseprite() + anims.createFromAseprite() work out of the box.
 // .tres: Godot 4 SpriteFrames for AnimatedSprite2D.
@@ -24,9 +24,10 @@ export function createPack(spell, looks) {
     const s = typeof spec === 'string' ? { body: spec } : { ...spec }
     for (const k of ['action', 'element', 'frame', 'dir']) delete s[k]
     const id = name ?? slug(s)
-    const pad = (f) => new Pixmap(PACK_CELL, PACK_CELL).draw(f, 4, 8) // 24x24 -> 32x32, same feet spot as actions
-
     const idle = spell.char.frames(s)
+    // 24x24 -> 32x32, the same feet spot as actions; a taller character (spec.height) makes every cell taller
+    const tall = idle[0].h - idle[0].w
+    const pad = (f) => new Pixmap(PACK_CELL, PACK_CELL + tall).draw(f, 4, 8)
     const bodyFps = looks[s.body].def.frames.length > 1 ? looks[s.body].def.fps : 4
     const rows = [{ tag: 'idle', frames: idle.map(pad), fps: bodyFps, loop: true }]
     for (const dir of diagonals ? [...spell.walk.dirs, ...spell.walk.diagonals] : spell.walk.dirs) {
@@ -41,8 +42,8 @@ export function createPack(spell, looks) {
     // another tile size: the same rows, converted (cell 32 -> 16 / 64 / 128, feet stay at the bottom center)
     const k = grid / 16
     if (k !== 1) for (const r of rows) r.frames = spell.toGrid(r.frames, grid, { smooth })
-    const origin = { x: ORIGIN.x * k, y: (ORIGIN.y + 1) * k - 1 }
-    return writePack(id, rows, { readme: readmeFor(id, s, rows, origin, PACK_CELL * k), meta: { spec: s, origin, grid }, deflate, extra: { spec: s } })
+    const origin = { x: ORIGIN.x * k, y: (ORIGIN.y + tall + 1) * k - 1 }
+    return writePack(id, rows, { readme: readmeFor(id, s, rows, origin, PACK_CELL * k, (PACK_CELL + tall) * k), meta: { spec: s, origin, grid }, deflate, extra: { spec: s } })
   }
 
   return pack
@@ -79,7 +80,7 @@ export function writePack(id, rows, { readme, meta = {}, deflate, extra = {} } =
     meta: {
       app: 'https://github.com/olebangpad/pixspell', version: '1', image: `${id}.png`, format: 'RGBA8888',
       size: { w: image.w, h: image.h }, scale: '1', frameTags,
-      pixspell: { cell: cellW, ...meta, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
+      pixspell: { cell: cellW, cellHeight: cellH, ...meta, loops: Object.fromEntries(rows.map((r) => [r.tag, r.loop])) },
     },
   }
   const tres = godot(id, rows, frames)
@@ -141,14 +142,15 @@ function godot(id, rows, frames) {
   ].join('\n')
 }
 
-function readmeFor(id, spec, rows, origin = ORIGIN, cell = PACK_CELL) {
+function readmeFor(id, spec, rows, origin = ORIGIN, cell = PACK_CELL, cellH = cell) {
   const opts = ['hat', 'hand', 'offhand', 'A', 'B', 'C'].filter((k) => spec[k]).map((k) => `${k}: '${spec[k]}'`)
+  if (spec.height) opts.push(`height: ${spec.height}`)
   return `PixSpell character pack: ${id}
 Made with PixSpell - https://github.com/olebangpad/pixspell
 The art is CC0 (public domain): use it in any game, commercial or not. Credit is welcome, not required.
 
 FILES
-  ${id}.png    sprite sheet: ${cell}x${cell} cells, one animation per row.
+  ${id}.png    sprite sheet: ${cell}x${cellH} cells, one animation per row.
                Every cell has the character's feet at x=${origin.x}, y=${origin.y} - use that as the sprite origin.
   ${id}.json   Aseprite / TexturePacker "JSON array" atlas with meta.frameTags (one tag per animation)
   ${id}.tres   Godot 4 SpriteFrames (expects the png at res://${id}.png - fix the path if you move it)
@@ -161,14 +163,14 @@ PHASER 3
   this.load.aseprite('${id}', '${id}.png', '${id}.json')
   // create()
   this.anims.createFromAseprite('${id}')
-  const hero = this.add.sprite(160, 120, '${id}').setOrigin(0.5, ${origin.y} / ${cell})
+  const hero = this.add.sprite(160, 120, '${id}').setOrigin(0.5, ${origin.y} / ${cellH})
   hero.play({ key: 'walk-down', repeat: -1 })
   // pixel-perfect: new Phaser.Game({ pixelArt: true, ... })
 
 GODOT 4
   Copy ${id}.png and ${id}.tres into the project root, add an AnimatedSprite2D,
   set its Sprite Frames to ${id}.tres and pick an animation (walk_down, attack, ...).
-  Set the texture filter to Nearest for crisp pixels; offset.y = -${origin.y - cell / 2} puts the feet on the node position.
+  Set the texture filter to Nearest for crisp pixels; offset.y = -${origin.y - cellH / 2} puts the feet on the node position.
 
 ANYTHING ELSE
   ${id}.json lists every frame's x / y / w / h and duration in milliseconds.

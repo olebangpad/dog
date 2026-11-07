@@ -46,6 +46,32 @@ function turnedPose(def) {
   return t
 }
 
+// Taller people: spec.height (16 = as drawn, up to 32) stretches a humanoid by repeating one torso row and one leg row
+// in every pose (front, back, side, 3/4), so the proportions match whichever way it walks. The rows are chosen per body:
+// the chest or a long garment, never a row with the hands (long hands) or one the walk animation moves (rows 13-15 of
+// bodies that step). 40% of the extra height goes to the torso, the rest to the legs. Anchors below a repeated row
+// move down with it, so gear stays in the hands.
+export const MIN_HEIGHT = 16, MAX_HEIGHT = 32
+const GROW = {
+  hero: [8, 12], heroine: [8, 12], goblin: [8, 12], skeleton: [9, 12], robot: [10, 12],
+  hanbok: [11, 13], seonbi: [11, 12], kimono: [9, 13], samurai: [11, 12], hanfu: [11, 13], aodai: [10, 12], sari: [10, 12],
+  thobe: [10, 12], kente: [9, 12], toga: [10, 12], kilt: [8, 12], dirndl: [10, 12], poncho: [9, 13], deel: [11, 12],
+}
+const stretchedPoses = new Map()
+function stretchPose(def, height, plan) {
+  const key = `${def.id}|${height}`
+  let t = stretchedPoses.get(key)
+  if (!t) {
+    const extra = height - MIN_HEIGHT, torso = Math.round(extra * 0.4), legs = extra - torso
+    const grow = (rows) => rows.flatMap((r, y) => [r, ...Array(y === plan.torso ? torso : y === plan.legs ? legs : 0).fill(r)])
+    const shift = (y) => y + (y > plan.torso ? torso : 0) + (y > plan.legs ? legs : 0)
+    const anchors = Object.fromEntries(Object.entries(def.anchors).map(([kind, list]) => [kind, list.map(([x, y, ...rest]) => [x, shift(y), ...rest])]))
+    t = defineSprite({ id: `${def.id}-h${height}`, ramps: def.ramps, fps: def.fps, sequence: def.sequence, tags: def.tags, frames: def.frames.map(grow), anchors })
+    stretchedPoses.set(key, t)
+  }
+  return t
+}
+
 function rng(seed) {
   if (seed == null) return Math.random
   let a = typeof seed === 'number' ? seed >>> 0 : [...String(seed)].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 2654435761) >>> 0, 7)
@@ -84,13 +110,23 @@ export function createCharacters(looks) {
     const spec = typeof body === 'object' && body !== null ? { ...body } : { ...opts, body }
     if (!looks[spec.body]) throw new Error(`pixspell: no body called "${spec.body}".${didYouMean(spec.body, parts.body)} Bodies: ${parts.body.filter((b) => !b.includes('-')).join(', ')}`)
     if (!Object.keys(looks[spec.body].def.anchors).length) throw new Error(`pixspell: "${spec.body}" has no anchors, so it can't wear gear`)
+    if (spec.height != null && !(Number.isInteger(spec.height) && spec.height >= MIN_HEIGHT && spec.height <= MAX_HEIGHT)) {
+      throw new Error(`pixspell: height is how tall a person is drawn, ${MIN_HEIGHT} (as drawn) to ${MAX_HEIGHT} px; got ${spec.height}`)
+    }
     return spec
   }
+
+  // which torso and leg rows a body repeats when it grows taller (the same for all its poses); chest and thighs by default
+  const planFor = (base) => { const [torso, legs] = GROW[base] ?? [8, 12]; return { torso, legs } }
+  const canGrow = (spec) => Boolean(looks[spec.body].def.anchors.hand) && looks[spec.body].def.h === 16 // humanoids
+  /** Extra rows a spec's character has over the 24x24 standard (0 unless it's a taller humanoid). */
+  const extraRows = (spec) => (spec.height && canGrow(spec) ? spec.height - MIN_HEIGHT : 0)
 
   // `view` swaps in another pose of the same body (a walk-cycle sprite) but keeps the body's colors
   function layers(spec, view) {
     const body = looks[spec.body]
-    const def = view ?? body.def
+    let def = view ?? body.def
+    if (extraRows(spec)) def = stretchPose(def, spec.height, planFor(body.def.id))
     const out = [{ kind: 'body', look: { ...body, def }, ramps: { ...body.ramps, ...pickRamps(spec) } }]
     for (const kind of KINDS) {
       const part = resolvePart(spec[kind === 'head' ? 'hat' : kind], kind)
@@ -118,7 +154,7 @@ export function createCharacters(looks) {
       ;(layer === 'back' ? back : front).push(img.at(BODY_AT[0] + ax - d.pivot[0], BODY_AT[1] + ay - d.pivot[1]))
     }
     const bodyImg = render(bdef, { ...body.ramps, frame: bframe }).at(...BODY_AT)
-    let img = new Pixmap(CHAR_SIZE, CHAR_SIZE)
+    let img = new Pixmap(CHAR_SIZE, CHAR_SIZE + extraRows(spec))
     for (const l of [...back, bodyImg, ...front]) img = img.draw(l)
     return img
   }
@@ -157,7 +193,7 @@ export function createCharacters(looks) {
     } else {
       // hold the body's first pose and let the hop do the moving (its own float/squash could cancel it out)
       const hop = [0, -1, -2, -1]
-      frames = hop.map((dy, i) => new Pixmap(CHAR_SIZE, CHAR_SIZE).draw(build(spec, i, undefined, 0), 0, dy))
+      frames = hop.map((dy, i) => new Pixmap(CHAR_SIZE, CHAR_SIZE + extraRows(spec)).draw(build(spec, i, undefined, 0), 0, dy))
     }
     if (dir === 'left' || dir.endsWith('-left')) frames = frames.map((f) => f.flipX())
     frames.fps = pose ? pose.def.fps : 6
@@ -188,6 +224,7 @@ export function createCharacters(looks) {
   }
 
   char.parts = parts
+  char.heights = [MIN_HEIGHT, MAX_HEIGHT]
   char.skins = SKIN_TONES
   char.size = CHAR_SIZE
 

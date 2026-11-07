@@ -877,6 +877,7 @@
   ],
   "pixspell": {
    "cell": 32,
+   "cellHeight": 32,
    "spec": {
     "body": "hero",
     "hat": "knight",

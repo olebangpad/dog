@@ -63,7 +63,7 @@ document.body.append(knight.scale(8).toCanvas())
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [2등신부터 길쭉한 체형까지 원하는 키로](#-원하는-키로-2등신부터-길쭉한-체형까지) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -241,6 +241,21 @@ spell.char('seonbi', { hat: 'gat', offhand: 'book' })                    // 조�
 spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana' }, 'left')
 spell.char({ ...spell.char.world[0].spec, C: 'skin-dark' })               // 미리 만든 26명: spell.char.world
 spell.char.skins                                                         // skin-light skin skin-olive skin-tan skin-brown skin-dark
+```
+
+### 📏 원하는 키로: 2등신부터 길쭉한 체형까지
+
+<img src="docs/img/heights.png" alt="기사, 한복 무희, 사무라이, 마법사가 각각 16, 20, 24, 28, 32픽셀 키로 걷는 모습" width="810">
+
+사람 캐릭터는 2등신(16px)으로 그려져 있지만, 더 길쭉한 캐릭터를 쓰는 게임이라면 32px까지 원하는 키로 만들 수 있습니다.
+몸마다 늘려도 어색하지 않은 가슴 줄과 다리 줄을 정해 두고(손이나 발은 늘리지 않음) 모든 포즈에서 같은 줄을 늘리기 때문에
+8방향 어디로 걸어도 비율이 같고, 모자와 무기도 머리와 손에 그대로 붙어 있습니다. 걷기, 행동, 상태 이펙트, 게임 팩도
+같이 커지고 발은 항상 맨 아래에 있습니다(`frames.origin`).
+
+```js
+spell.walk({ body: 'samurai', hat: 'kabuto', hand: 'katana', height: 24 }, 'left')   // 24x32 프레임
+spell.pack({ body: 'heroine', hand: 'bow', height: 32 })                            // 32x48 칸
+// npx pixspell char hero --hat crown --height 28 -o tall.png
 ```
 
 ### ⚔️ 상황 이펙트
@@ -546,6 +561,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.list({ category, tag, variants })` | 전체 id 목록 |
 | `spell.char(body, { hat, hand, offhand, A })` | 장비를 이름으로 입힌 24×24 캐릭터 |
 | `spell.char.frames(spec)` · `spell.char.random(seed)` | 애니메이션 프레임 · 시드로 재현되는 랜덤 캐릭터 |
+| `{ ...spec, height: 24 }` | 더 큰 사람 캐릭터(16~32px): 모든 포즈, 행동, 상태, 팩에서 몸통과 다리가 길어지고 발은 맨 아래 |
 | `spell.char.world` · `spell.char.skins` | 미리 만든 세계의 사람들 26명(`{ id, name, region, spec }`) · `C`에 쓰는 피부색 6가지 |
 | `spell.walk(spec, dir)` | 걷기 `down` `up` `left` `right` (24×24 프레임, `.fps`) |
 | `spell.action(spec, name, element)` | 행동 애니메이션 8프레임 (32×32, `.fps`) |
