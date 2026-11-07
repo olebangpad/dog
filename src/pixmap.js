@@ -158,7 +158,7 @@ export class Pixmap {
       const s = src
       src = s._new(s.w * 2, s.h * 2, (x, y) => {
         const px = x >> 1, py = y >> 1
-        const P = s.key(px, py), A = s.key(px, py - 1), B = s.key(px + 1, py)
+        const A = s.key(px, py - 1), B = s.key(px + 1, py)
         const C = s.key(px - 1, py), D = s.key(px, py + 1)
         const right = x & 1, bottom = y & 1
         let pick = [px, py]

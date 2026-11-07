@@ -261,7 +261,7 @@ const fxMemo = new Map()
 const FX_MEMO_MAX = 300
 spell.fx = framed((name, opts = {}) => {
   if (opts.grid != null) { // effects are code: a grid just means drawing them at another size
-    const { grid, smooth, ...rest } = opts
+    const { grid, smooth, ...rest } = opts // eslint-disable-line no-unused-vars -- smooth means nothing to an effect
     opts = { ...rest, size: (rest.size ?? 32) * gridFactor(grid) }
   }
   const key = name + JSON.stringify(opts)

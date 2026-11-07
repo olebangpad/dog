@@ -9,7 +9,7 @@
 //        load.aseprite() + anims.createFromAseprite() work out of the box.
 // .tres: Godot 4 SpriteFrames for AnimatedSprite2D.
 
-import { Pixmap, sheet } from './pixmap.js'
+import { Pixmap } from './pixmap.js'
 import { zip } from './zip.js'
 import { didYouMean } from './suggest.js'
 

@@ -1,6 +1,6 @@
 // Promo frame: the demo playing itself, rotating captions and a strip of
 // random characters. Recorded to video by scripts/record-promo.cjs.
-import { spell, Pixmap } from '../src/index.js'
+import { spell } from '../src/index.js'
 import { createGame } from './quest.js'
 
 const params = new URLSearchParams(location.search)

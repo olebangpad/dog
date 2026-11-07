@@ -334,7 +334,7 @@ export const CORE = [
   {
     id: 'fx-sleep', color: 'bone', clean: false, frames: 8, fps: 6, loop: true, tags: ['status', 'loop'], variants: ['water', 'arcane', 'ice'],
     draw(p, t) {
-      const { c, s } = p
+      const { s } = p
       for (let k = 0; k < 3; k++) {
         const u = (t + k / 3) % 1
         const scale = u < 0.4 ? 1 : 2 // letters grow as they float away

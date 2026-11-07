@@ -1,6 +1,6 @@
 // PixSpell studio: browse, combine, recolor and resize sprites, then export.
 import {
-  spell, looks, sprites, compose, sheet, defineSprite, render, resolveRamp, rampFrom,
+  spell, looks, sprites, compose, sheet, defineSprite, render, resolveRamp,
   MATERIALS, MATERIAL_NAMES, LEGEND, OUTLINE, encodeAPNG, Pixmap,
 } from '../src/index.js'
 import { $, $$, h, paint, thumb, download, toast, copy, encode, decode, readHash, writeHash } from './ui.js'

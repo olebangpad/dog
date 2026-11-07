@@ -13,7 +13,7 @@ import { homedir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deflateSync, inflateSync } from 'node:zlib'
-import { spell, looks, sprites, compose, sheet, text, Pixmap, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
+import { spell, looks, compose, sheet, text, Pixmap, encodeAPNG, zip, MATERIAL_NAMES } from '../src/index.js'
 
 const HELP = `pixspell - game assets as code
 
