@@ -1327,3 +1327,27 @@ The question this time: keep the name or switch to "Pixpell", and what would act
   - **Where they show up:** maker buttons (RPG Maker, Avatar; the maker's game pack now includes strips), CLI
     `pixspell rpgmaker [--random 8]` and `pixspell avatar`, and an MCP pack `format: "rpgmaker"`.
 
+
+## Round 18: hits that feel good (acts) and GIFs
+
+- **Why:** pixelfx (an effects library with about 5.7k stars) shows that people share attack animations with weight to
+  them. We had the parts, real characters, weapons, effects and sounds, but nothing put two characters in one scene.
+  We wrote our own version, borrowing no code.
+- **GIF export:** a zero-dependency encoder with one shared palette (median cut when there are more than 256
+  colors) and LZW. A test decodes every pixel back. Chat apps and social posts play GIFs, not APNG.
+- **`spell.act(attacker, target)`:**
+  - **The timeline:** two wind-up frames that pull back, then a dash in for melee styles (each style has the distance
+    its blow reaches, so a hammer steps closer than a spear). The swing runs to the contact frame, freezes for
+    `freeze` seconds with a shake pattern on every frozen frame, plays the target's hit (or death) from its second
+    frame, and the attacker steps back.
+  - **The parts are the real ones:** the attacker's `spell.action(..., 'attack')`, in a frame widened to reach the
+    target (a new `width` option that keeps the character centered), and the target's `hit` / `death` mirrored to
+    face left. The damage number is drawn separately so it doesn't read backwards.
+  - **What a game needs:** `.hits` (frame, time, freeze, shake, push), `.cues` (the swing sound for the style, then
+    `hit` or `crit`, then `death`), `.feet` and `.play()`. They're non-enumerable, like the other helpers, so an act
+    still compares like a plain array. They were first on `.at`, which shadowed `Array.prototype.at`. The type checker
+    caught it, so they moved to `.feet`.
+  - **Fixed along the way:** the magic burst was at a fixed x, which in a wide frame was far from the hand. Bats and
+    other sprites that aren't bodies now get a clear error instead of "has no anchors".
+- **Where it shows up:** the maker's ⚔ Fight with an opponent strip, `pixspell act`, preview and MCP items, a README
+  section with `acts.png`, and the act tile replacing level-up in the top gallery.

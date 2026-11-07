@@ -27,6 +27,9 @@ usage:
   pixspell char <body> ... --action attack [--element fire] --anim -o hit.png
                                            actions: attack hit heal levelup cast death
   pixspell char <body> ... --walk left --anim -o walk.png   directions: down up left right down-right down-left up-right up-left
+  pixspell act <body> [--hat x] [--hand x] ... --vs slime [--ko] [--element fire] [--scale 4] -o hit.gif
+                                           one character hitting another: wind-up, hit-stop, shake, reaction
+                                           (prints the hit timing and the sounds to play, for your game)
   pixspell pack <body> [--hat x] [--hand x] [--offhand x] [-A color] [--element fire] [-o hero.zip | --dir out/]
                                            game pack: sprite sheet + Phaser/Aseprite JSON + Godot .tres
                                            (--strip adds GameMaker strips; the README says how to slice it in Unity)
@@ -125,6 +128,8 @@ function parse(argv) {
     else if (a === '--tempo') opts.tempo = Number(next())
     else if (a === '--height') opts.height = Number(next())
     else if (a === '--full') opts.full = true
+    else if (a === '--vs') opts.vs = next()
+    else if (a === '--ko') opts.ko = true
     else if (a === '-h' || a === '--help') opts.help = true
     else if (/^--?[a-z]/i.test(a)) (opts.unknown ??= []).push(a)
     else opts._.push(a)
@@ -135,8 +140,8 @@ function parse(argv) {
 const OPTIONS = ['-A', '-B', '-C', '-o', '--out', '--scale', '--smooth', '--outline', '--shadow', '--hue', '--sat', '--light', '--flip-x',
   '--flip-y', '--rotate', '--frame', '--anim', '--hat', '--hand', '--offhand', '--random', '--action', '--walk', '--element', '--strip',
   '--dir', '--size', '--seed', '--on', '--pitch', '--grid', '--no-effects', '--no-sounds', '--all-colors', '--volume', '--claude',
-  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--height', '--full', '--help']
-const COMMANDS = ['list', 'materials', 'info', 'render', 'combine', 'char', 'pack', 'rpgmaker', 'avatar', 'fx', 'fxpack', 'sfx', 'import', 'autotile', 'music',
+  '--stats', '--zoom', '--key', '--id', '--preview', '--tempo', '--height', '--full', '--vs', '--ko', '--help']
+const COMMANDS = ['list', 'materials', 'info', 'render', 'combine', 'char', 'act', 'pack', 'rpgmaker', 'avatar', 'fx', 'fxpack', 'sfx', 'import', 'autotile', 'music',
   'sfxpack', 'export', 'hero', 'preview', 'doctor', 'mcp', 'skill', 'outline']
 
 function finish(img, o) {
@@ -225,6 +230,19 @@ if (!cmd || o.help) {
   if (o.anim) save(name, encodeAPNG(frames.map((f) => finish(f, o)), { fps, deflate }))
   else if (o.strip || o.action || o.walk) save(name, finish(sheet(frames).image, o).toPNG({ deflate }))
   else save(name, finish(spell.char(spec, g), o).toPNG({ deflate }))
+} else if (cmd === 'act') {
+  const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
+    : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }
+  for (const k of Object.keys(spec)) if (spec[k] == null) delete spec[k]
+  const target = { body: o.vs ?? args[1] ?? 'slime', ...(o.height ? { height: o.height } : {}) }
+  const act = spell.act(spec, target, { element: o.element, ko: o.ko, grid: o.grid })
+  const name = o.out ?? `${spec.body}-vs-${target.body}.gif`
+  outPath = name
+  if (o.strip) save(name, finish(sheet(act).image, o).toPNG({ deflate }))
+  else save(name, encodeAPNG(act.map((f) => finish(f, o)), { fps: act.fps, deflate }))
+  const [hit] = act.hits
+  console.error(`${act.length} frames at ${act.fps} fps. Hit at frame ${hit.frame} (${hit.time} s): freeze ${hit.freeze} s, shake ${hit.shake} px`)
+  console.error(`sounds: ${act.cues.map((c) => `spell.sfx('${c.sound}'${c.opts.element ? `, { element: '${c.opts.element}' }` : ''}) at ${c.time} s`).join(', ')}`)
 } else if (cmd === 'pack') {
   const spec = o.random ? spell.char.random(o.random === true ? undefined : o.random)
     : { body: args[0] ?? 'hero', hat: o.hat, hand: o.hand, offhand: o.offhand, ...ramps(o), ...(o.height ? { height: o.height } : {}) }

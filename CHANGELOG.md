@@ -16,6 +16,11 @@ patch versions never do. Art changes that alter how a sprite looks are listed he
 - **Music:** `spell.music(name, { key, tempo, seed })` renders 17 chiptune tracks: 14 seamless loops for scenes (title,
   town, field, forest, dungeon, cave, battle, boss, shop, night, castle, desert, snow, ocean) and 3 jingles. Each is a few
   lines of song data; the engine writes the melody, bass, harmony and drums. Sounds page, CLI `pixspell music`, MCP items.
+- **Acts:** `spell.act(attacker, target, opts)` makes one character hit another with game feel: a wind-up, a step in
+  for melee weapons, hit-stop and screen shake on contact, then the target's reaction or a knock-out (`ko: true`).
+  The result also carries `.hits` (freeze, shake, push to reproduce in a game), `.cues` (the sounds and when) and
+  `.feet`. Also: **⚔ Fight** in the maker, `pixspell act <body> --vs slime [--ko]`, `{ "char": ..., "vs": ... }`
+  preview and MCP items, and `spell.action(spec, name, { width })` for wider action frames.
 - **GIF export:** a zero-dependency encoder (one shared palette, median cut past 256 colors, transparency or a background
   to blend glows onto). `frames.toGIF()`, `.save('x.gif')`, `Pixmap.toGIF()`, `encodeGIF`; GIF buttons in the maker and
   on the effects page; the CLI writes a GIF when `-o` ends in `.gif`.

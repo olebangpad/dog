@@ -28,6 +28,7 @@ import { decodePNG, spriteFromImage } from './import.js'
 import { framed, asFrames, originKind } from './frames.js'
 import { WORLD } from './world.js'
 import { createPortraits } from './portrait.js'
+import { createActs } from './act.js'
 import { didYouMean } from './suggest.js'
 
 /** Every sprite definition, keyed by id. */
@@ -236,6 +237,12 @@ spell.action = framed(Object.assign((...a) => applyActive(rawAction(...a)), rawA
  * directions: down up left right
  */
 spell.walk = spell.char.walk
+
+/**
+ * Acts: one character hitting another with game feel (wind-up, hit-stop, shake, reaction or knock-out, recovery).
+ *   const act = spell.act(knight, 'slime', { element: 'fire' })   frames + .hits + .cues + .at; act.play() for sound
+ */
+spell.act = createActs(spell, { Pixmap, text, applyActive, asFrames, OUTLINE })
 
 const portraits = createPortraits(spell)
 /** A profile picture of a character: spell.avatar(spec, { size: 256, frame: 'bust' | 'full', background }). */

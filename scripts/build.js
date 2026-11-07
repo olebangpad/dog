@@ -408,8 +408,44 @@ function showTiles() {
     tornado: (() => { const f = spell.fx('tornado', { element: 'fire', size: 64 }); return tile(f.map((x) => center(stage(), x)), f.fps) })(),
     grids: { frames: grids, fps: 6 },
     status: (() => { const f = spell.status({ body: 'skeleton', hat: 'viking', hand: 'axe' }, 'burning'); return tile(f.map((x) => center(stage(), x, 2)), 8) })(),
-    levelup: (() => { const f = spell.action({ body: 'hero', hat: 'crown', hand: 'sword-gold' }, 'levelup'); return tile(f.map((x) => center(stage(), x, 2)), f.fps) })(),
+    // one character hitting another on a strip of grass: wind-up, hit-stop, shake, reaction
+    act: (() => {
+      const a = spell.act(knight, 'slime', { element: 'fire', distance: 22 })
+      const ground = a.feet.target[1] + 1, top = (L - a[0].h) >> 1
+      return tile([...a, ...Array(6).fill(a[a.length - 1])].map((f) => {
+        let img = stage()
+        for (let x = 0; x < L; x += 16) img = img.draw(spell('grass'), x, top + ground)
+        return img.draw(f, (L - f.w) >> 1, top)
+      }), a.fps)
+    })(),
   }
+}
+
+// Acts: six duels, every one a single call to spell.act (styles, elements, a knock-out, tall people)
+function actsShowcase() {
+  const world = (id) => spell.char.world.find((w) => w.id === id).spec
+  const duels = [
+    [{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }, 'slime', { element: 'fire' }, 'SLASH FIRE'],
+    [{ body: 'heroine', hat: 'cowboy-sand', hand: 'bow' }, 'wolf', {}, 'SHOOT'],
+    [{ body: 'heroine', hat: 'wizard', hand: 'staff' }, 'golem', { element: 'ice' }, 'MAGIC ICE'],
+    [world('samurai'), 'skeleton', { ko: true }, 'KNOCK-OUT'],
+    [{ body: 'skeleton', hat: 'viking', hand: 'hammer' }, 'mimic', { element: 'poison' }, 'SMASH POISON'],
+    [{ ...world('hanbok'), height: 24 }, { body: 'goblin', height: 24 }, { element: 'holy' }, 'TALL HOLY'],
+  ]
+  const acts = duels.map(([a, t, o]) => spell.act(a, t, o))
+  const cols = 3, cw = 76, gap = 8, row = 44, labelH = 10
+  const n = Math.max(...acts.map((a) => a.length)) + 6 // hold the end a moment before it loops
+  return Array.from({ length: n }, (_, t) => {
+    let img = new Pixmap(cols * cw + (cols - 1) * gap, Math.ceil(acts.length / cols) * (row + labelH))
+    acts.forEach((a, i) => {
+      const x = (i % cols) * (cw + gap), y = Math.floor(i / cols) * (row + labelH)
+      const f = a[Math.min(t, a.length - 1)]
+      img = img.draw(f, x + ((cw - f.w) >> 1), y + row - f.h)
+      const l = text(duels[i][3], { color: DIM })
+      img = img.draw(l, x + ((cw - l.w) >> 1), y + row + 1)
+    })
+    return framed(img, 8).scale(3)
+  })
 }
 
 // Every monster, idling, with its name; each one is also a character body (hats, walks, actions)
@@ -621,6 +657,7 @@ async function buildShowcase() {
   await write(join(dir, 'monsters.png'), apng(monstersShowcase(), 6))
   await write(join(dir, 'people.png'), apng(peopleShowcase(), 6))
   await write(join(dir, 'heights.png'), apng(heightsShowcase(), 6))
+  await write(join(dir, 'acts.png'), apng(actsShowcase(), 12))
   await write(join(dir, 'ui.png'), png(uiShowcase()))
   for (const [name, { frames, fps }] of Object.entries(showTiles())) await write(join(dir, 'show', `${name}.png`), apng(frames, fps))
   if (process.env.DOG_PROFILE) {

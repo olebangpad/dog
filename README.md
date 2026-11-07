@@ -64,14 +64,14 @@ document.body.append(knight.scale(8).toCanvas())
   <tr>
     <td align="center"><img src="docs/img/show/grids.png" width="240" alt="The same knight at 8, 16, 32 and 64 pixel tiles"><br><sub><code>spell.char(knight, { grid: 8 })</code><br>8, 16, 32 or 64 px tiles</sub></td>
     <td align="center"><img src="docs/img/show/status.png" width="240" alt="A skeleton on fire"><br><sub><code>spell.status(skeleton, 'burning')</code><br>status effects on anyone</sub></td>
-    <td align="center"><img src="docs/img/show/levelup.png" width="240" alt="A crowned hero leveling up"><br><sub><code>spell.action(king, 'levelup')</code><br>and a sound for each: <code>spell.sfx('levelup')</code></sub></td>
+    <td align="center"><img src="docs/img/show/act.png" width="240" alt="A knight stepping in and slashing a slime with fire: the hit freezes, shakes and the slime burns"><br><sub><code>spell.act(knight, 'slime', { element: 'fire' })</code><br>hit-stop, shake and sounds</sub></td>
   </tr>
 </table>
 
 <sub>Each tile is drawn by the code under it (zoomed for the README) in <a href="scripts/build.js"><code>scripts/build.js</code></a>.
 <code>knight</code> is <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>; <code>mage</code>, <code>skeleton</code> and <code>king</code> are specs like it.</sub>
 
-**New:** [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [chibi or tall people](#-chibi-or-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
+**New:** [one character hitting another, with hit-stop and shake](#-hits-that-feel-good) · [GIF export](#-api) · [people from around the world in traditional clothing, and 6 skin tones](#-people-from-around-the-world) · [chibi or tall people](#-chibi-or-tall) · [42 world-building tiles and props](#-the-collection) · [25 new monsters](#-character-maker) · [8-direction walks](#-walk-in-8-directions) · 26 new items · [terrain that blends (autotiles)](#%EF%B8%8F-terrain-that-blends) · [retro palettes](#%EF%B8%8F-retro-palettes) · [import your own PNGs](#%EF%B8%8F-bring-your-own-art) · [a UI kit](#-a-ui-kit) · [music](#-music-made-by-code) · [your GitHub account as a game hero](#-your-github-account-as-a-game-hero) · effects glow · [Spell Survivors](#-a-whole-game-made-by-an-ai-agent-with-pixspell), a game an AI agent built with PixSpell ·
 103 sounds · every asset at 8 to 64 px · the skill installs into any Agent Skills client with `npx pixspell skill` · [changelog](CHANGELOG.md)
 
 ## Why PixSpell?
@@ -290,6 +290,27 @@ spell.action('hero-mage', 'cast', '#00ffcc')      // any material or hex works a
 
 Attacks follow the weapon: swords slash, daggers stab, spears thrust, hammers and axes smash, bows shoot, staffs cast,
 whips crack, torches burn, flowers bonk, empty hands punch. `spell.action.styleOf(spec)` tells you which; `{ style: 'whip' }` overrides it.
+
+### 💥 Hits that feel good
+
+One character hitting another, with the things that make a hit feel heavy: a wind-up, a step in for melee weapons,
+everything **freezing for a moment on contact (hit-stop) while the screen shakes**, then the target's flash, knock-back
+and damage number, or a knock-out. Any of the 23 million characters against any monster or person.
+
+```js
+const act = spell.act(knight, 'slime', { element: 'fire' })   // frames at 12 fps: attacker on the left, facing right
+act.hits    // [{ frame: 5, time: 0.417, freeze: 0.25, shake: 2, push: 2 }]: reproduce the feel in your own game
+act.cues    // the swing and the hit, as spell.sfx() calls with their times; act.play() plays them in a browser
+spell.act(samurai, 'skeleton', { ko: true })                   // crit, death, gone
+await spell.act(knight, 'goblin').scale(4).save('hit.gif')     // a GIF to post anywhere
+// npx pixspell act hero --hand sword --vs slime --ko --scale 4 -o hit.gif
+```
+
+<img src="docs/img/acts.png" alt="Six duels: a knight slashes a slime with fire, an archer shoots a wolf, a mage hits a golem with ice, a samurai knocks out a skeleton, a viking skeleton smashes a mimic with poison, and a tall hanbok dancer hits a tall goblin with holy light" width="756">
+
+Use the frames for cutscenes, turn-based battles and GIFs. In a real-time game, draw your characters as usual and
+apply `act.hits` when your hitbox connects: pause for `freeze` seconds and shake the camera by `shake` pixels.
+In the [character maker](https://olebangpad.github.io/pixspell/) pick **⚔ Fight** and an opponent.
 
 ### ✨ 665 game effects
 
@@ -613,6 +634,7 @@ import { spell, compose, sheet, text, Pixmap } from './src/index.js'
 | `spell.char.parts` · `spell.char.count()` | every body / hat / hand / off-hand id · number of combinations |
 | `spell.walk(spec, dir)` | walk cycle `down` `up` `left` `right` (24×24 frames, `.fps`) |
 | `spell.action(spec, name, element)` | 8 frames (32×32, `.fps`) of a character doing `attack` `hit` `heal` `levelup` `cast` `death` |
+| `spell.act(attacker, target, { element, ko })` | one character hitting another: frames at 12 fps plus `.hits` (hit-stop and shake to reproduce), `.cues` (sounds and when), `.feet`, `.play()` |
 | `spell.fx(name, { element, size, seed, light })` | a procedural effect: frames with `.fps` and `.loop`, glowing (`light: false` for flat); `spell.fx.list` has every name |
 | `spell.fx.sequence(steps)` | chain or overlap effects into one animation |
 | `spell.status(spec, effect, { walk })` | a character with a status effect on it (32×32 frames) |

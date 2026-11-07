@@ -90,6 +90,22 @@ The attack effect follows the held weapon (`spell.action.styleOf(spec)`): sword/
 axe/hammer/pickaxe smash, bow shoot, staff/wand magic, rod whip, torch burn, flower/lollipop bonk, empty hand punch.
 Force one with `{ style: 'whip' }`.
 
+One character hitting another, with game feel (wind-up, a step in for melee, hit-stop, screen shake, the target's
+reaction, sounds). Both sides can be any character or monster body:
+
+```js
+const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
+const duel = spell.act(knight, 'slime', { element: 'fire' })   // frames at 12 fps, attacker on the left facing right
+duel.hits[0]      // { frame, time, freeze: 0.25, shake: 2, push: 2 }: pause the game and shake the camera this much
+duel.cues         // [{ frame, time, sound, opts }]: spell.sfx(sound, opts) at each time (duel.play() in a browser)
+duel.feet         // { attacker: [x, y], target: [x, y] } in the frame
+spell.act(knight, 'goblin', { ko: true })                     // a knock-out: crit, death, the target is gone
+```
+
+Use the frames for cutscenes, turn-based battles and GIFs (`duel.scale(4).save('hit.gif')`). In a real-time game, keep
+drawing your own characters and apply `duel.hits` when your hitbox connects. Options: `element`, `style`, `ko`,
+`amount`, `freeze` (seconds), `shake` (px), `distance` (px between feet), `lunge: false`, `grid`.
+
 ## Effects
 
 110 procedural effects (`spell.fx.list`), each in up to 11 colors and at any size; every id, its frames and colors are in [catalog.md](catalog.md).

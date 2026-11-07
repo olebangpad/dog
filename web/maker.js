@@ -26,6 +26,8 @@ let history = []
 let seed = null
 let action = null // null = idle
 let element = null
+let opponent = 'slime' // who the character fights when the action is 'fight'
+const OPPONENTS = ['slime', 'goblin', 'skeleton', 'wolf', 'golem', 'ghost', 'mimic', 'baby-dragon']
 let preview = [] // what the stage plays: 32 wide, as tall as the character needs
 let heightPref = null // the height picked in the Height row; rolls and presets keep it (it only applies to people)
 
@@ -61,6 +63,10 @@ function codeFor(s) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
     return `${imp}const frames = spell.walk(${obj}, '${walkDir()}')\n// ${frames.length} frames, ${frames[0].w}x${frames[0].h}, feet at frames.origin, play at frames.fps (${frames.fps})\ndocument.body.append(frames[1].scale(8).toCanvas())`
   }
+  if (action === 'fight') {
+    const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
+    return `${imp}const act = spell.act(${obj}, '${opponent}'${element ? `, { element: '${element}' }` : ''})\n// ${frames.length} frames ${frames[0].w}x${frames[0].h} at act.fps; act.hits has the hit-stop and shake, act.play() its sounds\ndocument.body.append(act[${frames.hits[0].frame}].scale(6).toCanvas())`
+  }
   if (action) {
     const obj = `{ body: '${s.body}'${opts.length ? ', ' + opts.join(', ') : ''} }`
     return `${imp}const frames = spell.action(${obj}, '${action}'${element ? `, '${element}'` : ''})\n// ${frames.length} frames, ${frames[0].w}x${frames[0].h}, feet at frames.origin, play at frames.fps (${frames.fps})\ndocument.body.append(frames[2].scale(8).toCanvas())`
@@ -72,7 +78,11 @@ function codeFor(s) {
 // ---------------------------------------------------------------- render
 function refresh({ pickers = true } = {}) {
   spec = cleanSpec(spec)
-  if (walkDir()) {
+  if (action === 'fight') {
+    frames = spell.act(spec, opponent, { element: element ?? undefined })
+    fps = frames.fps
+    preview = [...frames, ...Array(4).fill(frames[frames.length - 1])] // a short pause between loops
+  } else if (walkDir()) {
     frames = spell.walk(spec, walkDir())
     fps = frames.fps
     preview = frames.map((f) => new Pixmap(ACTION_SIZE, ACTION_SIZE + f.h - CHAR_SIZE).draw(f, 4, 8))
@@ -94,7 +104,7 @@ function refresh({ pickers = true } = {}) {
   $('#mk-strip').disabled = frames.length < 2
   $('#maker-seed').textContent = seed == null ? '' : `seed ${seed}`
   if (pickers) renderPickers()
-  writeHash('c', encode({ ...spec, action, element }))
+  writeHash('c', encode({ ...spec, action, element, ...(action === 'fight' ? { opponent } : {}) }))
   $('#mk-play').href = `game.html#c=${encode(spec)}`
 }
 
@@ -196,7 +206,9 @@ function actionPicker() {
       btn('Idle', !action, () => { action = null; refresh() }),
       [...spell.walk.dirs, ...spell.walk.diagonals].map((d) => btn(`Walk ${WALK_ARROWS[d]}`, action === `walk-${d}`, () => { action = `walk-${d}`; refresh() }, `Walk ${d}`))),
     h('div', { class: 'seg wrap actions' },
-      spell.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() }))),
+      spell.action.list.map((a) => btn(ACTION_LABELS[a] ?? a, action === a, () => { action = a; refresh() })),
+      btn('⚔ Fight', action === 'fight', () => { action = 'fight'; refresh(); frames.play?.() }, 'Hit an opponent: wind-up, hit-stop, shake and its reaction, with sound')),
+    action === 'fight' ? h('div', { class: 'strip opponents' }, OPPONENTS.map((id) => tile(spell.char(id), `vs ${id}`, opponent === id, () => { opponent = id; refresh(); frames.play?.() }))) : null,
     h('div', { class: 'seg wrap elements' + (action && !walkDir() ? '' : ' muted-seg') },
       btn('Default', !element, () => { element = null; if (!action || walkDir()) action = 'attack'; refresh() }, 'Default effect colors'),
       spell.action.elements.map((e) => btn(`${ELEMENT_ICONS[e] ?? ''} ${e}`, element === e, () => { element = e; if (!action || walkDir()) action = 'attack'; refresh() }))),
@@ -230,7 +242,8 @@ export function initMaker({ openInStudio }) {
   if (fromLink) try {
     const s = decode(fromLink)
     if (looks[s.body]) {
-      action = spell.action.list.includes(s.action) || /^walk-(down|up|left|right)$/.test(s.action) ? s.action : null
+      action = spell.action.list.includes(s.action) || s.action === 'fight' || /^walk-[a-z-]+$/.test(s.action) ? s.action : null
+      if (OPPONENTS.includes(s.opponent)) opponent = s.opponent
       element = ELEMENTS[s.element] ? s.element : null
       spec = s
       if (s.height === 24) heightPref = 24

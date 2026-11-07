@@ -22,7 +22,7 @@ const b64 = (bytes) => Buffer.from(bytes).toString('base64')
 
 const ITEM = {
   type: 'object',
-  description: 'One PixSpell asset. Give exactly one of sprite, char, fx, sfx or music; with char, optionally one of action, walk or status.',
+  description: 'One PixSpell asset. Give exactly one of sprite, char, fx, sfx or music; with char, optionally one of action, walk, status or vs.',
   properties: {
     sprite: { type: 'string', description: 'Sprite id, e.g. "slime-pink", "sword-gold", "grass", "chest". See the catalog tool.' },
     char: {
@@ -36,6 +36,8 @@ const ITEM = {
     action: { type: 'string', enum: spell.action.list, description: 'With char: an 8-frame 32x32 action' },
     walk: { type: 'string', enum: [...spell.walk.dirs, ...spell.walk.diagonals], description: 'With char: a walk cycle in this direction (8 directions)' },
     status: { type: 'string', description: 'With char: a status effect on it, e.g. "burning", "frozen", "poisoned", "sleep"' },
+    vs: { type: 'string', description: 'With char: it hits this character ("slime", "goblin", "wolf"...): wind-up, hit-stop, shake, reaction (spell.act)' },
+    ko: { type: 'boolean', description: 'With vs: the target is knocked out' },
     fx: { type: 'string', description: 'Effect name, e.g. "meteor", "slash", "explosion", "heal", "rain". See the catalog tool.' },
     sfx: { type: 'string', description: 'Sound name, e.g. "slash", "coin", "jump", "levelup". See the catalog tool.' },
     music: { type: 'string', description: 'Music track: "title", "town", "field", "dungeon", "battle", "boss", "victory"... See the catalog tool.' },

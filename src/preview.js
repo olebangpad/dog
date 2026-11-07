@@ -103,6 +103,7 @@ export function previewSheet(entries, { zoom, maxFrames = 16, width = 1200 } = {
 // { char: 'hero' | { body, hat, hand, offhand, A }, grid? } -> spell.char.frames(spec)
 // { char, action: 'attack', element? }                   -> spell.action(spec, action, opts)
 // { char, walk: 'left' }                                 -> spell.walk(spec, dir)
+// { char, vs: 'slime', ko?, element? }                   -> spell.act(spec, target, opts)
 // { char, status: 'burning', element? }                  -> spell.status(spec, effect, opts)
 // { fx: 'meteor', element?, size?, seed?, A? }           -> spell.fx(name, opts)
 // { sfx: 'slash', element?, pitch?, seed? }              -> spell.sfx(name, opts)
@@ -110,6 +111,7 @@ export function previewSheet(entries, { zoom, maxFrames = 16, width = 1200 } = {
 
 const pickOpts = (item, keys) => Object.fromEntries(keys.filter((k) => item[k] != null).map((k) => [k, item[k]]))
 const RAMPS = ['A', 'B', 'C']
+const ACT_OPTS = ['element', 'style', 'ko', 'amount', 'freeze', 'shake', 'distance', 'lunge', 'grid']
 const charSpec = (item) => {
   const spec = typeof item.char === 'string' ? { body: item.char } : { ...item.char }
   if (!spec.body) throw new Error('pixspell: char needs a body, e.g. "hero" or { "body": "hero", "hat": "knight" }')
@@ -124,6 +126,7 @@ export function resolveItem(spell, item) {
   if (item.fx) return spell.fx(item.fx, pickOpts(item, ['element', 'size', 'seed', 'grid', 'light', ...RAMPS]))
   if (item.char && item.action) return spell.action(charSpec(item), item.action, pickOpts(item, ['element', 'grid', 'amount', 'text', 'style']))
   if (item.char && item.walk) return spell.walk({ ...charSpec(item), ...pickOpts(item, ['grid']) }, item.walk)
+  if (item.char && item.vs) return spell.act(charSpec(item), item.vs, pickOpts(item, ACT_OPTS))
   if (item.char && item.status) return spell.status(charSpec(item), item.status, pickOpts(item, ['element', 'grid', 'size']))
   if (item.char) return spell.char.frames({ ...charSpec(item), ...pickOpts(item, ['grid', ...RAMPS]) })
   if (item.sprite) return spell.frames(item.sprite, pickOpts(item, ['grid', ...RAMPS]))
@@ -140,12 +143,13 @@ const args = (...xs) => xs.filter((x) => x !== '' && x != null).join(', ')
 /** The JavaScript call an item stands for, to paste into a game. */
 export function itemCode(item) {
   const spec = item.char && (typeof item.char === 'string' && !item.grid && !RAMPS.some((k) => item[k]) ? lit(item.char) : null)
-  const charArg = () => spec ?? obj({ ...charSpec(item), ...(item.action || item.status ? {} : pickOpts(item, ['grid', ...RAMPS])) })
+  const charArg = () => spec ?? obj({ ...charSpec(item), ...(item.action || item.status || item.vs ? {} : pickOpts(item, ['grid', ...RAMPS])) })
   if (item.music) return `spell.music(${args(lit(item.music), obj(pickOpts(item, ['key', 'tempo', 'seed'])))})`
   if (item.sfx) return `spell.sfx(${args(lit(item.sfx), obj(pickOpts(item, ['element', 'pitch', 'seed'])))})`
   if (item.fx) return `spell.fx(${args(lit(item.fx), obj(pickOpts(item, ['element', 'size', 'seed', 'grid', 'light', ...RAMPS])))})`
   if (item.char && item.action) return `spell.action(${args(charArg(), lit(item.action), obj(pickOpts(item, ['element', 'grid', 'amount', 'text', 'style'])))})`
   if (item.char && item.walk) return `spell.walk(${args(item.grid ? obj({ ...charSpec(item), grid: item.grid }) : charArg(), lit(item.walk))})`
+  if (item.char && item.vs) return `spell.act(${args(spec ?? obj(charSpec(item)), lit(item.vs), obj(pickOpts(item, ACT_OPTS)))})`
   if (item.char && item.status) return `spell.status(${args(charArg(), lit(item.status), obj(pickOpts(item, ['element', 'grid', 'size'])))})`
   if (item.char) return `spell.char.frames(${charArg()})`
   if (item.sprite) return `spell.frames(${args(lit(item.sprite), obj(pickOpts(item, ['grid', ...RAMPS])))})`

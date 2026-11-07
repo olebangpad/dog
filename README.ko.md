@@ -56,14 +56,14 @@ document.body.append(knight.scale(8).toCanvas())
   <tr>
     <td align="center"><img src="docs/img/show/grids.png" width="240" alt="8, 16, 32, 64픽셀 타일로 그린 같은 기사"><br><sub><code>spell.char(knight, { grid: 8 })</code><br>8·16·32·64픽셀 타일</sub></td>
     <td align="center"><img src="docs/img/show/status.png" width="240" alt="불타는 해골"><br><sub><code>spell.status(skeleton, 'burning')</code><br>누구에게나 상태이상</sub></td>
-    <td align="center"><img src="docs/img/show/levelup.png" width="240" alt="왕관 쓴 영웅의 레벨업"><br><sub><code>spell.action(king, 'levelup')</code><br>소리도 하나씩: <code>spell.sfx('levelup')</code></sub></td>
+    <td align="center"><img src="docs/img/show/act.png" width="240" alt="기사가 다가가 불꽃 검으로 슬라임을 베는 장면: 맞는 순간 멈추고 화면이 흔들리며 슬라임이 불탑니다"><br><sub><code>spell.act(knight, 'slime', { element: 'fire' })</code><br>역경직, 화면 흔들림, 소리까지</sub></td>
   </tr>
 </table>
 
 <sub>각 타일은 아래 적힌 코드로 그린 것입니다(README용으로 확대). 생성 코드는 <a href="scripts/build.js"><code>scripts/build.js</code></a>에 있습니다.
 <code>knight</code>는 <code>{ body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }</code>이고, <code>mage</code>, <code>skeleton</code>, <code>king</code>도 같은 형태의 스펙입니다.</sub>
 
-**새 기능:** [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [2등신 또는 큰 키](#-2등신-또는-큰-키) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
+**새 기능:** [역경직과 화면 흔들림이 있는 타격 연출](#-손맛-있는-타격) · [GIF 내보내기](#-api) · [전통 옷을 입은 세계의 사람들과 피부색 6가지](#-세계의-사람들) · [2등신 또는 큰 키](#-2등신-또는-큰-키) · [세계를 만드는 타일·소품 42종](#-수록-스프라이트) · [새 몬스터 25종](#-캐릭터-메이커) · [8방향 걷기](#-8방향-걷기) · 새 아이템 26종 · [자연스럽게 이어지는 지형(오토타일)](#%EF%B8%8F-자연스럽게-이어지는-지형) · [레트로 팔레트](#%EF%B8%8F-레트로-팔레트) · [내 PNG 가져오기](#%EF%B8%8F-내-그림-가져오기) · [UI 키트](#-ui-키트) · [음악](#-코드로-만든-음악) · [내 GitHub 계정이 게임 영웅으로](#-내-github-계정이-게임-영웅으로) · 빛나는 이펙트 · AI 에이전트가 PixSpell로 만든 게임 [Spell Survivors](#-ai-에이전트가-pixspell로-만든-게임-하나) ·
 효과음 103개 · 모든 에셋 8~64픽셀 · `npx pixspell skill` 한 줄로 어느 Agent Skills 에이전트에든 스킬 설치 · [변경 기록](CHANGELOG.md)
 
 ## 왜 PixSpell인가요?
@@ -282,6 +282,27 @@ spell.action('hero-mage', 'cast', '#00ffcc')      // 재질 이름이나 hex 색
 
 공격 이펙트는 든 무기를 따라갑니다. 검은 베기, 단검은 찌르기, 창은 관통, 망치·도끼는 내려찍기, 활은 화살, 지팡이는 마법,
 채찍은 휘두르기, 횃불은 불꽃, 꽃은 뿅망치, 맨손은 주먹. `spell.action.styleOf(spec)`로 확인하고 `{ style: 'whip' }`로 바꿀 수 있습니다.
+
+### 💥 손맛 있는 타격
+
+한 캐릭터가 다른 캐릭터를 때리는 장면을 타격감까지 담아 만듭니다. 힘을 모으고, 근접 무기면 한 걸음 다가가고,
+**맞는 순간 모든 것이 잠깐 멈추며(역경직) 화면이 흔들리고**, 맞은 쪽은 번쩍이며 밀려나고 데미지 숫자가 뜨거나 쓰러집니다.
+2,300만 가지 캐릭터 누구든 어떤 몬스터나 사람과도 싸울 수 있습니다.
+
+```js
+const act = spell.act(knight, 'slime', { element: 'fire' })   // 12fps 프레임: 공격자는 왼쪽에서 오른쪽을 봅니다
+act.hits    // [{ frame: 5, time: 0.417, freeze: 0.25, shake: 2, push: 2 }]: 내 게임에서 같은 손맛을 재현할 값
+act.cues    // 휘두르는 소리와 맞는 소리를 spell.sfx() 호출과 시간으로. 브라우저에서는 act.play()가 재생합니다
+spell.act(samurai, 'skeleton', { ko: true })                   // 치명타, 쓰러짐, 사라짐
+await spell.act(knight, 'goblin').scale(4).save('hit.gif')     // 어디든 올릴 수 있는 GIF
+// npx pixspell act hero --hand sword --vs slime --ko --scale 4 -o hit.gif
+```
+
+<img src="docs/img/acts.png" alt="여섯 가지 대결: 기사가 불꽃으로 슬라임을 베고, 궁수가 늑대를 쏘고, 마법사가 얼음으로 골렘을 치고, 사무라이가 해골을 쓰러뜨리고, 바이킹 해골이 독으로 미믹을 내려찍고, 큰 키 한복 무용수가 큰 키 고블린을 빛으로 칩니다" width="756">
+
+프레임은 컷신, 턴제 전투, GIF에 그대로 쓰면 됩니다. 실시간 게임이라면 캐릭터는 평소처럼 그리고, 공격 판정이 닿을 때
+`act.hits`를 적용하세요. `freeze`초 동안 멈추고 카메라를 `shake`픽셀만큼 흔들면 됩니다.
+[캐릭터 메이커](https://olebangpad.github.io/pixspell/)에서 **⚔ Fight**와 상대를 고르면 바로 볼 수 있습니다.
 
 ### ✨ 이펙트 665종
 
@@ -569,6 +590,7 @@ PR에서도 픽셀 변경이 텍스트 diff로 보입니다.
 | `spell.char.world` · `spell.char.skins` | 미리 만든 세계의 사람들 26명(`{ id, name, region, spec }`) · `C`에 쓰는 피부색 6가지 |
 | `spell.walk(spec, dir)` | 걷기 `down` `up` `left` `right` (24×24 프레임, `.fps`) |
 | `spell.action(spec, name, element)` | 행동 애니메이션 8프레임 (32×32, `.fps`) |
+| `spell.act(attacker, target, { element, ko })` | 한 캐릭터가 다른 캐릭터를 때리는 장면: 12fps 프레임과 `.hits`(재현할 역경직·흔들림), `.cues`(소리와 시간), `.feet`, `.play()` |
 | `spell.fx(name, { element, size, seed, light })` | 코드로 만든 이펙트: `.fps`, `.loop`가 붙은 프레임 배열, 은은하게 빛남(`light: false`면 빛 없음). 전체 이름은 `spell.fx.list` |
 | `spell.fx.sequence(steps)` | 이펙트를 이어 붙이거나 겹쳐서 하나의 애니메이션으로 |
 | `spell.status(spec, effect, { walk })` | 상태이상이 걸린 캐릭터 (32×32 프레임) |

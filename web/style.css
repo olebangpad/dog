@@ -58,7 +58,7 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   --check-a: #222e26; --check-b: #1a241e;
   background: repeating-conic-gradient(var(--check-a) 0 25%, var(--check-b) 0 50%) 0 0 / 20px 20px;
 }
-.maker-stage canvas { width: 88%; height: 88%; }
+.maker-stage canvas { width: 88%; height: 88%; object-fit: contain; image-rendering: pixelated; } /* wide fights and tall people keep their shape */
 .maker-roll { display: flex; gap: 8px; }
 .maker-roll .roll { flex: 1; font-size: 16px; padding: 12px; }
 .maker-count { margin: 0; font-size: 12px; text-align: center; }

@@ -607,6 +607,12 @@ test('CLI renders effects and effect packs', async () => {
     assert.equal(png.readUInt32BE(16), 48)
     assert.match(execFileSync('node', [cli, 'fx', 'burning', '--on', 'slime', '--strip', '-o', join(dir, 's.png')], { encoding: 'utf8' }), /loops/)
     assert.match(execFileSync('node', [cli, 'fxpack', 'meteor', 'poof', '-o', join(dir, 'p.zip')], { encoding: 'utf8' }), /2 effects/)
+    // pixspell act: a GIF by default name, and the timing a game needs on stderr
+    const { spawnSync } = await import('node:child_process')
+    const act = spawnSync('node', [cli, 'act', 'hero', '--hand', 'sword', '--vs', 'slime', '--ko'], { cwd: dir, encoding: 'utf8' })
+    assert.equal(act.status, 0, act.stderr)
+    assert.match(act.stderr, /Hit at frame \d+ .*sounds: spell\.sfx\('slash'\).*spell\.sfx\('death'\)/s)
+    assert.equal(readFileSync(join(dir, 'hero-vs-slime.gif')).subarray(0, 6).toString(), 'GIF89a')
     // pixspell skill: copies the skill where Agent Skills clients look, with a name matching its folder (the spec's rule)
     execFileSync('node', [cli, 'skill'], { cwd: dir })
     const skill = readFileSync(join(dir, '.agents', 'skills', 'pixspell', 'SKILL.md'), 'utf8')
@@ -1445,4 +1451,62 @@ test('GIF export: exact colors, transparency, timing and loop; median cut when t
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
+})
+
+test('spell.act: wind-up, hit-stop with shake, reaction, sounds and where the feet are', () => {
+  const knight = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield' }
+  const act = spell.act(knight, 'slime', { element: 'fire' })
+  assert.equal(act.fps, 12)
+  assert.equal(act.loop, false)
+  assert.deepEqual(act.origin, [0, 0])
+  assert.ok(act.every((f) => f.w === act[0].w && f.h === act[0].h))
+  // the extras are non-enumerable: the act still compares like a plain array of frames
+  assert.deepEqual(Object.keys(act).filter((k) => !/^\d+$/.test(k)).sort(), ['fps', 'loop'])
+  const [hit] = act.hits
+  assert.deepEqual([hit.freeze, hit.shake, hit.push], [0.25, 2, 2])
+  assert.equal(hit.time, Math.round((hit.frame / 12) * 1000) / 1000)
+  // frozen: the same pose for every freeze frame, shaken around
+  const frozen = act.slice(hit.frame, hit.frame + 3)
+  const box = (f) => { let x0 = f.w, y0 = f.h; for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) if (f.alpha(x, y)) { x0 = Math.min(x0, x); y0 = Math.min(y0, y) } return [x0, y0] }
+  assert.notDeepEqual(box(frozen[0]), box(frozen[1]), 'the screen shakes while frozen')
+  // the sounds exist and come in order: the swing, then the hit on contact
+  assert.deepEqual(act.cues.map((c) => c.sound), ['slash', 'hit'])
+  assert.equal(act.cues[1].frame, hit.frame)
+  assert.deepEqual(act.cues[0].opts, { element: 'fire' })
+  for (const c of act.cues) assert.ok(spell.sfx.list.includes(c.sound), c.sound)
+  // feet: an opaque pixel on the bottom row of each character, attacker on the left
+  const foot = (f, [x, y]) => [-3, -2, -1, 0, 1, 2, 3].some((d) => f.alpha(x + d, y))
+  assert.ok(act.feet.attacker[0] < act.feet.target[0])
+  assert.ok(foot(act[0], act.feet.attacker) && foot(act[0], act.feet.target))
+  assert.ok(!act[0].alpha(act.feet.target[0], act.feet.target[1] + 1), 'nothing below the feet')
+
+  // a knock-out: crit, then death, and the target is gone at the end
+  const ko = spell.act(knight, 'goblin', { ko: true })
+  assert.deepEqual(ko.cues.map((c) => c.sound), ['slash', 'crit', 'death'])
+  const last = ko[ko.length - 1]
+  assert.ok(!foot(last, ko.feet.target), 'the knocked-out target is gone')
+  assert.ok(foot(last, ko.feet.attacker))
+
+  // melee attackers dash in and step back (2 frames more), archers and mages stay put
+  const hammer = { body: 'hero', hand: 'hammer' }, bow = { body: 'hero', hand: 'bow' }
+  assert.equal(spell.act(hammer, 'slime').length, spell.act(hammer, 'slime', { lunge: false }).length + 2)
+  assert.equal(spell.act(bow, 'slime').length, spell.act(bow, 'slime', { lunge: false }).length)
+  // no freeze, no number; every attack style; tall characters; a bigger grid
+  assert.equal(spell.act(knight, 'slime', { freeze: 0, label: false }).length, act.length - 3)
+  assert.deepEqual(spell.act.styles, spell.action.styles)
+  for (const hand of ['bow', 'staff', 'hammer', 'spear', 'dagger', 'torch']) {
+    const a = spell.act({ body: 'hero', hand }, 'wolf')
+    assert.equal(a.cues[0].sound, spell.action.styleOf({ body: 'hero', hand }))
+    assert.ok(a.hits[0].frame > 0 && a.hits[0].frame < a.length)
+  }
+  const tall = spell.act({ body: 'samurai', hand: 'katana', height: 24 }, { body: 'kimono', height: 24 })
+  assert.equal(tall[0].h, act[0].h + 8)
+  assert.ok(foot(tall[0], tall.feet.attacker) && foot(tall[0], tall.feet.target))
+  const big = spell.act(knight, 'slime', { element: 'fire', grid: 32 })
+  assert.deepEqual([big[0].w, big[0].h, big.hits[0].shake], [act[0].w * 2, act[0].h * 2, 4])
+  assert.deepEqual(big.feet.target, [act.feet.target[0] * 2, act.feet.target[1] * 2 + 1])
+
+  // good errors
+  assert.throws(() => spell.act('hero', 'slimey'), /Did you mean "slime"/)
+  assert.throws(() => spell.act('hero', 'bat'), /"bat" is a sprite, not a body/)
 })

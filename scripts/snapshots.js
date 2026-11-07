@@ -60,6 +60,11 @@ export async function computeSnapshots() {
   for (const a of ['attack', 'hit', 'levelup']) out[`tall:action:${a}`] = fnv(spell.action({ ...specs[0], height: 24 }, a))
   out['tall:status'] = fnv(spell.status({ ...specs[0], height: 24 }, 'burning'))
   out['tall:pack'] = fnv([spell.pack({ ...specs[0], height: 24 }, { actions: ['attack'] }).image])
+  // acts: every attack style against a monster, a knock-out, tall people, a bigger grid
+  for (const st of spell.act.styles) out[`act:${st}`] = fnv(spell.act(specs[0], 'goblin', { style: st }))
+  out['act:ko-fire'] = fnv(spell.act(specs[0], 'slime', { ko: true, element: 'fire' }))
+  out['act:tall'] = fnv(spell.act({ body: 'samurai', hand: 'katana', height: 24 }, { body: 'kimono', height: 24 }, { element: 'ice' }))
+  out['act:grid32'] = fnv(spell.act(specs[1], 'wolf', { grid: 32 }))
   // sounds: the 16-bit PCM bytes, so tiny float differences below one step don't count
   const pcm = (sound) => ({ w: sound.samples.length, h: sound.sampleRate, data: sound.toWAV().subarray(44) })
   for (const id of spell.sfx.list) out[`sfx:${id}`] = fnv([pcm(spell.sfx(id))])

@@ -155,6 +155,40 @@ export interface ActionOptions extends GridOptions {
   label?: boolean
   /** Attack only: override the style the held item would pick. */
   style?: AttackStyle
+  /** Frame width in px (default 32): wider frames fit effects that reach further; the character stays centered. */
+  width?: number
+}
+
+export interface ActOptions extends GridOptions {
+  element?: ElementName | Color
+  /** Override the attack style the held item would pick. */
+  style?: AttackStyle
+  /** Knock the target out: it plays its death and is gone. Default false. */
+  ko?: boolean
+  /** The damage number (default '-7', or '-99' on a knock-out). */
+  amount?: string
+  /** false hides the damage number. */
+  label?: boolean
+  /** Seconds everything freezes on contact (hit-stop). Default 0.25. */
+  freeze?: number
+  /** Screen shake in px while frozen (at 16 px; scaled with grid). Default 2. */
+  shake?: number
+  /** Gap between the two characters' feet in px. Default 26. */
+  distance?: number
+  /** Melee attackers step in to land the blow and step back after (default true); false keeps them in place. */
+  lunge?: boolean
+}
+
+/** One character hitting another: frames at 12 fps, plus what a game needs to reproduce the feel. */
+export interface Act extends Frames {
+  /** When the blow lands: freeze the game for `freeze` seconds, shake the screen by `shake` px, push the target `push` px. */
+  hits: { frame: number; time: number; freeze: number; shake: number; push: number }[]
+  /** Sounds to play: spell.sfx(sound, opts) at `time` seconds (act.play() does it). */
+  cues: { frame: number; time: number; sound: string; opts: { element?: ElementName | Color } }[]
+  /** Where each character's feet are in the frame at rest: [x, y]. */
+  feet: { attacker: [number, number]; target: [number, number] }
+  /** Browser: play the cues at their times (drawing the frames is up to you). */
+  play(opts?: { volume?: number }): { stop(): void }
 }
 
 export interface Pack {
@@ -354,6 +388,14 @@ export interface PixSpell {
     styleOf(spec: string | CharacterSpec): AttackStyle
     fps(name: ActionName): number
     size: number
+  }
+  /**
+   * One character hitting another, with game feel: wind-up, swing with its weapon's effect, hit-stop and shake on contact,
+   * then the target's reaction (or knock-out). The attacker is on the left facing right.
+   */
+  act: {
+    (attacker: string | CharacterSpec, target: string | CharacterSpec, opts?: ActOptions): Act
+    styles: AttackStyle[]
   }
   /** Character + status effect, 32x32 frames, idle or walking. */
   status(spec: string | CharacterSpec, effect: string, opts?: GridOptions & { walk?: WalkDir; element?: FxColorName | Color; size?: number }): Frames

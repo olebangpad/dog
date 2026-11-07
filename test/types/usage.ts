@@ -1,5 +1,5 @@
 // Compiled with tsc (noEmit, strict) to check src/index.d.ts against real usage.
-import { spell, compose, sheet, text, Pixmap, Sound, MATERIALS, type CharacterSpec, type Frames, type SoundPack, type Pack } from '../../src/index.js'
+import { spell, compose, sheet, text, Pixmap, Sound, MATERIALS, type CharacterSpec, type Frames, type SoundPack, type Pack, type Act } from '../../src/index.js'
 
 const knight: CharacterSpec = { body: 'hero', hat: 'knight', hand: 'sword', offhand: 'shield', A: 'red' }
 const img: Pixmap = spell('potion', { A: '#ff4fd8' }).scale(8).outline('#fff').hue(30)
@@ -67,6 +67,11 @@ console.log(profile.w, rm.characters.w, rm.faces.h, Object.keys(rm.files), rm.zi
 const gif: Uint8Array = spell.fx('meteor').toGIF({ background: '#000000' })
 const stillGif: Uint8Array = spell('sword').toGIF()
 console.log(gif.length, stillGif.length)
+const duel: Act = spell.act(knight, 'slime', { element: 'fire', ko: true, lunge: false, grid: 32 })
+const [hitAt] = duel.hits
+const cue: string = duel.cues[0].sound
+duel.play({ volume: 0.5 }).stop()
+console.log(hitAt.freeze, hitAt.shake, cue, duel.feet.target[0], spell.act.styles.length, spell.action(knight, 'attack', { width: 64 }).length)
 const ramp: string = MATERIALS.gold[2]
 const n: number = spell.char.count() + spell.list({ category: 'effects' }).length + frames.length + image.w
 console.log(img, char, short, fps, attack, hit, style, burning, zipped, fx.loop, seq, fxp.animations, random, combined, label, ramp, n)

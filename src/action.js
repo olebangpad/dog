@@ -21,7 +21,7 @@ const isRampValue = (v) => Array.isArray(v) || MATERIALS[v] != null || isColor(v
 
 export const ACTION_SIZE = 32
 export const ACTION_FRAMES = 8
-const CHAR_AT = [4, 8] // the 24x24 character inside the 32x32 action frame
+let CHAR_AT = [4, 8] // the 24x24 character inside the 32x32 action frame (centered in a wider one)
 
 /** Element name -> material used for its effects. Any material name or hex color works too. */
 export const ELEMENTS = { fire: 'orange', ice: 'ice', poison: 'lime', holy: 'gold', dark: 'purple' }
@@ -31,8 +31,8 @@ const PARTICLES = [[-8, 4, 0], [7, 2, 1], [-3, -3, 2], [6, -6, 3], [-7, -5, 4], 
 
 export function createActions(spell, looks) {
   // frames are 32 wide and 32 tall, plus whatever a taller character (spec.height) adds, so the feet stay at the bottom
-  let frameH = ACTION_SIZE
-  const blank = () => new Pixmap(ACTION_SIZE, frameH)
+  let frameH = ACTION_SIZE, frameW = ACTION_SIZE // opts.width widens the frame around the character so long effects aren't cut off
+  const blank = () => new Pixmap(frameW, frameH)
   const frame = (...layers) => layers.flat().filter(Boolean).reduce((c, l) => c.draw(l), blank())
   const centered = (img, cx, cy) => img.at(Math.round(cx - img.w / 2), Math.round(cy - img.h / 2))
   const charAt = (img, dx = 0, dy = 0) => img.at(CHAR_AT[0] + dx, CHAR_AT[1] + dy)
@@ -123,7 +123,7 @@ export function createActions(spell, looks) {
     magic: { lunge: [0, 0, -1, -1, 0, 0, 0, 0], draw: (c, i) => {
       const orb = fxf(c, 'orb', 14)
       if (i >= 1 && i <= 5) return at(orb[i % orb.length], c.pts.hand[0] - 5 + (i - 1) * 4, c.pts.hand[1] - 15)
-      if (i >= 6) return at(play(fxf(c, 'burst', 16), i, 6), 32 - 16, c.pts.hand[1] - 16)
+      if (i >= 6) return at(play(fxf(c, 'burst', 16), i, 6), c.pts.hand[0] - 6, c.pts.hand[1] - 16) // in front of the hand
       return null
     } },
   }
@@ -212,6 +212,9 @@ export function createActions(spell, looks) {
   function action(spec, name, opts = {}) {
     const a = ACTIONS[name]
     if (!a) throw new Error(`pixspell: unknown action "${name}". Actions: ${Object.keys(ACTIONS).join(', ')}.${didYouMean(name, Object.keys(ACTIONS))}`)
+    frameW = Math.max(ACTION_SIZE, (typeof opts === 'object' && opts.width) || ACTION_SIZE)
+    frameW += frameW % 2 // even, so the character sits exactly in the middle
+    CHAR_AT = [(frameW - 24) >> 1, 8]
     const c = setup(spec, opts, a.fallback)
     frameH = ACTION_SIZE + c.char(0).h - 24
     try {
@@ -220,6 +223,8 @@ export function createActions(spell, looks) {
       return frames
     } finally {
       frameH = ACTION_SIZE
+      frameW = ACTION_SIZE
+      CHAR_AT = [4, 8]
     }
   }
 
